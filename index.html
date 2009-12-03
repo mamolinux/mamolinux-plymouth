@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home | Repository Info for MamoLinux Plymouth</title>
+    
+    <!-- Stylesheets -->
+    <link href="https://hsbasu.github.io/styles/css-styles/styles.css" rel="stylesheet" type="text/css">
+    <link href="https://hsbasu.github.io/styles/css-styles/dark-styles.css" rel="stylesheet" type="text/css">
+    <link href="https://hsbasu.github.io/styles/css-styles/responsive_navbar.css" rel="stylesheet" type="text/css">
+    <link href="https://hsbasu.github.io/styles/css-styles/responsive_sections.css" rel="stylesheet" type="text/css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/styles/atom-one-light.min.css" rel="stylesheet" type="text/css">
+    <!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/4.0.0/github-markdown.min.css" rel="stylesheet" type="text/css"> -->
+    
+    <!-- Scripts -->
+	  <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+  	<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/1.1.1/marked.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/highlight.min.js" charset="utf-8"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/languages/javascript.min.js" charset="utf-8"></script> -->
+    <script src="https://hsbasu.github.io/styles/jscripts/header.js"></script>
+    <script src="https://hsbasu.github.io/styles/jscripts/footer.js"></script>
+    <script src="https://hsbasu.github.io/styles/jscripts/navbar.js"></script>
+  </head>
+  
+  <body>
+    <div id="header"></div>
+    <!-- Begin Navigation -->
+    <nav class="stickey bar">
+      <div class="topnav" id="myTopnav"></div>
+    </nav>
+    <!-- End Navigation -->
+    
+    <!-- Begin Content -->
+    <section>
+      <!-- Begin Articles -->
+      <div class="article-content" id="articles">
+        <template type="markdown">
+# [MamoLinux Plymouth](https://github.com/mamolinux/mamolinux-plymouth)
+
+<p class="badges">
+  <a class="badges" href="https://github.com/hsbasu/mamolinux-plymouth/blob/master/COPYING">
+    <img src="https://img.shields.io/github/license/hsbasu/mamolinux-plymouth?label=License" alt="License">
+  </a>
+  <a class="badges" href="#">
+    <img src="https://img.shields.io/github/repo-size/hsbasu/mamolinux-plymouth?label=Repo%20size" alt="GitHub repo size">
+  </a>
+  <a class="badges" href="https://github.com/hsbasu/mamolinux-plymouth/releases/latest">
+    <img src="https://img.shields.io/github/v/release/hsbasu/mamolinux-plymouth?label=Latest%20Stable%20Release" alt="GitHub release (latest by date)">
+  </a>
+  <a class="badges" href="https://github.com/hsbasu/mamolinux-plymouth/issues" target="_blank">
+    <img src="https://img.shields.io/github/issues/hsbasu/mamolinux-plymouth?label=Issues" alt="Open Issues">
+  </a>
+  <a class="badges" href="https://github.com/hsbasu/mamolinux-plymouth/pulls" target="_blank">
+    <img src="https://img.shields.io/github/issues-pr/hsbasu/mamolinux-plymouth?label=PR" alt="Open PRs">
+  </a>
+</p>
+
+Ubuntu-like Plymouth themes for MamoLinux. Replaces Ubuntu Logo with MamoLinux Logo.
+
+## Contents
+- [Building from source](#building-from-source)
+- [Contributors](#contributors)
+
+## ToDo
+1. [x] Add mamolinux-text theme
+2. [x] Add mamolinux-logo theme
+
+## Building from source
+Building plymouth theme from source is a bit tricky. The way I do it for **MamoLinux** is as follows:
+1. For the first time:
+	1. Create the git repo on GitHub and clone it:
+		```
+		git clone git@github.com:hsbasu/mamolinux-plymouth.git
+		cd mamolinux-plymouth
+		```
+	1. Add and fetch the source from ubuntu:
+		```
+		git remote add upstream-ubuntu https://git.launchpad.net/ubuntu/+source/plymouth
+		git fetch upstream-ubuntu
+		```
+	For subsequent times, go to step 2.
+2. Create a local release branch from the **unapplied** branch using commit hash or the unapplied branch for current ubuntu release:
+	```
+	git checkout -b mamolinux/{release} hash	# from commit hash
+	```
+	**Note**, If Launchpad PPA will be used to build the binary packages, then branch should be created from hashes where the patches are not applied.
+	
+	From the unapplied branch for current ubuntu release, use:
+	```
+	git checkout -b mamolinux/{release} upstream-ubuntu/ubuntu/{release}	# from unapplied branch
+	```
+	Replace `{release}` with `jammy`, `lunar` or other ubuntu release name.
+4. Modify the sources:
+	1. Put `mamolinux-logo.png` in `debian/local` and **delete** `ubuntu-logo.png`
+	2. Replace `ubuntu-logo.png` with `mamolinux-logo.png` in
+		```
+		debian/local/plymouth.hook#L120-L125		# look at Lines between 120 and 125
+		debian/patches/ubuntu-logo.patch#(L10-L15,L235-L240)
+		debian/rules#(L40-L45,L80-L90)
+		debian/source/include-binaries#L1-L5
+		themes/ubuntu-logo/Makefile.am#L1-L5
+		themes/ubuntu-logo/ubuntu-logo.script#L185-L190
+		```
+5. Commit the changes
+	```
+	git add debian/local/plymouth.hook\
+			 debian/patches/ubuntu-logo.patch\
+			 debian/rules\
+			 debian/source/include-binaries\
+			 themes/ubuntu-logo/Makefile.am\
+			 themes/ubuntu-logo/mamolinux-logo.png
+			 themes/ubuntu-logo/ubuntu-logo.png\
+			 themes/ubuntu-logo/ubuntu-logo.script
+	git commit
+	dch -D {release} -l mamolinux	# Increase version number with Myself as Source Changer
+	git commit -m "{latest-changelog-version}"
+	```
+6. Build packages using `pbuilder`. [Check this]() on how to build using `pbuilder`.
+	1. Copy `mamolinux-plymouth` and `plymouth_{version}.orig.tar.xz` to `~/pbuilder`
+	2. Open terminal at `~/pbuilder/mamolinux-plymouth`
+	3. Build locally:
+		1. Install the build dependencies available in *Build-Depends* section of `debian/contorl` file.
+		2. run `dpkg-buildpackage --no-sign`
+		
+		This will create `*.deb` files at `~/pbuilder`
+	4. To build locally and push to **Launchpad PPA**. Copy paste the following commands one-by-one:
+		```
+		debuild -S -d -us -uc	# creates unsigned sources
+		pbuilder-dist {release} build ../plymouth_{version}.dsc	# Generates deb packages for local testing
+		debuild -S -sa -d	# creates signed sources for uploading to Launchpad
+		cd ..
+		dput ppa:mamolinux/stable plymouth_{version}_source.changes
+7. After a few minutes `plymouth_{version}` will appear as **building** [here](https://launchpad.net/~mamolinux/+archive/ubuntu/stable/+packages)
+
+To build using launchpad recipe, after **Step 4** follow the steps below:
+1. install `git-build-recipe`.
+2. Create a file `plymouth.recipe` with the following content:
+	```
+	# git-build-recipe format 0.4 deb-version {debversion}
+	https://github.com/mamolinux/mamolinux-plymouth mamolinux/{release}
+	```
+3. Install the build dependencies available in *Build-Depends* section of `debian/contorl` file.
+4. Run `git-build-recipe --allow-fallback-to-native plymouth.recipe plymouth`. This will create the necessary `.dsc` file.
+5. Run `pbuilder-dist {release} plymouth/plymouth_*.dsc`. This will create `*.deb` files at `~/pbuilder/{release}_result` directory.
+
+## Contributors
+
+### [Himadri Sekhar Basu](https://hsbasu.github.io)
+Current maintainer.
+
+### [Ubuntu Developers](https://launchpad.net/~ubuntu-devel-discuss-lists)
+Original maintainer
+
+## Donations
+I am a freelance programmer. So, If you like this app and would like to offer me a coffee ( &#9749; ) to motivate me further, you can do so via:
+
+<a class="badges" href="https://liberapay.com/hsbasu/donate" target="_blank">
+  <img src="https://liberapay.com/assets/widgets/donate.svg" alt="Donate using Liberapay">
+</a>
+<a class="badges" href="https://paypal.me/hsbasu" target="_blank">
+  <img src="https://www.paypalobjects.com/webstatic/i/logo/rebrand/ppcom.svg" alt="Donate using PayPal">
+</a>
+<a class="badges" href="https://hsbasu.github.io/images/upi-qr.jpg" target="_blank">
+  <img src ="https://hsbasu.github.io/styles/icons/logo/svg/upi-logo.svg" alt="Paytm UPI">
+</a>
+
+## References:
+1. [plymouth package for ubuntu](https://launchpad.net/ubuntu/+source/plymouth)
+        </template>
+      </div>
+      <!-- End Articles -->
+    </section>
+    <!-- End Content -->
+    
+    <!-- Begin Footer -->
+    <footer class="w3-center bar">
+      <div id="footer"></div>
+      <div class="w3-center">
+        <p class="services">
+          <a class="badges" href="https://visitorbadge.io/status?path=hsbasu.github.io/template-repo">
+            <img class="services" src="https://api.visitorbadge.io/api/visitors?path=hsbasu.github.io/template-repo&label=Visits(Total)&labelColor=%23dce775&countColor=%23263759&style=flat" alt="Visits(Total)">
+          </a>
+          <a class="badges" href="https://visitorbadge.io/status?path=hsbasu.github.io/template-repo">
+            <img class="services" src="https://api.visitorbadge.io/api/daily?path=hsbasu.github.io/template-repo&label=Visits(Today)&labelColor=%2337d67a&countColor=%23263759&style=flat"  alt="Visits(Today)">
+          </a>
+        </p>
+      </div>
+    </footer>
+    <!-- End Footer -->
+    <script type="text/javascript" src="https://hsbasu.github.io/styles/jscripts/md_html.min.js">"render any markdown before applying themes"</script>
+    <script type="text/javascript" src="https://hsbasu.github.io/styles/jscripts/main.js"></script>
+  </body>
+</html>
