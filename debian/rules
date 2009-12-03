@@ -1,0 +1,47 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+
+CFLAGS = -Wall -g
+LDFLAGS = -Wl,--as-needed
+
+# Disable optimisations if noopt found in $DEB_BUILD_OPTIONS
+ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -O0
+	LDFLAGS += -Wl,-O0
+else
+	CFLAGS += -O2
+	LDFLAGS += -Wl,-O1
+endif
+
+override_dh_auto_configure:
+	dh_auto_configure -- CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
+		--libdir=/lib \
+		--datadir=/lib \
+		--disable-tracing \
+		--disable-tests \
+		--disable-gdm-transition \
+		--with-system-root-install \
+		--without-rhgb-compat-link \
+		--without-gdm-autostart-file \
+		--without-default-plugin
+# --with-logo=/usr/share/plymouth/bizcom.png
+# --with-background-color=0x5d5950
+# --with-background-start-color-stop=0x807c71
+# --with-background-end-color-stop=0x3a362f
+# --with-release-file=/etc/system-release
+
+# Don't start plymouth when installing!
+override_dh_installinit:
+	dh_installinit --noscripts
+
+# Make the initramfs scripts executable
+override_dh_fixperms:
+	dh_fixperms
+	chmod 755 debian/plymouth/usr/share/initramfs-tools/hooks/plymouth
+	chmod 755 debian/plymouth/usr/share/initramfs-tools/scripts/init-top/plymouth
+
+# Don't generate shlibs for plugins (ideally these wouldn't have a SONAME)
+override_dh_makeshlibs:
+	dh_makeshlibs -X/usr/lib/plymouth/

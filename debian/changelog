@@ -1,0 +1,171 @@
+plymouth (0.8.0~-1) lucid; urgency=low
+
+  [ Michael Vogt ]
+  * merged from the fastboot PPA
+
+  [ Scott James Remnant ]
+  * Rebased on latest GIT from bzr import.
+    - Directly applied debian/patches/01_default_fb.patch
+    - Directly applied debian/patches/03_set_default_plugin.patch
+    - Directly applied debian/patches/13_use_tty7.patch
+    - Directly applied debian/patches/11_create_pid_file.patch
+    - Dropped debian/patches/12_wait_for_sigterm.patch:
+      + We're not going to shutdown plymouth when X starts, simply
+        deactivate it.  Upstart pre-stop and SIGTERM handling should
+        therefore be sufficient.
+    - All other patches were from GIT and are already in the tree, so
+      dropped them too.
+  * Changed packaging to use dh 7 instead of cdbs.
+  * Changed to install into /lib rather than /usr
+  * Removed old init scripts and Upstart jobs to tidy up package.
+  * Added symbols file for the libraries.
+
+  * Disabled the crash handler, since it does something very silly when
+    X is running.
+  * Added initramfs conf that enables the framebuffer and plymouth unless
+    the root disk is on SSD.  The rationale is that SSD-based systems get
+    to the point where we can start plymouth in the real system just as
+    fast, while HDD-based systems have to do ureadahead first and we want
+    something pretty on screen while that happens.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 03 Dec 2009 19:10:53 +0000
+
+plymouth (0.8.0+git20090929-0ubuntu0.1~fastboot1) karmic; urgency=low
+
+  * New upstream release.
+  * Update 01_default_fb.patch. 
+  * debian/patches/11_create_pid_file.patch:
+    - Add --pid-file=filename parameter to the client so as to write
+      the pid to a file.
+  * debian/patches/12_wait_for_sigterm.patch:
+    - Add --wait-for-sigterm parameter to the client so as to wait for
+      SIGTERM before quitting.
+  * debian/patches/13_use_tty7.patch:
+    - Make plymouth use tty7 instead of tty1.
+
+ -- Alberto Milone <alberto.milone@canonical.com>  Wed, 11 Nov 2009 14:33:33 +0100
+
+plymouth (0.7.2-0ubuntu0.1~fastboot1) karmic; urgency=low
+
+  * New upstream release.
+  * Adapt the "plain" plugin (written by Michael Terry).
+  * 06_force_graphics_mode.patch:
+    - Make sure that graphics mode is always used.
+  
+  [ Michael Terry ]
+  * debian/patches/05_add_plain_plugin.patch:
+    - Add a plugin called 'plain' that just shows the logo in the center
+      of the screen, no animation, no progress.
+  * debian/initramfs-tools/hooks/plymouth:
+    - Work with hardy initramfs helper functions
+  * debian/patches/05_add_plain_plugin.patch:
+    - Never revert to TEXT mode, rather stay in GRAPHICS mode.
+  * debian/plymouth-shutdown:
+    - Add shutdown script to show plymouth when rebooting or shutting down.
+
+ -- Alberto Milone <alberto.milone@canonical.com>  Fri, 23 Oct 2009 15:31:43 +0200
+
+plymouth (0.8.0+git20090929-0ubuntu1~mvo1) karmic; urgency=low
+
+  * merged from the fastboot PPA
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 23 Jul 2009 11:14:55 +0200
+
+plymouth (0.7.0+git20090723-0ubuntu1~ppa1) karmic; urgency=low
+
+  [ Marcelo Boveto Shima ]
+  * Move the script plymouth from /usr/share/initramfs-tools/scripts/init-top to
+    /usr/share/initramfs-tools/scripts/local-top.
+    Fix plymouth loading with kms.
+
+  [ Michael Vogt ]
+  * updated to the current git
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 23 Jul 2009 11:14:55 +0200
+
+plymouth (0.7.0+git20090506-0ubuntu0.1~ppa2) jaunty; urgency=low
+
+  * exchange sym-links with real files in ./build-tools
+
+ -- Mirco Müller (MacSlow) <mirco.mueller@ubuntu.com>  Thu, 07 May 2009 10:17:12 +0100
+
+plymouth (0.7.0+git20090506-0ubuntu0.1~ppa1) jaunty; urgency=low
+
+  * update to latest plymouth upstream tarball
+  * dropped debian/patches/02_splash_cmdline.patch since this is now in upstream
+  * dropped debian/patches/04_support_solar_default.patch since this is now in
+    upstream
+
+ -- Mirco Müller (MacSlow) <mirco.mueller@ubuntu.com>  Wed, 06 May 2009 16:24:32 +0100
+
+plymouth (0.7.0+git20090207-0ubuntu0.1~ppa5) UNRELEASED; urgency=low
+
+  [ Michael Terry ]
+  * debian/compat, debian/control, debian/libplymouth-dev.install,
+    debian/libplymouth2.install, debian/plymouth.install:
+    - Reduce debhelper dependency to 6, for ease of hardy backports.
+    - Prepend install paths with debian/tmp/, as debhelper 6 likes.
+  * debian/initramfs-tools/hooks/plymouth:
+    - Always pass copy_exec a target path that already exist, for 
+      compatibility with hardy's initramf-tool's hook-functions.
+
+ -- Michael Terry <michael.terry@canonical.com>  Mon, 16 Mar 2009 09:10:38 -0400
+
+plymouth (0.7.0+git20090207-0ubuntu0.1~ppa4) jaunty; urgency=low
+
+  * Use "Plymouth" instead of "Usplash" in the splash-functions comments.
+  * Add watch file.
+  * Use install's -D flag instead of mkdir.
+  * Add #DEBHELPER# in postinst.
+  * Add postrm to update-initramfs on removal.
+  * Cleanup maintainer scripts.
+  * Use set -e in postinst.
+  * Drop "rhgb" from startup suggestions as "splash" is supported now.
+  * Exclude Plymouth plugins in /usr/lib/plymouth/ for dh_makeshlibs.
+  * Split in multiple packages: add library and development packages.
+    - Add Replaces on older plymouth versions.
+  * Install Debian/Ubuntu scripts via dh_install as well.
+  * TODO: add note to check for the usefulness of some dirs "make install"
+    creates.
+
+ -- Loic Minier <lool@dooz.org>  Tue, 17 Feb 2009 16:37:12 +0100
+
+plymouth (0.7.0+git20090207-0ubuntu0.1~ppa3) jaunty; urgency=low
+
+  * debian/initramfs-hooks:
+    - simplify the initramfs hook generation (thanks to lool)
+  * debian/splash-functions:
+    - add plymouth --wait after --quit (thanks again to the
+      unstopable lool :)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 17 Feb 2009 14:33:08 +0100
+
+plymouth (0.7.0+git20090207-0ubuntu0.1~ppa2) jaunty; urgency=low
+
+  * debian/rules:
+    - install hook with propper permissions
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 12 Feb 2009 11:10:27 +0100
+
+plymouth (0.7.0+git20090207-0ubuntu0.1~ppa1) jaunty; urgency=low
+
+  * initial test release
+  * debian/patches/01_default_fb.patch:
+    - default to framebuffer /dev/fb0
+  * debian/patches/02_splash_cmdline.patch:
+    - support "splash" on the kernel commandline
+  * debian/patches/03_set_default_plugin.patch:
+    - update the helper plymouth-set-default-plugin to work on
+      ubuntu and call initramfs-update 
+  * debian/patches/04_support_solar_default.patch:
+    - add missing "solar" to configure.in tests
+  * debian/splash-functions:
+    - add compat functions so that it works as a usplash
+      replacement
+  * debian/initramfs-hooks:
+    - hook into our initramfs generation
+    - copy only needed plugin bits onto the initramfs
+  * debian/initramfs-script-init-top:
+    - hook into initramfs run
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 11 Feb 2009 08:29:48 -0800

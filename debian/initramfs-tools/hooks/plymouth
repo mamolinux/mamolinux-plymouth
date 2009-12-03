@@ -1,0 +1,46 @@
+#!/bin/sh
+
+OPTION=FRAMEBUFFER
+PREREQ="framebuffer"
+
+prereqs()
+{
+        echo "$PREREQ"
+}
+
+case $1 in
+prereqs)
+        prereqs
+        exit 0
+        ;;
+esac
+
+[ -x /sbin/plymouthd ] || exit 0
+
+. /usr/share/initramfs-tools/hook-functions
+
+mkdir -p ${DESTDIR}/lib/plymouth
+mkdir -p ${DESTDIR}/lib/plymouth/renderers
+mkdir -p ${DESTDIR}/lib/plymouth/themes
+
+copy_exec /sbin/plymouthd /sbin
+copy_exec /bin/plymouth /bin
+
+# output renderers
+copy_exec /lib/plymouth/renderers/frame-buffer.so /lib/plymouth/renderers/
+copy_exec /lib/plymouth/renderers/drm.so /lib/plymouth/renderers/
+
+# plugins that are always required
+copy_exec /lib/plymouth/text.so /lib/plymouth/
+copy_exec /lib/plymouth/details.so /lib/plymouth/
+
+# copy the default theme
+THEME=$(/usr/sbin/plymouth-set-default-theme)
+cp -a /lib/plymouth/themes/default.plymouth ${DESTDIR}/lib/plymouth/themes/
+cp -a /lib/plymouth/themes/$THEME ${DESTDIR}/lib/plymouth/themes/
+
+cp /lib/plymouth/bizcom.png ${DESTDIR}/lib/plymouth
+
+# copy the module we need too
+MODULE=$(grep "ModuleName *= *" /lib/plymouth/themes/${THEME}/${THEME}.plymouth | sed 's/ModuleName *= *//')
+copy_exec /lib/plymouth/$MODULE.so /lib/plymouth/

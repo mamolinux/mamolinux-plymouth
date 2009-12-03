@@ -1,0 +1,8 @@
+lib/libply.a
+lib/libply.so
+lib/libplybootsplash.a
+lib/libplybootsplash.so
+lib/libplybootclient.a
+lib/libplybootclient.so
+usr/include/plymouth-1/
+lib/pkgconfig/plymouth-1.pc usr/lib/pkgconfig/

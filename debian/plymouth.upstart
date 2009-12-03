@@ -1,0 +1,44 @@
+# plymouth - Userspace bootsplash utility
+#
+# plymouth provides a boot splash screen on the system console using
+# the kernel framebuffer device.  On boot, this is nominally started by
+# the initramfs so the pre-start script, script and post-start script
+# parts are actually not run.  These are normally run on shutdown instead.
+
+description	"Userspace bootsplash utility"
+
+start on ((drm-device-added card0
+           and graphics-device-added fb0
+           and graphics-device-added fbcon
+           and tty-device-added tty7)
+          or stopped udevtrigger
+          or (runlevel [016]
+              and (stopped gdm
+                   or stopped kdm
+                   or stopped xdm)))
+stop on (starting gdm
+         or starting kdm
+         or starting xdm
+         or stopped rc RUNLEVEL=[2345]
+         or starting rcS
+         or starting mountall-shell)
+
+expect fork
+kill timeout 60
+
+script
+    if [ "$RUNLEVEL" = "0" -o "$RUNLEVEL" = "1" -o "$RUNLEVEL" = "6" ]; then
+        exec /sbin/plymouthd --mode=shutdown
+    else
+        exec /sbin/plymouthd --mode=boot
+    fi
+end script
+
+post-start exec /bin/plymouth --show-splash
+
+pre-stop script
+    [ "$UPSTART_EVENTS" = "starting" -a "$JOB" = "gdm" ] && retain_splash="--retain-splash"
+    [ "$UPSTART_EVENTS" = "starting" -a "$JOB" = "kdm" ] && retain_splash="--retain-splash"
+    [ "$UPSTART_EVENTS" = "starting" -a "$JOB" = "xdm" ] && retain_splash="--retain-splash"
+    exec plymouth quit $retain_splash
+end script

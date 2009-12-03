@@ -1,0 +1,12 @@
+bin/plymouth
+sbin/plymouthd
+lib/plymouth/*.so
+lib/plymouth/renderers/*.so
+lib/plymouth/themes/
+lib/plymouth/bizcom.png
+usr/bin/plymouth-log-viewer
+usr/sbin/plymouth-set-default-theme
+var/lib/plymouth/
+var/spool/plymouth/
+debian/splash-functions         lib/init
+debian/initramfs-tools          usr/share
