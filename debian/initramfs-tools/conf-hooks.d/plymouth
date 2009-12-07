@@ -1,10 +1,3 @@
-# Enable framebuffer (and thus plymouth) in the initramfs unless the root
-# filesystem is rotational.
+# Enable framebuffer (and thus plymouth) in the initramfs
 
-dev_t="$(stat -c %D / || :)"
-if [ -n "$dev_t" ]
-then
-    rotational="$(cat /sys/dev/block/${dev_t%??}:0/queue/rotational || :)"
-fi
-
-[ "$rotational" = "0" ] || FRAMEBUFFER=y
+FRAMEBUFFER=y

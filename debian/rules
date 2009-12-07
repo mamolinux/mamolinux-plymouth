@@ -17,6 +17,7 @@ endif
 
 override_dh_auto_configure:
 	dh_auto_configure -- CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
+		--enable-maintainer-mode \
 		--libdir=/lib \
 		--datadir=/lib \
 		--disable-tracing \
@@ -25,7 +26,9 @@ override_dh_auto_configure:
 		--with-system-root-install \
 		--without-rhgb-compat-link \
 		--without-gdm-autostart-file \
-		--without-default-plugin
+		--without-default-plugin   \
+		--with-logo=/lib/plymouth/ubuntu-logo.png
+
 # --with-logo=/usr/share/plymouth/bizcom.png
 # --with-background-color=0x5d5950
 # --with-background-start-color-stop=0x807c71

@@ -1412,6 +1412,8 @@ redirect_standard_io_to_device (const char *device)
   dup2 (fd, STDOUT_FILENO);
   dup2 (fd, STDERR_FILENO);
 
+  close (fd);
+
   return true;
 }
 
