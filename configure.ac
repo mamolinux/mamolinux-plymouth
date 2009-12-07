@@ -241,6 +241,7 @@ AC_OUTPUT([Makefile
            themes/solar/Makefile
            themes/glow/Makefile
            themes/script/Makefile
+           themes/ubuntu-logo/Makefile
            images/Makefile
            scripts/Makefile
 	   scripts/plymouth-set-default-theme

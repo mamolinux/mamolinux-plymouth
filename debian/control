@@ -7,7 +7,7 @@ Standards-Version: 3.8.3.0
 
 Package: plymouth
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libplymouth2 (= ${binary:Version}), libdrm-intel1 | libdrm-radeon1 | libdrm-nouveau1
+Depends: ${shlibs:Depends}, ${misc:Depends}, libplymouth2 (= ${binary:Version}), libdrm-intel1 | libdrm-radeon1 | libdrm-nouveau1, udev (>= 149-2)
 Conflicts: usplash
 Description: graphical boot animation and logger - main package
  Plymouth is an application that runs very early in the boot process

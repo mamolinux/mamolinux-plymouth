@@ -7,9 +7,9 @@
 
 description	"Userspace bootsplash utility"
 
-start on ((drm-device-added card0
-           and graphics-device-added fb0
-           and graphics-device-added fbcon
+start on (((graphics-device-added PRIMARY_DEVICE_FOR_DISPLAY=1
+            or drm-device-added PRIMARY_DEVICE_FOR_DISPLAY=1)
+           and tty-device-added tty0
            and tty-device-added tty7)
           or stopped udevtrigger
           or (runlevel [016]

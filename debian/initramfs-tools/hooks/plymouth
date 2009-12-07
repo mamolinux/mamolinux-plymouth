@@ -39,7 +39,7 @@ THEME=$(/usr/sbin/plymouth-set-default-theme)
 cp -a /lib/plymouth/themes/default.plymouth ${DESTDIR}/lib/plymouth/themes/
 cp -a /lib/plymouth/themes/$THEME ${DESTDIR}/lib/plymouth/themes/
 
-cp /lib/plymouth/bizcom.png ${DESTDIR}/lib/plymouth
+cp /lib/plymouth/ubuntu-logo.png ${DESTDIR}/lib/plymouth
 
 # copy the module we need too
 MODULE=$(grep "ModuleName *= *" /lib/plymouth/themes/${THEME}/${THEME}.plymouth | sed 's/ModuleName *= *//')

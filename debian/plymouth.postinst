@@ -20,7 +20,8 @@ case "$1" in
     configure)
 	if [ ! -L /lib/plymouth/themes/default.plymouth ]
 	then
-	    /usr/sbin/plymouth-set-default-theme --rebuild-initrd glow
+	    # FIXME: do this with alternatives
+	    /usr/sbin/plymouth-set-default-theme --rebuild-initrd ubuntu-logo
 	fi
 	;;
 
