@@ -7,21 +7,16 @@
 
 description	"Userspace bootsplash utility"
 
-start on (((graphics-device-added PRIMARY_DEVICE_FOR_DISPLAY=1
-            or drm-device-added PRIMARY_DEVICE_FOR_DISPLAY=1)
-           and tty-device-added tty0
-           and tty-device-added tty7)
-          or stopped udevtrigger
-          or (runlevel [016]
-              and (stopped gdm
-                   or stopped kdm
-                   or stopped xdm)))
 stop on (starting gdm
          or starting kdm
          or starting xdm
          or stopped rc RUNLEVEL=[2345]
          or starting rcS
          or starting mountall-shell)
+start on (runlevel [016]
+          and (stopped gdm
+               or stopped kdm
+               or stopped xdm))
 
 expect fork
 kill timeout 60
