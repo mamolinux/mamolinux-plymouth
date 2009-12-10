@@ -1,0 +1,21 @@
+#!/bin/sh
+
+OPTION=FRAMEBUFFER
+PREREQ="udev"
+
+prereqs()
+{
+        echo "$PREREQ"
+}
+
+case $1 in
+prereqs)
+        prereqs
+        exit 0
+        ;;
+esac
+
+if [ -f ${rootmnt}/dev/.initramfs/plymouth.pid ]
+then
+	/bin/plymouth --newroot=${rootmnt}
+fi

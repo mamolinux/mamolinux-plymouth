@@ -1,3 +1,23 @@
+plymouth (0.8.0~-3) lucid; urgency=low
+
+  * Update to GIT HEAD:
+    - Maintainer mode enabled by default.
+    - plymouth-set-default-theme now supports --help.
+    - script gains window get position functions.
+
+  * debian/initramfs-tools/scripts/init-bottom/plymouth:
+    - Tell plymouth about the new root filesystem after switching to it. 
+  * debian/rules:
+    - Drop --enable-maintainer-mode since it's now enabled by default. 
+  * debian/plymouth.upstart:
+    - Remove the "start on" rules that would cause Plymouth to be started
+      if you hadn't got an initramfs; since these were different to the
+      rules for X.org itself, you could end up in the situation (often!)
+      where X would start first (and plymouth stopped), then Plymouth
+      restarted again.  LP: #495085.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Thu, 10 Dec 2009 20:04:43 +0000
+
 plymouth (0.8.0~-2) lucid; urgency=low
 
   [ Scott James Remnant ]
