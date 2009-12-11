@@ -1,3 +1,20 @@
+plymouth (0.8.0~-4) lucid; urgency=low
+
+  * Patched to scan the buffer out to the console when deactivating the
+    i915 plugin so that X can start.
+
+  * debian/initramfs-tools/scripts/init-top/plymouth:
+    - Turn off the blinking cursor, otherwise it'll appear later when
+      we transition to gdm.
+  * debian/plymouth.upstart:
+    - Don't stop when gdm starts, gdm is smart and will handle the plymouth
+      transition by itself.
+  * debian/plymouth.postinst:
+    - Update the initramfs when we don't change the theme (otherwise we
+      don't update the binaries).
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 11 Dec 2009 05:59:35 +0000
+
 plymouth (0.8.0~-3) lucid; urgency=low
 
   * Update to GIT HEAD:
