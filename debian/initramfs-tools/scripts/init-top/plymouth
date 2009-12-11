@@ -29,6 +29,7 @@ for x in $(cat /proc/cmdline); do
 done
 
 if [ $SPLASH = "true" ]; then
+	printf '\033[?25l' > /dev/tty7
 	/sbin/plymouthd --mode=boot --pid-file=/dev/.initramfs/plymouth.pid
 	/bin/plymouth --show-splash
 fi

@@ -22,6 +22,11 @@ case "$1" in
 	then
 	    # FIXME: do this with alternatives
 	    /usr/sbin/plymouth-set-default-theme --rebuild-initrd ubuntu-logo
+	else
+	    if which update-initramfs >/dev/null 2>&1
+	    then
+		update-initramfs -u
+	    fi
 	fi
 	;;
 
