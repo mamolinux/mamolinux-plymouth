@@ -21,6 +21,10 @@ plymouthd_SOURCES =                                                            \
                    ply-boot-server.c                                          \
                    main.c
 
+libplybootclientdir = $(includedir)/plymouth-1/plybootclient
+libplybootclient_HEADERS = \
+		   ply-boot-protocol.h
+
 plymouthdrundir = $(localstatedir)/run/plymouth
 plymouthdspooldir = $(localstatedir)/spool/plymouth
 plymouthdtimedir = $(localstatedir)/lib/plymouth

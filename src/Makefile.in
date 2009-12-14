@@ -16,6 +16,7 @@
 @SET_MAKE@
 
 
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -37,8 +38,8 @@ build_triplet = @build@
 host_triplet = @host@
 plymouthdbin_PROGRAMS = plymouthd$(EXEEXT)
 subdir = src
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/plymouth-1.pc.in
+DIST_COMMON = $(libplybootclient_HEADERS) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in $(srcdir)/plymouth-1.pc.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
@@ -49,7 +50,7 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES = plymouth-1.pc
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(plymouthdbindir)" \
-	"$(DESTDIR)$(pkgconfigdir)"
+	"$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(libplybootclientdir)"
 PROGRAMS = $(plymouthdbin_PROGRAMS)
 am_plymouthd_OBJECTS = plymouthd-ply-boot-server.$(OBJEXT) \
 	plymouthd-main.$(OBJEXT)
@@ -120,6 +121,7 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 DATA = $(pkgconfig_DATA)
+HEADERS = $(libplybootclient_HEADERS)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \
@@ -313,6 +315,10 @@ plymouthd_SOURCES = \
                    ply-boot-server.c                                          \
                    main.c
 
+libplybootclientdir = $(includedir)/plymouth-1/plybootclient
+libplybootclient_HEADERS = \
+		   ply-boot-protocol.h
+
 plymouthdrundir = $(localstatedir)/run/plymouth
 plymouthdspooldir = $(localstatedir)/spool/plymouth
 plymouthdtimedir = $(localstatedir)/lib/plymouth
@@ -493,6 +499,26 @@ uninstall-pkgconfigDATA:
 	test -n "$$files" || exit 0; \
 	echo " ( cd '$(DESTDIR)$(pkgconfigdir)' && rm -f" $$files ")"; \
 	cd "$(DESTDIR)$(pkgconfigdir)" && rm -f $$files
+install-libplybootclientHEADERS: $(libplybootclient_HEADERS)
+	@$(NORMAL_INSTALL)
+	test -z "$(libplybootclientdir)" || $(MKDIR_P) "$(DESTDIR)$(libplybootclientdir)"
+	@list='$(libplybootclient_HEADERS)'; test -n "$(libplybootclientdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(libplybootclientdir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(libplybootclientdir)" || exit $$?; \
+	done
+
+uninstall-libplybootclientHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(libplybootclient_HEADERS)'; test -n "$(libplybootclientdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(libplybootclientdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(libplybootclientdir)" && rm -f $$files
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
@@ -689,10 +715,10 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-recursive
-all-am: Makefile $(PROGRAMS) $(DATA)
+all-am: Makefile $(PROGRAMS) $(DATA) $(HEADERS)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(plymouthdbindir)" "$(DESTDIR)$(pkgconfigdir)"; do \
+	for dir in "$(DESTDIR)$(plymouthdbindir)" "$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(libplybootclientdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -744,7 +770,8 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-pkgconfigDATA install-plymouthdbinPROGRAMS
+install-data-am: install-libplybootclientHEADERS install-pkgconfigDATA \
+	install-plymouthdbinPROGRAMS
 	@$(NORMAL_INSTALL)
 	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
 install-dvi: install-dvi-recursive
@@ -791,7 +818,8 @@ ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-pkgconfigDATA uninstall-plymouthdbinPROGRAMS
+uninstall-am: uninstall-libplybootclientHEADERS \
+	uninstall-pkgconfigDATA uninstall-plymouthdbinPROGRAMS
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) ctags-recursive \
 	install-am install-data-am install-strip tags-recursive
@@ -804,13 +832,14 @@ uninstall-am: uninstall-pkgconfigDATA uninstall-plymouthdbinPROGRAMS
 	install install-am install-data install-data-am \
 	install-data-hook install-dvi install-dvi-am install-exec \
 	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-pkgconfigDATA install-plymouthdbinPROGRAMS install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs installdirs-am maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags tags-recursive uninstall uninstall-am \
+	install-info-am install-libplybootclientHEADERS install-man \
+	install-pdf install-pdf-am install-pkgconfigDATA \
+	install-plymouthdbinPROGRAMS install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	installdirs-am maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-recursive \
+	uninstall uninstall-am uninstall-libplybootclientHEADERS \
 	uninstall-pkgconfigDATA uninstall-plymouthdbinPROGRAMS
 
 
