@@ -477,16 +477,6 @@ on_error (state_t *state)
 }
 
 static bool
-plymouth_should_ignore_show_splash_calls (state_t *state)
-{
-  ply_trace ("checking if plymouth should be running");
-  if (state->mode != PLY_MODE_BOOT || ply_string_has_prefix (state->kernel_command_line, "plymouth:force-splash") || strstr (state->kernel_command_line, " plymouth:force-splash") != NULL)
-      return false;
-
-  return ply_string_has_prefix (state->kernel_command_line, "init=") || strstr (state->kernel_command_line, " init=") != NULL;
-}
-
-static bool
 plymouth_should_show_default_splash (state_t *state)
 {
   ply_trace ("checking if plymouth should show default splash");
@@ -570,12 +560,6 @@ static void
 on_show_splash (state_t *state)
 {
   bool has_display;
-
-  if (plymouth_should_ignore_show_splash_calls (state))
-    {
-      dump_details_and_quit_splash (state);
-      return;
-    }
 
   check_for_consoles (state, state->default_tty, true);
 
@@ -709,8 +693,11 @@ on_boot_splash_idle (state_t *state)
 
   if (state->deactivate_trigger != NULL)
     {
-      ply_trace ("deactivating renderer");
-      ply_renderer_deactivate (state->renderer);
+      if (state->renderer != NULL)
+        {
+          ply_trace ("deactivating renderer");
+          ply_renderer_deactivate (state->renderer);
+        }
 
       ply_trace ("quitting splash");
       quit_splash (state);
@@ -751,8 +738,7 @@ on_deactivate (state_t       *state,
     }
   else
     {
-      ply_trigger_pull (state->deactivate_trigger, NULL);
-      state->deactivate_trigger = NULL;
+      ply_trigger_pull (deactivate_trigger, NULL);
     }
 }
 
@@ -778,9 +764,12 @@ on_quit (state_t       *state,
                                    state);
     }
   else if (state->is_inactive && !retain_splash)
-    /* We've been deactivated and X failed to start
-     */
-    dump_details_and_quit_splash (state);
+    {
+      /* We've been deactivated and X failed to start
+       */
+      dump_details_and_quit_splash (state);
+      quit_program (state);
+    }
   else
     quit_program (state);
 }

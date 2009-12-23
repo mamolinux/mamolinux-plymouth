@@ -1,3 +1,28 @@
+plymouth (0.8.0~-6) lucid; urgency=low
+
+  * Revert change in 0.8.0~-4 that scans the buffer out fo fbcon when
+    deactivating i915; this was actually wrong, we don't want to use fbcon
+    for the transition, we want to use our current framebuffer instead.
+    Other bugs (with the VT code) are preventing that transition from working.
+  * Fix a crash on "plymouth deactivate" when no renderer is active.
+    LP: #499541.
+  * Fix a crash on "plymouth deactivate" when --show-splash has never
+    been called.
+  * Fix failure to quit on "plymouth quit" after "plymouth deactivate".
+
+  * Remove the code that disables plymouth when init= is on the command-line,
+    we don't want that.
+
+  * debian/initramfs-tools/scripts/init-top/plymouth:
+    - Don't check the kernel command-line; we always want plymouth running
+      whether or not "splash" is present, plymouth uses that to determine
+      which of the graphics or text renderers to use.
+    - Start with --attach-to-session so we redirect console messages.
+  * debian/plymouth.plymouth-log.upstart:
+    - Once the filesystem is mounted, flush the log out.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 23 Dec 2009 03:54:42 +0000
+
 plymouth (0.8.0~-5) lucid; urgency=low
 
   * Include the ply-boot-protocol.h file in the headers directory.
