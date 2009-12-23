@@ -37,6 +37,7 @@ override_dh_auto_configure:
 # Don't start plymouth when installing!
 override_dh_installinit:
 	dh_installinit --noscripts
+	dh_installinit --name=plymouth-log --noscripts
 
 # Make the initramfs scripts executable
 override_dh_fixperms:

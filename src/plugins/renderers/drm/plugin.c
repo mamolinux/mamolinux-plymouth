@@ -393,116 +393,9 @@ activate (ply_renderer_backend_t *backend)
     }
 }
 
-static bool
-ply_renderer_head_set_scan_out_buffer_to_console (ply_renderer_backend_t *backend,
-                                                  ply_renderer_head_t    *head,
-                                                  bool                    should_set_to_black)
-{
-  unsigned long width;
-  unsigned long height;
-  unsigned long row_stride;
-  uint32_t *shadow_buffer;
-  ply_pixel_buffer_t *pixel_buffer;
-  char *map_address;
-  ply_rectangle_t area;
-
-  if (!backend->driver_interface->fetch_buffer (backend->driver,
-                                               head->console_buffer_id,
-                                               &width, &height, &row_stride))
-    return false;
-
-  if (!backend->driver_interface->map_buffer (backend->driver,
-                                              head->console_buffer_id))
-    {
-      backend->driver_interface->destroy_buffer (backend->driver,
-                                                 head->console_buffer_id);
-      return false;
-    }
-
-  if (head->area.width != width || head->area.height != height)
-    {
-      /* Force black if the fb console resolution doesn't match our resolution
-       */
-      area.x = 0;
-      area.y = 0;
-      area.width = width;
-      area.height = height;
-
-      should_set_to_black = true;
-    }
-  else
-    area = head->area;
-
-  if (should_set_to_black)
-    {
-      pixel_buffer = ply_pixel_buffer_new (width, height);
-      shadow_buffer = ply_pixel_buffer_get_argb32_data (pixel_buffer);
-    }
-  else
-    {
-      pixel_buffer = NULL;
-      shadow_buffer = ply_pixel_buffer_get_argb32_data (head->pixel_buffer);
-    }
-
-  map_address =
-        backend->driver_interface->begin_flush (backend->driver,
-                                                head->console_buffer_id);
-
-  flush_area ((char *) shadow_buffer, area.width * 4,
-              map_address, row_stride, &area);
-
-  backend->driver_interface->end_flush (backend->driver,
-                                        head->console_buffer_id);
-
-  backend->driver_interface->unmap_buffer (backend->driver,
-                                           head->console_buffer_id);
-
-  ply_renderer_head_set_scan_out_buffer (backend,
-                                         head, head->console_buffer_id);
-
-  backend->driver_interface->destroy_buffer (backend->driver,
-                                             head->console_buffer_id);
-
-  if (pixel_buffer != NULL)
-    ply_pixel_buffer_free (pixel_buffer);
-
-  return true;
-}
-
-static void
-ply_renderer_set_scan_out_buffer_to_console (ply_renderer_backend_t *backend)
-{
-  ply_list_node_t *node;
-  bool should_set_to_black;
-
-  /* We only copy what's on screen back to the fb console
-   * if there's one head (since in multihead set ups the fb console
-   * is cloned).
-   */
-  should_set_to_black = ply_list_get_length (backend->heads) > 1;
-
-  node = ply_list_get_first_node (backend->heads);
-  while (node != NULL)
-    {
-      ply_list_node_t *next_node;
-      ply_renderer_head_t *head;
-
-      head = (ply_renderer_head_t *) ply_list_node_get_data (node);
-      next_node = ply_list_get_next_node (backend->heads, node);
-
-      ply_trace ("scanning out directly to console");
-      ply_renderer_head_set_scan_out_buffer_to_console (backend, head,
-                                                        should_set_to_black);
-
-      node = next_node;
-    }
-}
-
 static void
 deactivate (ply_renderer_backend_t *backend)
 {
-  ply_renderer_set_scan_out_buffer_to_console (backend);
-
   ply_trace ("dropping master");
   drmDropMaster (backend->device_fd);
   backend->is_inactive = true;
@@ -919,15 +812,93 @@ map_to_device (ply_renderer_backend_t *backend)
   return head_mapped;
 }
 
+static bool
+ply_renderer_head_set_scan_out_buffer_to_console (ply_renderer_backend_t *backend,
+                                                  ply_renderer_head_t    *head,
+                                                  bool                    should_set_to_black)
+{
+  unsigned long width;
+  unsigned long height;
+  unsigned long row_stride;
+  uint32_t *shadow_buffer;
+  ply_pixel_buffer_t *pixel_buffer;
+  char *map_address;
+  ply_rectangle_t area;
+
+  if (!backend->driver_interface->fetch_buffer (backend->driver,
+                                               head->console_buffer_id,
+                                               &width, &height, &row_stride))
+    return false;
+
+  if (!backend->driver_interface->map_buffer (backend->driver,
+                                              head->console_buffer_id))
+    {
+      backend->driver_interface->destroy_buffer (backend->driver,
+                                                 head->console_buffer_id);
+      return false;
+    }
+
+  if (head->area.width != width || head->area.height != height)
+    {
+      /* Force black if the fb console resolution doesn't match our resolution
+       */
+      area.x = 0;
+      area.y = 0;
+      area.width = width;
+      area.height = height;
+
+      should_set_to_black = true;
+    }
+  else
+    area = head->area;
+
+  if (should_set_to_black)
+    {
+      pixel_buffer = ply_pixel_buffer_new (width, height);
+      shadow_buffer = ply_pixel_buffer_get_argb32_data (pixel_buffer);
+    }
+  else
+    {
+      pixel_buffer = NULL;
+      shadow_buffer = ply_pixel_buffer_get_argb32_data (head->pixel_buffer);
+    }
+
+  map_address =
+        backend->driver_interface->begin_flush (backend->driver,
+                                                head->console_buffer_id);
+
+  flush_area ((char *) shadow_buffer, area.width * 4,
+              map_address, row_stride, &area);
+
+  backend->driver_interface->end_flush (backend->driver,
+                                        head->console_buffer_id);
+
+  backend->driver_interface->unmap_buffer (backend->driver,
+                                           head->console_buffer_id);
+
+  ply_renderer_head_set_scan_out_buffer (backend,
+                                         head, head->console_buffer_id);
+
+  backend->driver_interface->destroy_buffer (backend->driver,
+                                             head->console_buffer_id);
+
+  if (pixel_buffer != NULL)
+    ply_pixel_buffer_free (pixel_buffer);
+
+  return true;
+}
+
 static void
 unmap_from_device (ply_renderer_backend_t *backend)
 {
   ply_list_node_t *node;
+  bool should_set_to_black;
 
-  if (!backend->is_inactive)
-    {
-      ply_renderer_set_scan_out_buffer_to_console (backend);
-    }
+  /* We only copy what's on screen back to the fb console
+   * if there's one head (since in multihead set ups the fb console
+   * is cloned).
+   */
+  should_set_to_black = ply_list_get_length (backend->heads) > 1;
 
   node = ply_list_get_first_node (backend->heads);
   while (node != NULL)
@@ -937,6 +908,13 @@ unmap_from_device (ply_renderer_backend_t *backend)
 
       head = (ply_renderer_head_t *) ply_list_node_get_data (node);
       next_node = ply_list_get_next_node (backend->heads, node);
+
+      if (!backend->is_inactive)
+        {
+          ply_trace ("scanning out directly to console");
+          ply_renderer_head_set_scan_out_buffer_to_console (backend, head,
+                                                            should_set_to_black);
+        }
 
       ply_renderer_head_unmap (backend, head);
 
