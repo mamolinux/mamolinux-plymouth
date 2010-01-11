@@ -590,9 +590,9 @@ on_show_splash (state_t *state)
 }
 
 static void
-quit_splash (state_t *state)
+deactivate_splash (state_t *state)
 {
-  ply_trace ("quiting splash");
+  ply_trace ("deactivating splash");
   if (state->boot_splash != NULL)
     {
       ply_trace ("freeing splash");
@@ -602,7 +602,14 @@ quit_splash (state_t *state)
 
   ply_trace ("removing displays and keyboard");
   remove_displays_and_keyboard (state);
+}
+                   
+static void
+quit_splash (state_t *state)
+{
+  deactivate_splash (state);
 
+  ply_trace ("quiting splash");
   if (state->renderer != NULL)
     {
       ply_renderer_close (state->renderer);
@@ -699,8 +706,8 @@ on_boot_splash_idle (state_t *state)
           ply_renderer_deactivate (state->renderer);
         }
 
-      ply_trace ("quitting splash");
-      quit_splash (state);
+      ply_trace ("deactivating splash");
+      deactivate_splash (state);
 
       ply_trigger_pull (state->deactivate_trigger, NULL);
       state->deactivate_trigger = NULL;
@@ -1336,12 +1343,12 @@ check_for_consoles (state_t    *state,
   ply_trace ("checking if splash screen should be disabled");
 
   if (state->console == NULL)
-    state->console = ply_console_new ();
+    state->console = ply_console_new (default_tty);
 
   if (!ply_console_is_open (state->console) &&
       !ply_console_open (state->console))
     {
-      ply_trace ("could not open /dev/tty0");
+      ply_trace ("could not open %s", default_tty);
     }
 
   remaining_command_line = state->kernel_command_line;
