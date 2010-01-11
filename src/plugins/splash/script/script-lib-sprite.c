@@ -335,7 +335,7 @@ static script_return_t sprite_window_set_background_bottom_color (script_state_t
   return script_return_obj_null ();
 }
 
-static void script_lib_sprite_draw_area (script_lib_display_t *display,
+void script_lib_sprite_draw_area (script_lib_display_t *display,
                                          ply_pixel_buffer_t   *pixel_buffer,
                                          int                   x,
                                          int                   y,

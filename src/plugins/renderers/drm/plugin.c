@@ -404,6 +404,9 @@ deactivate (ply_renderer_backend_t *backend)
 static void
 on_active_vt_changed (ply_renderer_backend_t *backend)
 {
+  if (backend->is_inactive)
+    return;
+
   if (ply_console_get_active_vt (backend->console) !=
       ply_terminal_get_vt_number (backend->terminal))
     {
@@ -790,6 +793,9 @@ map_to_device (ply_renderer_backend_t *backend)
   ply_list_node_t *node;
   bool head_mapped;
 
+  ply_console_set_active_vt (backend->console,
+                             ply_terminal_get_vt_number (backend->terminal));
+
   head_mapped = false;
   node = ply_list_get_first_node (backend->heads);
   while (node != NULL)
@@ -805,9 +811,6 @@ map_to_device (ply_renderer_backend_t *backend)
 
       node = next_node;
     }
-
-  ply_console_set_active_vt (backend->console,
-                             ply_terminal_get_vt_number (backend->terminal));
 
   return head_mapped;
 }

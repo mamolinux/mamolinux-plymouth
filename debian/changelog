@@ -1,3 +1,14 @@
+plymouth (0.8.0~-7) lucid; urgency=low
+
+  * Fixed a bug where we couldn't load the script plugin if it were
+    compiled without optimisations.
+  * Attempt to work around issues with VT switching and fbcon reasserting
+    over our output.  LP: #496784, #497115.
+  * Don't attach to the session for now, this code path doesn't work with
+    the current console/VT code.  LP: #502494.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Mon, 11 Jan 2010 13:47:36 +0000
+
 plymouth (0.8.0~-6) lucid; urgency=low
 
   * Revert change in 0.8.0~-4 that scans the buffer out fo fbcon when

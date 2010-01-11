@@ -38,7 +38,7 @@ typedef enum
 } ply_console_mode_t;
 
 #ifndef PLY_HIDE_FUNCTION_DECLARATIONS
-ply_console_t *ply_console_new (void);
+ply_console_t *ply_console_new (const char *device_name);
 
 void ply_console_free (ply_console_t *console);
 

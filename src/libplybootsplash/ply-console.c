@@ -59,9 +59,9 @@ struct _ply_console
 {
   ply_event_loop_t *loop;
 
+  char *name;
   int fd;
   int active_vt;
-  int next_active_vt;
 
   ply_list_t *vt_change_closures;
   ply_fd_watch_t *fd_watch;
@@ -74,13 +74,20 @@ struct _ply_console
 static bool ply_console_open_device (ply_console_t *console);
 
 ply_console_t *
-ply_console_new (void)
+ply_console_new (const char *device_name)
 {
   ply_console_t *console;
 
   console = calloc (1, sizeof (ply_console_t));
 
   console->loop = ply_event_loop_get_default ();
+  if (device_name != NULL)
+    {
+      if (strncmp (device_name, "/dev/", strlen ("/dev/")) == 0)
+        console->name = strdup (device_name);
+      else
+        asprintf (&console->name, "/dev/%s", device_name);
+    }
   console->vt_change_closures = ply_list_new ();
   console->fd = -1;
 
@@ -167,12 +174,6 @@ on_leave_vt (ply_console_t *console)
 {
   ioctl (console->fd, VT_RELDISP, 1);
 
-  if (console->next_active_vt > 0)
-    {
-      ioctl (console->fd, VT_WAITACTIVE, console->next_active_vt);
-      console->next_active_vt = 0;
-    }
-
   ply_console_look_up_active_vt (console);
   do_active_vt_changed (console);
 }
@@ -240,10 +241,11 @@ static bool
 ply_console_open_device (ply_console_t *console)
 {
   assert (console != NULL);
+  assert (console->name != NULL);
   assert (console->fd < 0);
   assert (console->fd_watch == NULL);
 
-  console->fd = open ("/dev/tty0", O_RDWR | O_NOCTTY);
+  console->fd = open (console->name, O_RDWR | O_NOCTTY);
 
   if (console->fd < 0)
     return false;
@@ -263,6 +265,9 @@ bool
 ply_console_open (ply_console_t *console)
 {
   assert (console != NULL);
+
+  if (console->name == NULL)
+    console->name = strdup ("/dev/tty0");
 
   if (!ply_console_open_device (console))
     {
@@ -334,6 +339,8 @@ ply_console_free (ply_console_t *console)
   if (console == NULL)
     return;
 
+  free (console->name);
+
   ply_console_close (console);
 
   free_vt_change_closures (console);
@@ -361,7 +368,8 @@ ply_console_set_active_vt (ply_console_t *console,
   if (ioctl (console->fd, VT_ACTIVATE, vt_number) < 0)
     return false;
 
-  console->next_active_vt = vt_number;
+  if (ioctl (console->fd, VT_WAITACTIVE, vt_number) < 0)
+    return false;
 
   return true;
 }
