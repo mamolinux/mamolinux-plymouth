@@ -223,16 +223,21 @@ fun display_password_callback (prompt, bullets) {
     global.status = "password";
     if (!global.password_dialogue) password_dialogue_setup(prompt);
     password_dialogue_opacity (1);
+    bullet_width = password_dialogue.bullet_image.GetWidth();
+    bullet_y = password_dialogue.entry.y +
+               password_dialogue.entry.image.GetHeight () / 2 -
+               password_dialogue.bullet_image.GetHeight () / 2;
+    spaces = Math.Int(password_dialogue.entry.image.GetWidth () / bullet_width);
+    if (bullets > spaces)
+        bullets = spaces;
     for (index = 0; password_dialogue.bullet[index] || index < bullets; index++){
         if (!password_dialogue.bullet[index]) {
             password_dialogue.bullet[index].sprite = Sprite ();
             password_dialogue.bullet[index].sprite.SetImage (password_dialogue.bullet_image);
             password_dialogue.bullet[index].x = password_dialogue.entry.x +
-                                                index * password_dialogue.bullet_image.GetWidth ();
+                                                index * bullet_width;
             password_dialogue.bullet[index].sprite.SetX (password_dialogue.bullet[index].x);
-            password_dialogue.bullet[index].y = password_dialogue.entry.y +
-                                                password_dialogue.entry.image.GetHeight () / 2 -
-                                                password_dialogue.bullet_image.GetHeight () / 2;
+            password_dialogue.bullet[index].y = bullet_y;
             password_dialogue.bullet[index].sprite.SetY (password_dialogue.bullet[index].y);
             password_dialogue.bullet[index].z = password_dialogue.entry.z + 1;
             password_dialogue.bullet[index].sprite.SetZ (password_dialogue.bullet[index].z);

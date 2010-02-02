@@ -13,10 +13,11 @@ stop on (starting kdm
          or stopped rc RUNLEVEL=[2345]
          or starting rcS
          or starting mountall-shell)
-start on (runlevel [016]
-          and (stopped gdm
-               or stopped kdm
-               or stopped xdm))
+start on (starting mountall
+          or (runlevel [016]
+              and (stopped gdm
+                   or stopped kdm
+                   or stopped xdm)))
 
 expect fork
 kill timeout 60
@@ -28,8 +29,6 @@ script
         exec /sbin/plymouthd --mode=boot
     fi
 end script
-
-post-start exec /bin/plymouth --show-splash
 
 pre-stop script
     [ "$UPSTART_EVENTS" = "starting" -a "$JOB" = "kdm" ] && retain_splash="--retain-splash"

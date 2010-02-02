@@ -1,3 +1,0 @@
-# Enable framebuffer (and thus plymouth) in the initramfs
-
-FRAMEBUFFER=y

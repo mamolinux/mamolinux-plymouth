@@ -7,13 +7,25 @@ Standards-Version: 3.8.3.0
 
 Package: plymouth
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libplymouth2 (= ${binary:Version}), libdrm-intel1 | libdrm-radeon1 | libdrm-nouveau1, udev (>= 149-2)
+Depends: ${shlibs:Depends}, ${misc:Depends}, libplymouth2 (= ${binary:Version}), libdrm-intel1 | libdrm-radeon1 | libdrm-nouveau1, udev (>= 149-2), mountall (>= 2.0)
 Conflicts: usplash
 Breaks: gdm (<< 2.29.1-0ubuntu4)
 Description: graphical boot animation and logger - main package
  Plymouth is an application that runs very early in the boot process
  (even before the root filesystem is mounted!) that provides a graphical
  boot animation while the boot process happens in the background.
+
+Package: plymouth-x11
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libplymouth2 (= ${binary:Version}), plymouth (= ${binary:Version})
+Replaces: plymouth (<< 0.8.0~-8)
+Description: graphical boot animation and logger - X11 interface
+ Plymouth is an application that runs very early in the boot process
+ (even before the root filesystem is mounted!) that provides a graphical
+ boot animation while the boot process happens in the background.
+ .
+ This package contains the X11 renderer, which allows plymouth to interact
+ with running X sessions.
 
 Package: libplymouth2
 Architecture: any

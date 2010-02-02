@@ -18,7 +18,8 @@
 
 case "$1" in
     configure)
-	if [ ! -L /lib/plymouth/themes/default.plymouth ]
+	if [ ! -L /lib/plymouth/themes/default.plymouth ] \
+	   || dpkg --compare-versions "$2" lt 0.8.0~-8
 	then
 	    # FIXME: do this with alternatives
 	    /usr/sbin/plymouth-set-default-theme --rebuild-initrd ubuntu-logo
