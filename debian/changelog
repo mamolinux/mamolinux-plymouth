@@ -1,3 +1,44 @@
+plymouth (0.8.0~-8) lucid; urgency=low
+
+  [ Steve Langasek ]
+  * Include label.so in the initramfs, as well as the font support files it
+    depends on, needed for any text prompts or messages.  This will bloat the
+    initramfs substantially (about 3MB) and impact boot performance as a
+    result, but the solution to that is to not include plymouth in the
+    initramfs unless we know it's needed for prompting (e.g., cryptsetup).
+    LP: #496765.
+  * Move x11 renderer into a separate package, to avoid pulling GTK into the
+    server install by default.  LP: #509579.
+  * debian/rules: fix up the dh_makeshlibs exclude path to match where we're
+    currently installing.
+  * src/plugins/splash/script/plugin.c: the script plugin has no support at
+    all for text consoles, so if there are no pixel displays available,
+    return an error so that plymouth can fall back to the text plugin.
+    LP: #506717.
+  * Always include the 'details' and 'text' themes in the initramfs, since
+    plymouth uses these as built-in fallbacks and they're tiny.
+  * src/main.c: when a splash plugin fails to load, make sure to unregister
+    any related keyboard handlers.
+  * don't let the password walk off the end of the dialog box.  LP: #496782.
+  * split the plymouth upstart job into plymouth and plymouth-splash, so that
+    plymouth starts up early and doesn't have to race gdm; and stop
+    unconditionally adding plymouth to the initramfs now that we can start it
+    this way.
+  * debian/plymouth.postinst: also set the theme on first install, or on
+    upgrade from versions prior to 0.8.0~-7, because update-initramfs called
+    before plymouth has been configured for the first time will accidentally
+    cause a call to --reset to use the text theme instead of the intended
+    default.
+  * debian/plymouth.plymouth-splash.upstart: don't wait on tty-device-added,
+    these are now guaranteed to be available; copied from gdm upstart job.
+  * Depend on mountall (>= 2.0) to ensure we have the above guarantee.
+  * Mark /usr/share/initramfs-tools/scripts/init-bottom/plymouth executable,
+    otherwise initramfs-tools skips it.  LP: #509487.
+  * Drop the Debian revision (-1) from the version in the symbols file, to
+    fix a lintian warning.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Tue, 02 Feb 2010 08:11:47 +0000
+
 plymouth (0.8.0~-7) lucid; urgency=low
 
   * Fixed a bug where we couldn't load the script plugin if it were

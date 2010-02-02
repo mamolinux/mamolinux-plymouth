@@ -33,13 +33,27 @@ copy_exec /lib/plymouth/renderers/drm.so /lib/plymouth/renderers/
 # plugins that are always required
 copy_exec /lib/plymouth/text.so /lib/plymouth/
 copy_exec /lib/plymouth/details.so /lib/plymouth/
+copy_exec /lib/plymouth/label.so /lib/plymouth/
 
 # copy the default theme
 THEME=$(/usr/sbin/plymouth-set-default-theme)
 cp -a /lib/plymouth/themes/default.plymouth ${DESTDIR}/lib/plymouth/themes/
 cp -a /lib/plymouth/themes/$THEME ${DESTDIR}/lib/plymouth/themes/
+cp -a /lib/plymouth/themes/details ${DESTDIR}/lib/plymouth/themes/
+cp -a /lib/plymouth/themes/text ${DESTDIR}/lib/plymouth/themes/
 
 cp /lib/plymouth/ubuntu-logo.png ${DESTDIR}/lib/plymouth
+
+# and copy the font support files needed in order to actually display any text
+mkdir -p ${DESTDIR}/usr/share/fonts/truetype/ttf-dejavu
+mkdir -p ${DESTDIR}/etc/fonts/conf.d
+mkdir -p ${DESTDIR}/usr/lib/pango/1.6.0/module-files.d
+mkdir -p ${DESTDIR}/usr/lib/pango/1.6.0/modules
+cp /usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf ${DESTDIR}/usr/share/fonts/truetype/ttf-dejavu/
+cp /etc/fonts/fonts.conf ${DESTDIR}/etc/fonts/fonts.conf
+cp -L /etc/fonts/conf.d/60-latin.conf ${DESTDIR}/etc/fonts/conf.d
+cp /usr/lib/pango/1.6.0/module-files.d/libpango1.0-0.modules ${DESTDIR}/usr/lib/pango/1.6.0/module-files.d/
+cp /usr/lib/pango/1.6.0/modules/pango-basic-fc.so ${DESTDIR}/usr/lib/pango/1.6.0/modules/pango-basic-fc.so
 
 # copy the module we need too
 MODULE=$(grep "ModuleName *= *" /lib/plymouth/themes/${THEME}/${THEME}.plymouth | sed 's/ModuleName *= *//')
