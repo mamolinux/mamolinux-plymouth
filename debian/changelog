@@ -1,3 +1,10 @@
+plymouth (0.8.0~-9) lucid; urgency=low
+
+  * move plymouth-log-viewer to plymouth-x11 also, to completely move GTK out
+    of the base package.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Fri, 05 Feb 2010 17:37:37 -0800
+
 plymouth (0.8.0~-8) lucid; urgency=low
 
   [ Steve Langasek ]
