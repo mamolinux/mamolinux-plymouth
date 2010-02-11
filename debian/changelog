@@ -1,3 +1,13 @@
+plymouth (0.8.0~-9ubuntu1) lucid; urgency=low
+
+  * Make plymouth-splash a service instead of a task, to make sure we only
+    run it once per instance of plymouthd; and add an 'or starting gdm' to the
+    start condition so that we're assured of having this command run before
+    gdm starts - otherwise, this plays havoc with gdm's assumptions regarding
+    initial VT selection.  LP: #516412.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Wed, 10 Feb 2010 16:08:56 -0800
+
 plymouth (0.8.0~-9) lucid; urgency=low
 
   * move plymouth-log-viewer to plymouth-x11 also, to completely move GTK out
