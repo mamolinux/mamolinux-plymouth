@@ -1,3 +1,9 @@
+plymouth (0.8.0~-10) lucid; urgency=low
+
+  * Add lbm-nouveau/plymouth integration patch.
+
+ -- Robert Hooker <sarvatt@ubuntu.com>  Wed, 10 Feb 2010 23:29:41 -0500
+
 plymouth (0.8.0~-9ubuntu1) lucid; urgency=low
 
   * Make plymouth-splash a service instead of a task, to make sure we only
