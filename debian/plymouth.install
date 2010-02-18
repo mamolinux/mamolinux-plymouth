@@ -10,3 +10,4 @@ var/spool/plymouth/
 debian/ubuntu-logo.png		lib/plymouth
 debian/splash-functions         lib/init
 debian/initramfs-tools          usr/share
+usr/share/man/

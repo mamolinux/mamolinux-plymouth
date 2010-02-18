@@ -176,6 +176,8 @@ show_detailed_splash (state_t *state)
   if (state->boot_splash != NULL)
     return;
 
+//  add_display_and_keyboard_for_terminal(state, state->default_tty);
+
   ply_trace ("Showing detailed splash screen");
   state->boot_splash = start_boot_splash (state,
                                           PLYMOUTH_THEME_PATH "details/details.plymouth");
@@ -241,6 +243,7 @@ show_default_splash (state_t *state)
     {
       ply_trace ("Could not start graphical splash screen,"
                  "showing text splash screen");
+//      add_display_and_keyboard_for_terminal(state, state->default_tty);
       state->boot_splash = start_boot_splash (state,
                                               PLYMOUTH_THEME_PATH "text/text.plymouth");
     }

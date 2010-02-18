@@ -34,6 +34,12 @@ override_dh_auto_configure:
 # --with-background-end-color-stop=0x3a362f
 # --with-release-file=/etc/system-release
 
+override_dh_auto_install:
+	dh_auto_install
+	mkdir -p debian/tmp/usr/share/apport/package-hooks
+	install -m 644 debian/libplymouth2.apport debian/tmp/usr/share/apport/package-hooks/source_plymouth.py
+
+
 # Don't start plymouth when installing!
 override_dh_installinit:
 	dh_installinit --noscripts
