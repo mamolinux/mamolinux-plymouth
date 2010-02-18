@@ -1,7 +1,16 @@
+plymouth (0.8.0~-10ubuntu1) lucid; urgency=low
+
+  * Merge from upstream:
+    - change plymouth-set-default-theme help output
+    - include upstream manpage (LP: #518414)
+  * Add an apport hook to collect /proc/fb and /proc/cmdline.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Thu, 18 Feb 2010 01:24:34 +0000
+
 plymouth (0.8.0~-10) lucid; urgency=low
-
+ 
   * Add lbm-nouveau/plymouth integration patch.
-
+ 
  -- Robert Hooker <sarvatt@ubuntu.com>  Wed, 10 Feb 2010 23:29:41 -0500
 
 plymouth (0.8.0~-9ubuntu1) lucid; urgency=low

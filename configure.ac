@@ -246,4 +246,5 @@ AC_OUTPUT([Makefile
            scripts/Makefile
 	   scripts/plymouth-set-default-theme
 	   scripts/plymouth-populate-initrd
+           docs/Makefile
 ])

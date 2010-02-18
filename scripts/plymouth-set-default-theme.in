@@ -19,7 +19,6 @@ if [ -z "$PLYMOUTH_PLUGIN_PATH" ]; then
     fi
 fi
 
-
 function usage ()
 {
   echo "usage: plymouth-set-default-theme { --list | --reset | <theme-name> [ --rebuild-initrd ] | --help }"
@@ -27,14 +26,14 @@ function usage ()
 
 function show_help() {
   cat <<EOF
+Plymouth theme chooser
+$(usage)
 
-    $(usage)
-
-     --help             show this help message
-     --list             show available themes
-     --reset            reset to default theme
-     --rebuild-initrd   rebuild initrd (necessary after changing theme)
-     <theme-name>       name of new theme to use (see --list for available themes)
+  -h, --help             Show this help message
+  -l, --list             Show available themes
+  -r. --reset            Reset to default theme
+  -R, --rebuild-initrd   Rebuild initrd (necessary after changing theme)
+  <theme-name>           Name of new theme to use (see --list for available themes)
 
 EOF
 }
@@ -65,7 +64,7 @@ THEME_NAME=""
 while [ $# -gt 0 ]; do
         case "$1" in
 
-        --list)
+        -l|--list)
                 if [ -n "$THEME_NAME" ]; then
                         echo "You can only specify --list or a theme name, not both" > /dev/stderr
                         echo $(usage) > /dev/stderr
@@ -81,11 +80,11 @@ while [ $# -gt 0 ]; do
                 DO_LIST=1
         ;;
 
-        --rebuild-initrd)
+        -R|--rebuild-initrd)
                 DO_INITRD_REBUILD=1
         ;;
 
-        --reset|default)
+        -r|--reset|default)
                 if [ -n "$THEME_NAME" ]; then
                         echo "You can only specify --reset or a theme name, not both" > /dev/stderr
                         echo $(usage) > /dev/stderr
@@ -101,9 +100,9 @@ while [ $# -gt 0 ]; do
                 DO_RESET=1
         ;;
 
-	--help)
-		DO_HELP=1
-	;;
+        -h|--help)
+                DO_HELP=1
+        ;;
 
         *)
                 if [ -n "$THEME_NAME" ]; then
@@ -132,7 +131,7 @@ done
 
 if [ $DO_HELP -eq 1 ]; then
         show_help
-	exit $?
+        exit $?
 fi
 
 if [ $DO_LIST -ne 0 ]; then
