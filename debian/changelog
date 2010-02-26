@@ -1,3 +1,12 @@
+plymouth (0.8.0~-11) lucid; urgency=low
+
+  * ubuntu_logo theme:
+    - New logo, colours and simplified design in compliance with the
+      artwork and with the guidelines provided by Otto Greenslade.
+  * Add support for additional separate places for messages (LP: #497311).
+
+ -- Alberto Milone <alberto.milone@canonical.com>  Fri, 26 Feb 2010 11:27:26 +0100
+
 plymouth (0.8.0~-10ubuntu1) lucid; urgency=low
 
   * Merge from upstream:
