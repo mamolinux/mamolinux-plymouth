@@ -19,7 +19,7 @@ override_dh_auto_configure:
 	dh_auto_configure -- CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
 		--libdir=/lib \
 		--datadir=/lib \
-		--enable-tracing \
+		--disable-tracing \
 		--disable-tests \
 		--disable-gdm-transition \
 		--with-system-root-install \

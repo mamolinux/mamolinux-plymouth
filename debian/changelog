@@ -1,3 +1,12 @@
+plymouth (0.8.0~-12) lucid; urgency=low
+
+  * ubuntu_logo theme:
+    - New logo from Otto Greenslade.
+  * debian/rules:
+    - Disable tracing.
+
+ -- Alberto Milone <alberto.milone@canonical.com>  Thu, 04 Mar 2010 17:31:41 +0100
+
 plymouth (0.8.0~-11) lucid; urgency=low
 
   * ubuntu_logo theme:
