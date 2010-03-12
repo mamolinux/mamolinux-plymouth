@@ -308,19 +308,6 @@ on_keyboard_input (ply_boot_splash_plugin_t *plugin,
 }
 
 static void
-on_draw (ply_boot_splash_plugin_t *plugin,
-         ply_pixel_buffer_t       *pixel_buffer,
-         int                       x,
-         int                       y,
-         int                       width,
-         int                       height)
-{
-  script_lib_sprite_draw_area (plugin->script_sprite_lib,
-                               pixel_buffer,
-                               x, y, width, height);
-}
-
-static void
 set_keyboard (ply_boot_splash_plugin_t *plugin,
               ply_keyboard_t           *keyboard)
 {
@@ -361,14 +348,14 @@ show_splash_screen (ply_boot_splash_plugin_t *plugin,
 {
   assert (plugin != NULL);
 
+  if (ply_list_get_length (plugin->displays) == 0)
+    {
+      ply_trace ("no pixel displays");
+      return false;
+    }
+
   plugin->loop = loop;
   plugin->mode = mode;
-
-  if (ply_list_get_first_node (plugin->displays) == NULL)
-  {
-    ply_trace ("no pixel displays");
-    return false;
-  }
 
   ply_event_loop_watch_for_exit (loop, (ply_event_loop_exit_handler_t)
                                  detach_from_event_loop,
@@ -421,6 +408,8 @@ static void
 become_idle (ply_boot_splash_plugin_t *plugin,
              ply_trigger_t            *idle_trigger)
 {
+  stop_animation (plugin);
+
   ply_trigger_pull (idle_trigger, NULL);
 }
 

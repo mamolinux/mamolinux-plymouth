@@ -36,6 +36,7 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = scripts
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	$(srcdir)/plymouth-generate-initrd.in \
 	$(srcdir)/plymouth-populate-initrd.in \
 	$(srcdir)/plymouth-set-default-theme.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -45,8 +46,8 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES = plymouth-set-default-theme \
-	plymouth-populate-initrd
+CONFIG_CLEAN_FILES = plymouth-generate-initrd plymouth-populate-initrd \
+	plymouth-set-default-theme
 CONFIG_CLEAN_VPATH_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -150,6 +151,9 @@ PANGO_LIBS = @PANGO_LIBS@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
 PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
+PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
+PLYMOUTH_LIBDIR = @PLYMOUTH_LIBDIR@
+PLYMOUTH_LIBEXECDIR = @PLYMOUTH_LIBEXECDIR@
 PLYMOUTH_LIBS = @PLYMOUTH_LIBS@
 PLYMOUTH_PLUGIN_PATH = @PLYMOUTH_PLUGIN_PATH@
 PLYMOUTH_THEME_PATH = @PLYMOUTH_THEME_PATH@
@@ -225,7 +229,7 @@ initrdscript_SCRIPTS = plymouth-update-initrd plymouth-generate-initrd plymouth-
 sbinscriptsdir = $(sbindir)
 sbinscripts_SCRIPTS = plymouth-set-default-theme
 EXTRA_DIST = plymouth-update-initrd                                             \
-	    plymouth-generate-initrd                                           \
+	    plymouth-generate-initrd.in                                        \
 	    plymouth-populate-initrd.in                                        \
 	    plymouth-set-default-theme.in                                     \
 	    $(noinst_SCRIPTS)                                                  \
@@ -264,9 +268,11 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-plymouth-set-default-theme: $(top_builddir)/config.status $(srcdir)/plymouth-set-default-theme.in
+plymouth-generate-initrd: $(top_builddir)/config.status $(srcdir)/plymouth-generate-initrd.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 plymouth-populate-initrd: $(top_builddir)/config.status $(srcdir)/plymouth-populate-initrd.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+plymouth-set-default-theme: $(top_builddir)/config.status $(srcdir)/plymouth-set-default-theme.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 install-initrdscriptSCRIPTS: $(initrdscript_SCRIPTS)
 	@$(NORMAL_INSTALL)

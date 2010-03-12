@@ -747,6 +747,9 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+PLYMOUTH_DATADIR
+PLYMOUTH_LIBEXECDIR
+PLYMOUTH_LIBDIR
 PLYMOUTH_PLUGIN_PATH
 PLYMOUTH_THEME_PATH
 RELEASE_FILE
@@ -5914,13 +5917,13 @@ if test "${lt_cv_nm_interface+set}" = set; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5917: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:5920: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5920: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:5923: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5923: output\"" >&5)
+  (eval echo "\"\$as_me:5926: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -7125,7 +7128,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 7128 "configure"' > conftest.$ac_ext
+  echo '#line 7131 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -8383,11 +8386,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8386: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8389: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8390: \$? = $ac_status" >&5
+   echo "$as_me:8393: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8722,11 +8725,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8725: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8728: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8729: \$? = $ac_status" >&5
+   echo "$as_me:8732: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8827,11 +8830,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8830: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8833: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8834: \$? = $ac_status" >&5
+   echo "$as_me:8837: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -8882,11 +8885,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8885: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8888: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8889: \$? = $ac_status" >&5
+   echo "$as_me:8892: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -11266,7 +11269,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11269 "configure"
+#line 11272 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11362,7 +11365,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11365 "configure"
+#line 11368 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12361,7 +12364,92 @@ plymouthplugindir=$libdir/plymouth/
   exec_prefix=$exec_prefix_save
 
 
-ac_config_files="$ac_config_files Makefile src/libply/Makefile src/libplybootsplash/Makefile src/plymouth-1.pc src/plugins/Makefile src/plugins/renderers/Makefile src/plugins/renderers/frame-buffer/Makefile src/plugins/renderers/drm/Makefile src/plugins/renderers/x11/Makefile src/plugins/splash/Makefile src/plugins/splash/throbgress/Makefile src/plugins/splash/fade-throbber/Makefile src/plugins/splash/text/Makefile src/plugins/splash/details/Makefile src/plugins/splash/space-flares/Makefile src/plugins/splash/two-step/Makefile src/plugins/splash/script/Makefile src/plugins/controls/Makefile src/plugins/controls/label/Makefile src/Makefile src/client/Makefile src/viewer/Makefile src/tests/Makefile src/libply/tests/Makefile src/client/tests/Makefile themes/Makefile themes/spinfinity/Makefile themes/fade-in/Makefile themes/text/Makefile themes/details/Makefile themes/solar/Makefile themes/glow/Makefile themes/script/Makefile themes/ubuntu-logo/Makefile images/Makefile scripts/Makefile scripts/plymouth-set-default-theme scripts/plymouth-populate-initrd docs/Makefile"
+
+  EXP_VAR=PLYMOUTH_LIBDIR
+  FROM_VAR=$libdir
+
+    prefix_save=$prefix
+  exec_prefix_save=$exec_prefix
+
+    if test "x$prefix" = "xNONE"; then
+    prefix="$ac_default_prefix"
+  fi
+    if test "x$exec_prefix" = "xNONE"; then
+    exec_prefix=$prefix
+  fi
+
+  full_var="$FROM_VAR"
+    while true; do
+    new_full_var="`eval echo $full_var`"
+    if test "x$new_full_var" = "x$full_var"; then break; fi
+    full_var=$new_full_var
+  done
+
+    full_var=$new_full_var
+  PLYMOUTH_LIBDIR="$full_var"
+
+
+    prefix=$prefix_save
+  exec_prefix=$exec_prefix_save
+
+
+  EXP_VAR=PLYMOUTH_LIBEXECDIR
+  FROM_VAR=$libexecdir
+
+    prefix_save=$prefix
+  exec_prefix_save=$exec_prefix
+
+    if test "x$prefix" = "xNONE"; then
+    prefix="$ac_default_prefix"
+  fi
+    if test "x$exec_prefix" = "xNONE"; then
+    exec_prefix=$prefix
+  fi
+
+  full_var="$FROM_VAR"
+    while true; do
+    new_full_var="`eval echo $full_var`"
+    if test "x$new_full_var" = "x$full_var"; then break; fi
+    full_var=$new_full_var
+  done
+
+    full_var=$new_full_var
+  PLYMOUTH_LIBEXECDIR="$full_var"
+
+
+    prefix=$prefix_save
+  exec_prefix=$exec_prefix_save
+
+
+  EXP_VAR=PLYMOUTH_DATADIR
+  FROM_VAR=$datadir
+
+    prefix_save=$prefix
+  exec_prefix_save=$exec_prefix
+
+    if test "x$prefix" = "xNONE"; then
+    prefix="$ac_default_prefix"
+  fi
+    if test "x$exec_prefix" = "xNONE"; then
+    exec_prefix=$prefix
+  fi
+
+  full_var="$FROM_VAR"
+    while true; do
+    new_full_var="`eval echo $full_var`"
+    if test "x$new_full_var" = "x$full_var"; then break; fi
+    full_var=$new_full_var
+  done
+
+    full_var=$new_full_var
+  PLYMOUTH_DATADIR="$full_var"
+
+
+    prefix=$prefix_save
+  exec_prefix=$exec_prefix_save
+
+
+ac_config_files="$ac_config_files Makefile src/libply/Makefile src/libply-splash-core/Makefile src/libply-splash-graphics/Makefile src/ply-splash-core.pc src/ply-splash-graphics.pc src/plugins/Makefile src/plugins/renderers/Makefile src/plugins/renderers/frame-buffer/Makefile src/plugins/renderers/drm/Makefile src/plugins/renderers/x11/Makefile src/plugins/splash/Makefile src/plugins/splash/throbgress/Makefile src/plugins/splash/fade-throbber/Makefile src/plugins/splash/text/Makefile src/plugins/splash/details/Makefile src/plugins/splash/space-flares/Makefile src/plugins/splash/two-step/Makefile src/plugins/splash/script/Makefile src/plugins/controls/Makefile src/plugins/controls/label/Makefile src/Makefile src/client/ply-boot-client.pc src/client/Makefile src/viewer/Makefile src/tests/Makefile src/libply/tests/Makefile src/client/tests/Makefile themes/Makefile themes/spinfinity/Makefile themes/fade-in/Makefile themes/text/Makefile themes/details/Makefile themes/solar/Makefile themes/glow/Makefile themes/script/Makefile themes/ubuntu-logo/Makefile images/Makefile scripts/plymouth-generate-initrd scripts/plymouth-populate-initrd scripts/plymouth-set-default-theme scripts/Makefile docs/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -13365,8 +13453,10 @@ do
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/libply/Makefile") CONFIG_FILES="$CONFIG_FILES src/libply/Makefile" ;;
-    "src/libplybootsplash/Makefile") CONFIG_FILES="$CONFIG_FILES src/libplybootsplash/Makefile" ;;
-    "src/plymouth-1.pc") CONFIG_FILES="$CONFIG_FILES src/plymouth-1.pc" ;;
+    "src/libply-splash-core/Makefile") CONFIG_FILES="$CONFIG_FILES src/libply-splash-core/Makefile" ;;
+    "src/libply-splash-graphics/Makefile") CONFIG_FILES="$CONFIG_FILES src/libply-splash-graphics/Makefile" ;;
+    "src/ply-splash-core.pc") CONFIG_FILES="$CONFIG_FILES src/ply-splash-core.pc" ;;
+    "src/ply-splash-graphics.pc") CONFIG_FILES="$CONFIG_FILES src/ply-splash-graphics.pc" ;;
     "src/plugins/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/Makefile" ;;
     "src/plugins/renderers/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/renderers/Makefile" ;;
     "src/plugins/renderers/frame-buffer/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/renderers/frame-buffer/Makefile" ;;
@@ -13383,6 +13473,7 @@ do
     "src/plugins/controls/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/controls/Makefile" ;;
     "src/plugins/controls/label/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/controls/label/Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
+    "src/client/ply-boot-client.pc") CONFIG_FILES="$CONFIG_FILES src/client/ply-boot-client.pc" ;;
     "src/client/Makefile") CONFIG_FILES="$CONFIG_FILES src/client/Makefile" ;;
     "src/viewer/Makefile") CONFIG_FILES="$CONFIG_FILES src/viewer/Makefile" ;;
     "src/tests/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/Makefile" ;;
@@ -13398,9 +13489,10 @@ do
     "themes/script/Makefile") CONFIG_FILES="$CONFIG_FILES themes/script/Makefile" ;;
     "themes/ubuntu-logo/Makefile") CONFIG_FILES="$CONFIG_FILES themes/ubuntu-logo/Makefile" ;;
     "images/Makefile") CONFIG_FILES="$CONFIG_FILES images/Makefile" ;;
-    "scripts/Makefile") CONFIG_FILES="$CONFIG_FILES scripts/Makefile" ;;
-    "scripts/plymouth-set-default-theme") CONFIG_FILES="$CONFIG_FILES scripts/plymouth-set-default-theme" ;;
+    "scripts/plymouth-generate-initrd") CONFIG_FILES="$CONFIG_FILES scripts/plymouth-generate-initrd" ;;
     "scripts/plymouth-populate-initrd") CONFIG_FILES="$CONFIG_FILES scripts/plymouth-populate-initrd" ;;
+    "scripts/plymouth-set-default-theme") CONFIG_FILES="$CONFIG_FILES scripts/plymouth-set-default-theme" ;;
+    "scripts/Makefile") CONFIG_FILES="$CONFIG_FILES scripts/Makefile" ;;
     "docs/Makefile") CONFIG_FILES="$CONFIG_FILES docs/Makefile" ;;
 
   *) as_fn_error "invalid argument: \`$ac_config_target'" "$LINENO" 5;;

@@ -17,20 +17,25 @@ plymouth_SOURCES = \
                       $(srcdir)/ply-boot-client.c                             \
                       $(srcdir)/plymouth.c
 
-lib_LTLIBRARIES = libplybootclient.la
+lib_LTLIBRARIES = libply-boot-client.la
 
-libplybootclient_la_CFLAGS = $(PLYMOUTH_CFLAGS)
-libplybootclient_la_LIBADD = $(PLYMOUTH_LIBS) ../libply/libply.la
-libplybootclient_la_LDFLAGS = -export-symbols-regex '^[^_].*' \
+libply_boot_clientdir = $(includedir)/plymouth-1/ply-boot-client
+libply_boot_client_HEADERS = \
+                      $(srcdir)/../ply-boot-protocol.h                        \
+		      ply-boot-client.h
+
+libply_boot_client_la_CFLAGS = $(PLYMOUTH_CFLAGS)
+libply_boot_client_la_LIBADD = $(PLYMOUTH_LIBS) ../libply/libply.la
+libply_boot_client_la_LDFLAGS = -export-symbols-regex '^[^_].*' \
 		-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) \
 		-no-undefined
-libplybootclient_la_SOURCES = \
+libply_boot_client_la_SOURCES = \
+                      $(srcdir)/../ply-boot-protocol.h                        \
                       $(srcdir)/ply-boot-client.h                             \
                       $(srcdir)/ply-boot-client.c
 
-libplybootclientdir = $(includedir)/plymouth-1/plybootclient
-libplybootclient_HEADERS = \
-			ply-boot-client.h
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = ply-boot-client.pc
 
 if WITH_RHGB_COMPAT_LINK
 install-data-hook:
@@ -41,4 +46,5 @@ uninstall-hook:
 	-rmdir -p $(DESTDIR)$(bindir)/rhgb-client >& /dev/null
 endif
 
+EXTRA_DIST = ply-boot-client.pc.in
 MAINTAINERCLEANFILES = Makefile.in

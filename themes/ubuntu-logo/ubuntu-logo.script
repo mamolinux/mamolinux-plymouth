@@ -141,7 +141,7 @@ logo.sprite.SetImage (logo.image);
 logo.width = logo.image.GetWidth ();
 logo.height = logo.image.GetHeight ();
 logo.x = (Window.GetWidth (0) / 2) - (logo.width  / 2); # + 16;
-logo.y = Window.GetHeight (0) / 2 - logo.height / 2;
+logo.y = Window.GetHeight (0) / 2 - logo.height;
 logo.z = 1000;
 logo.sprite.SetX (logo.x);
 logo.sprite.SetY (logo.y);
@@ -240,6 +240,7 @@ fun switch_off_bullets () {
     
     set_progress_indicator ();
     global.times_bullets_switched = 0;
+    global.on_off = 1;
 }
 
 # This is something that we can call when we exit
@@ -255,28 +256,36 @@ fun switch_on_bullets () {
 
 
 # Implement in boot progress callback
-# TODO: add some fade effect
 fun animate_progress_indicator (progress, time) {
     if (global.progress_time == NULL) {
         global.progress_time = progress;  #time;
         switch_off_bullets ();
     }
 
-    #Debug ("progress = " + progress + ", time = " + time);
+#    Debug ("progress = " + progress + ", time = " + time + " times switched = " + global.times_bullets_switched + " on_off " + global.on_off);
 
-    if (global.times_bullets_switched == NULL)
-        global.times_bullets_switched = 5;
+#    if (global.times_bullets_switched == NULL)
+#        global.times_bullets_switched = 5;
 
-
+#    if (global.on_off == NULL)
+#        global.on_off = 0;
 
     if ((progress - global.progress_time) >= 1.0) {
         global.progress_time = progress;
+        
         if (global.times_bullets_switched == 5) {
-            # All bullets are set to "off"
-            switch_off_bullets ();
+            # Change which bullets are switched on
+            # and which ones are switched off
+            global.on_off = !global.on_off;
+            global.times_bullets_switched = 0;
+        }
+        
+        if (global.on_off) {
+            switch_on_bullet (progress_indicator.bullets_off, progress_indicator.bullets_on,
+                              global.times_bullets_switched, 1.0);
         }
         else {
-            switch_on_bullet (progress_indicator.bullets_off, progress_indicator.bullets_on,
+            switch_on_bullet (progress_indicator.bullets_on, progress_indicator.bullets_off,
                               global.times_bullets_switched, 1.0);
         }
     }
@@ -595,19 +604,6 @@ fun clear_fsck_count () {
     init_fsck_count ();
 }
 
-#----------------------------------------- FSCK Notifications --------------------------
-
-fun show_fsck_notification () {
-    #local.message = "Checking disk " + global.counter.current + " of " + global.counter.total + "(" + progress_label.progress + "% complete)";
-    local.message = "Your disk needs to be checked. Please wait -- this may take a while...";
-    message_callback (local.message);
-}
-
-fun hide_fsck_notification () {
-    local.message = "";
-    message_callback (local.message);
-}
-
 #----------------------------------------- Progress Label ------------------------------
 
 
@@ -792,9 +788,6 @@ fun on_fsck_completed () {
 
     # Clear the fsck counter
     clear_fsck_count ();
-
-    # Hide the fsck notification
-    hide_fsck_notification ();
 }
 
 # Update an fsck process that we keep track of in the queue
@@ -859,9 +852,6 @@ fun fsck_check (device, progress) {
                 remove_fsck_from_queue (index);
             }
             else {
-                # Warn the user that fsck is being used
-                #show_fsck_notification ();
-
                 # Increase the fsck counter
                 increase_fsck_count ();
             }
@@ -953,9 +943,6 @@ fun update_status_callback (status) {
             # Make sure that the fsck counter is initialised
             if (!global.counter)
                 init_fsck_count ();
-
-            # Let the user know that we need to check the disk
-            show_fsck_notification ();
 
 #            if (!global.progress_bar.extra_label.sprite)
 #                create_extra_fsck_label ();

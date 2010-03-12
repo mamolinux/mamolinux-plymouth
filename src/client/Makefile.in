@@ -17,6 +17,7 @@
 
 
 
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -38,8 +39,8 @@ build_triplet = @build@
 host_triplet = @host@
 plymouth_PROGRAMS = plymouth$(EXEEXT)
 subdir = src/client
-DIST_COMMON = $(libplybootclient_HEADERS) $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in
+DIST_COMMON = $(libply_boot_client_HEADERS) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in $(srcdir)/ply-boot-client.pc.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
@@ -47,7 +48,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES =
+CONFIG_CLEAN_FILES = ply-boot-client.pc
 CONFIG_CLEAN_VPATH_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -71,21 +72,22 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(plymouthdir)" \
-	"$(DESTDIR)$(libplybootclientdir)"
+	"$(DESTDIR)$(pkgconfigdir)" \
+	"$(DESTDIR)$(libply_boot_clientdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-libplybootclient_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+libply_boot_client_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	../libply/libply.la
-am_libplybootclient_la_OBJECTS =  \
-	libplybootclient_la-ply-boot-client.lo
-libplybootclient_la_OBJECTS = $(am_libplybootclient_la_OBJECTS)
+am_libply_boot_client_la_OBJECTS =  \
+	libply_boot_client_la-ply-boot-client.lo
+libply_boot_client_la_OBJECTS = $(am_libply_boot_client_la_OBJECTS)
 AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
 am__v_lt_0 = --silent
-libplybootclient_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+libply_boot_client_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
-	$(libplybootclient_la_CFLAGS) $(CFLAGS) \
-	$(libplybootclient_la_LDFLAGS) $(LDFLAGS) -o $@
+	$(libply_boot_client_la_CFLAGS) $(CFLAGS) \
+	$(libply_boot_client_la_LDFLAGS) $(LDFLAGS) -o $@
 PROGRAMS = $(plymouth_PROGRAMS)
 am_plymouth_OBJECTS = plymouth-ply-boot-client.$(OBJEXT) \
 	plymouth-plymouth.$(OBJEXT)
@@ -120,8 +122,8 @@ am__v_CCLD_0 = @echo "  CCLD  " $@;
 AM_V_GEN = $(am__v_GEN_$(V))
 am__v_GEN_ = $(am__v_GEN_$(AM_DEFAULT_VERBOSITY))
 am__v_GEN_0 = @echo "  GEN   " $@;
-SOURCES = $(libplybootclient_la_SOURCES) $(plymouth_SOURCES)
-DIST_SOURCES = $(libplybootclient_la_SOURCES) $(plymouth_SOURCES)
+SOURCES = $(libply_boot_client_la_SOURCES) $(plymouth_SOURCES)
+DIST_SOURCES = $(libply_boot_client_la_SOURCES) $(plymouth_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
 	install-dvi-recursive install-exec-recursive \
@@ -129,7 +131,8 @@ RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	install-pdf-recursive install-ps-recursive install-recursive \
 	installcheck-recursive installdirs-recursive pdf-recursive \
 	ps-recursive uninstall-recursive
-HEADERS = $(libplybootclient_HEADERS)
+DATA = $(pkgconfig_DATA)
+HEADERS = $(libply_boot_client_HEADERS)
 RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \
@@ -232,6 +235,9 @@ PANGO_LIBS = @PANGO_LIBS@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
 PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
+PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
+PLYMOUTH_LIBDIR = @PLYMOUTH_LIBDIR@
+PLYMOUTH_LIBEXECDIR = @PLYMOUTH_LIBEXECDIR@
 PLYMOUTH_LIBS = @PLYMOUTH_LIBS@
 PLYMOUTH_PLUGIN_PATH = @PLYMOUTH_PLUGIN_PATH@
 PLYMOUTH_THEME_PATH = @PLYMOUTH_THEME_PATH@
@@ -316,21 +322,26 @@ plymouth_SOURCES = \
                       $(srcdir)/ply-boot-client.c                             \
                       $(srcdir)/plymouth.c
 
-lib_LTLIBRARIES = libplybootclient.la
-libplybootclient_la_CFLAGS = $(PLYMOUTH_CFLAGS)
-libplybootclient_la_LIBADD = $(PLYMOUTH_LIBS) ../libply/libply.la
-libplybootclient_la_LDFLAGS = -export-symbols-regex '^[^_].*' \
+lib_LTLIBRARIES = libply-boot-client.la
+libply_boot_clientdir = $(includedir)/plymouth-1/ply-boot-client
+libply_boot_client_HEADERS = \
+                      $(srcdir)/../ply-boot-protocol.h                        \
+		      ply-boot-client.h
+
+libply_boot_client_la_CFLAGS = $(PLYMOUTH_CFLAGS)
+libply_boot_client_la_LIBADD = $(PLYMOUTH_LIBS) ../libply/libply.la
+libply_boot_client_la_LDFLAGS = -export-symbols-regex '^[^_].*' \
 		-version-info $(LT_CURRENT):$(LT_REVISION):$(LT_AGE) \
 		-no-undefined
 
-libplybootclient_la_SOURCES = \
+libply_boot_client_la_SOURCES = \
+                      $(srcdir)/../ply-boot-protocol.h                        \
                       $(srcdir)/ply-boot-client.h                             \
                       $(srcdir)/ply-boot-client.c
 
-libplybootclientdir = $(includedir)/plymouth-1/plybootclient
-libplybootclient_HEADERS = \
-			ply-boot-client.h
-
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = ply-boot-client.pc
+EXTRA_DIST = ply-boot-client.pc.in
 MAINTAINERCLEANFILES = Makefile.in
 all: all-recursive
 
@@ -366,6 +377,8 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
+ply-boot-client.pc: $(top_builddir)/config.status $(srcdir)/ply-boot-client.pc.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	test -z "$(libdir)" || $(MKDIR_P) "$(DESTDIR)$(libdir)"
@@ -397,8 +410,8 @@ clean-libLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-libplybootclient.la: $(libplybootclient_la_OBJECTS) $(libplybootclient_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(libplybootclient_la_LINK) -rpath $(libdir) $(libplybootclient_la_OBJECTS) $(libplybootclient_la_LIBADD) $(LIBS)
+libply-boot-client.la: $(libply_boot_client_la_OBJECTS) $(libply_boot_client_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(libply_boot_client_la_LINK) -rpath $(libdir) $(libply_boot_client_la_OBJECTS) $(libply_boot_client_la_LIBADD) $(LIBS)
 install-plymouthPROGRAMS: $(plymouth_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	test -z "$(plymouthdir)" || $(MKDIR_P) "$(DESTDIR)$(plymouthdir)"
@@ -452,7 +465,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libplybootclient_la-ply-boot-client.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libply_boot_client_la-ply-boot-client.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plymouth-ply-boot-client.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plymouth-plymouth.Po@am__quote@
 
@@ -480,13 +493,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
 
-libplybootclient_la-ply-boot-client.lo: $(srcdir)/ply-boot-client.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libplybootclient_la_CFLAGS) $(CFLAGS) -MT libplybootclient_la-ply-boot-client.lo -MD -MP -MF $(DEPDIR)/libplybootclient_la-ply-boot-client.Tpo -c -o libplybootclient_la-ply-boot-client.lo `test -f '$(srcdir)/ply-boot-client.c' || echo '$(srcdir)/'`$(srcdir)/ply-boot-client.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libplybootclient_la-ply-boot-client.Tpo $(DEPDIR)/libplybootclient_la-ply-boot-client.Plo
+libply_boot_client_la-ply-boot-client.lo: $(srcdir)/ply-boot-client.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libply_boot_client_la_CFLAGS) $(CFLAGS) -MT libply_boot_client_la-ply-boot-client.lo -MD -MP -MF $(DEPDIR)/libply_boot_client_la-ply-boot-client.Tpo -c -o libply_boot_client_la-ply-boot-client.lo `test -f '$(srcdir)/ply-boot-client.c' || echo '$(srcdir)/'`$(srcdir)/ply-boot-client.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libply_boot_client_la-ply-boot-client.Tpo $(DEPDIR)/libply_boot_client_la-ply-boot-client.Plo
 @am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(srcdir)/ply-boot-client.c' object='libplybootclient_la-ply-boot-client.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(srcdir)/ply-boot-client.c' object='libply_boot_client_la-ply-boot-client.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libplybootclient_la_CFLAGS) $(CFLAGS) -c -o libplybootclient_la-ply-boot-client.lo `test -f '$(srcdir)/ply-boot-client.c' || echo '$(srcdir)/'`$(srcdir)/ply-boot-client.c
+@am__fastdepCC_FALSE@	$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libply_boot_client_la_CFLAGS) $(CFLAGS) -c -o libply_boot_client_la-ply-boot-client.lo `test -f '$(srcdir)/ply-boot-client.c' || echo '$(srcdir)/'`$(srcdir)/ply-boot-client.c
 
 plymouth-ply-boot-client.o: $(srcdir)/ply-boot-client.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -MT plymouth-ply-boot-client.o -MD -MP -MF $(DEPDIR)/plymouth-ply-boot-client.Tpo -c -o plymouth-ply-boot-client.o `test -f '$(srcdir)/ply-boot-client.c' || echo '$(srcdir)/'`$(srcdir)/ply-boot-client.c
@@ -525,26 +538,46 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-libplybootclientHEADERS: $(libplybootclient_HEADERS)
+install-pkgconfigDATA: $(pkgconfig_DATA)
 	@$(NORMAL_INSTALL)
-	test -z "$(libplybootclientdir)" || $(MKDIR_P) "$(DESTDIR)$(libplybootclientdir)"
-	@list='$(libplybootclient_HEADERS)'; test -n "$(libplybootclientdir)" || list=; \
+	test -z "$(pkgconfigdir)" || $(MKDIR_P) "$(DESTDIR)$(pkgconfigdir)"
+	@list='$(pkgconfig_DATA)'; test -n "$(pkgconfigdir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  echo "$$d$$p"; \
 	done | $(am__base_list) | \
 	while read files; do \
-	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(libplybootclientdir)'"; \
-	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(libplybootclientdir)" || exit $$?; \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(pkgconfigdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(pkgconfigdir)" || exit $$?; \
 	done
 
-uninstall-libplybootclientHEADERS:
+uninstall-pkgconfigDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(libplybootclient_HEADERS)'; test -n "$(libplybootclientdir)" || list=; \
+	@list='$(pkgconfig_DATA)'; test -n "$(pkgconfigdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	test -n "$$files" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(libplybootclientdir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(libplybootclientdir)" && rm -f $$files
+	echo " ( cd '$(DESTDIR)$(pkgconfigdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(pkgconfigdir)" && rm -f $$files
+install-libply_boot_clientHEADERS: $(libply_boot_client_HEADERS)
+	@$(NORMAL_INSTALL)
+	test -z "$(libply_boot_clientdir)" || $(MKDIR_P) "$(DESTDIR)$(libply_boot_clientdir)"
+	@list='$(libply_boot_client_HEADERS)'; test -n "$(libply_boot_clientdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(libply_boot_clientdir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(libply_boot_clientdir)" || exit $$?; \
+	done
+
+uninstall-libply_boot_clientHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(libply_boot_client_HEADERS)'; test -n "$(libply_boot_clientdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(libply_boot_clientdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(libply_boot_clientdir)" && rm -f $$files
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run `make' without going through this Makefile.
@@ -741,10 +774,10 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-recursive
-all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(HEADERS)
+all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(DATA) $(HEADERS)
 installdirs: installdirs-recursive
 installdirs-am:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(plymouthdir)" "$(DESTDIR)$(libplybootclientdir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(plymouthdir)" "$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(libply_boot_clientdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-recursive
@@ -798,8 +831,8 @@ info: info-recursive
 
 info-am:
 
-install-data-am: install-libplybootclientHEADERS \
-	install-plymouthPROGRAMS
+install-data-am: install-libply_boot_clientHEADERS \
+	install-pkgconfigDATA install-plymouthPROGRAMS
 	@$(NORMAL_INSTALL)
 	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
 install-dvi: install-dvi-recursive
@@ -847,7 +880,8 @@ ps: ps-recursive
 ps-am:
 
 uninstall-am: uninstall-libLTLIBRARIES \
-	uninstall-libplybootclientHEADERS uninstall-plymouthPROGRAMS
+	uninstall-libply_boot_clientHEADERS uninstall-pkgconfigDATA \
+	uninstall-plymouthPROGRAMS
 	@$(NORMAL_INSTALL)
 	$(MAKE) $(AM_MAKEFLAGS) uninstall-hook
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) ctags-recursive \
@@ -863,15 +897,16 @@ uninstall-am: uninstall-libLTLIBRARIES \
 	install-data install-data-am install-data-hook install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
 	install-html-am install-info install-info-am \
-	install-libLTLIBRARIES install-libplybootclientHEADERS \
-	install-man install-pdf install-pdf-am \
+	install-libLTLIBRARIES install-libply_boot_clientHEADERS \
+	install-man install-pdf install-pdf-am install-pkgconfigDATA \
 	install-plymouthPROGRAMS install-ps install-ps-am \
 	install-strip installcheck installcheck-am installdirs \
 	installdirs-am maintainer-clean maintainer-clean-generic \
 	mostlyclean mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-recursive \
 	uninstall uninstall-am uninstall-hook uninstall-libLTLIBRARIES \
-	uninstall-libplybootclientHEADERS uninstall-plymouthPROGRAMS
+	uninstall-libply_boot_clientHEADERS uninstall-pkgconfigDATA \
+	uninstall-plymouthPROGRAMS
 
 
 @WITH_RHGB_COMPAT_LINK_TRUE@install-data-hook:

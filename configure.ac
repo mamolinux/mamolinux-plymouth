@@ -208,10 +208,16 @@ AS_AC_EXPAND(PLYMOUTH_THEME_PATH, $plymouththemedir)
 plymouthplugindir=$libdir/plymouth/
 AS_AC_EXPAND(PLYMOUTH_PLUGIN_PATH, $plymouthplugindir)
 
+AS_AC_EXPAND(PLYMOUTH_LIBDIR, $libdir)
+AS_AC_EXPAND(PLYMOUTH_LIBEXECDIR, $libexecdir)
+AS_AC_EXPAND(PLYMOUTH_DATADIR, $datadir)
+
 AC_OUTPUT([Makefile
            src/libply/Makefile
-           src/libplybootsplash/Makefile
-           src/plymouth-1.pc
+           src/libply-splash-core/Makefile
+           src/libply-splash-graphics/Makefile
+           src/ply-splash-core.pc
+           src/ply-splash-graphics.pc
            src/plugins/Makefile
            src/plugins/renderers/Makefile
            src/plugins/renderers/frame-buffer/Makefile
@@ -228,6 +234,7 @@ AC_OUTPUT([Makefile
            src/plugins/controls/Makefile
            src/plugins/controls/label/Makefile
            src/Makefile
+           src/client/ply-boot-client.pc
            src/client/Makefile
            src/viewer/Makefile
            src/tests/Makefile
@@ -243,8 +250,9 @@ AC_OUTPUT([Makefile
            themes/script/Makefile
            themes/ubuntu-logo/Makefile
            images/Makefile
-           scripts/Makefile
-	   scripts/plymouth-set-default-theme
+	   scripts/plymouth-generate-initrd
 	   scripts/plymouth-populate-initrd
+	   scripts/plymouth-set-default-theme
+           scripts/Makefile
            docs/Makefile
 ])

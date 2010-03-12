@@ -66,7 +66,9 @@ struct _ply_boot_server
   ply_boot_server_progress_pause_handler_t progress_pause_handler;
   ply_boot_server_progress_unpause_handler_t progress_unpause_handler;
   ply_boot_server_deactivate_handler_t deactivate_handler;
+  ply_boot_server_reactivate_handler_t reactivate_handler;
   ply_boot_server_quit_handler_t quit_handler;
+  ply_boot_server_has_active_vt_handler_t has_active_vt_handler;
   void *user_data;
 
   uint32_t is_listening : 1;
@@ -87,7 +89,9 @@ ply_boot_server_new (ply_boot_server_update_handler_t  update_handler,
                      ply_boot_server_system_initialized_handler_t initialized_handler,
                      ply_boot_server_error_handler_t   error_handler,
                      ply_boot_server_deactivate_handler_t    deactivate_handler,
+                     ply_boot_server_reactivate_handler_t    reactivate_handler,
                      ply_boot_server_quit_handler_t    quit_handler,
+                     ply_boot_server_has_active_vt_handler_t has_active_vt_handler,
                      void                             *user_data)
 {
   ply_boot_server_t *server;
@@ -111,7 +115,9 @@ ply_boot_server_new (ply_boot_server_update_handler_t  update_handler,
   server->show_splash_handler = show_splash_handler;
   server->hide_splash_handler = hide_splash_handler;
   server->deactivate_handler = deactivate_handler;
+  server->reactivate_handler = reactivate_handler;
   server->quit_handler = quit_handler;
+  server->has_active_vt_handler = has_active_vt_handler;
   server->user_data = user_data;
 
   return server;
@@ -341,6 +347,7 @@ ply_boot_connection_on_request (ply_boot_connection_t *connection)
 
   if (strcmp (command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_UPDATE) == 0)
     {
+      ply_trace ("got update request");
       if (server->update_handler != NULL)
         server->update_handler (server->user_data, argument, server);
       free (argument);
@@ -371,6 +378,8 @@ ply_boot_connection_on_request (ply_boot_connection_t *connection)
     {
       ply_trigger_t *deactivate_trigger;
 
+      ply_trace ("got deactivate request");
+
       deactivate_trigger = ply_trigger_new (NULL);
 
       ply_trigger_add_handler (deactivate_trigger,
@@ -385,12 +394,20 @@ ply_boot_connection_on_request (ply_boot_connection_t *connection)
       free (command);
       return;
     }
+  else if (strcmp (command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_REACTIVATE) == 0)
+    {
+      ply_trace ("got reactivate request");
+      if (server->reactivate_handler != NULL)
+        server->reactivate_handler (server->user_data, server);
+    }
   else if (strcmp (command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_QUIT) == 0)
     {
       bool retain_splash;
       ply_trigger_t *quit_trigger;
 
       retain_splash = (bool) argument[0];
+
+      ply_trace ("got quit %srequest", retain_splash? "--retain-splash " : "");
 
       quit_trigger = ply_trigger_new (NULL);
 
@@ -409,6 +426,8 @@ ply_boot_connection_on_request (ply_boot_connection_t *connection)
   else if (strcmp (command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_PASSWORD) == 0)
     {
       ply_trigger_t *answer;
+
+      ply_trace ("got password request");
 
       answer = ply_trigger_new (NULL);
       ply_trigger_add_handler (answer,
@@ -433,9 +452,14 @@ ply_boot_connection_on_request (ply_boot_connection_t *connection)
       size_t buffer_size;
       uint32_t size;
 
+      ply_trace ("got cached password request");
+
       buffer = ply_buffer_new ();
 
       node = ply_list_get_first_node (server->cached_passwords);
+
+      ply_trace ("There are %d cached passwords",
+                 ply_list_get_length (server->cached_passwords));
 
       /* Add each answer separated by their NUL terminators into
        * a buffer that we write out to the client
@@ -487,6 +511,8 @@ ply_boot_connection_on_request (ply_boot_connection_t *connection)
     {
       ply_trigger_t *answer;
 
+      ply_trace ("got question request");
+
       answer = ply_trigger_new (NULL);
       ply_trigger_add_handler (answer,
                                (ply_trigger_handler_t)
@@ -505,12 +531,15 @@ ply_boot_connection_on_request (ply_boot_connection_t *connection)
     }
   else if (strcmp (command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_MESSAGE) == 0)
     {
+      ply_trace ("got message request");
       if (server->display_message_handler != NULL)
         server->display_message_handler(server->user_data, argument, server);
     }
   else if (strcmp (command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_KEYSTROKE) == 0)
     {
       ply_trigger_t *answer;
+
+      ply_trace ("got keystroke request");
 
       answer = ply_trigger_new (NULL);
       ply_trigger_add_handler (answer,
@@ -530,6 +559,7 @@ ply_boot_connection_on_request (ply_boot_connection_t *connection)
     }
   else if (strcmp (command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_KEYSTROKE_REMOVE) == 0)
     {
+      ply_trace ("got keystroke remove request");
       if (server->ignore_keystroke_handler != NULL)
         server->ignore_keystroke_handler (server->user_data,
                                           argument,
@@ -537,20 +567,42 @@ ply_boot_connection_on_request (ply_boot_connection_t *connection)
     }
   else if (strcmp (command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_PROGRESS_PAUSE) == 0)
     {
+      ply_trace ("got progress pause request");
       if (server->progress_pause_handler != NULL)
         server->progress_pause_handler (server->user_data,
                                         server);
     }
   else if (strcmp (command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_PROGRESS_UNPAUSE) == 0)
     {
+      ply_trace ("got progress unpause request");
       if (server->progress_unpause_handler != NULL)
         server->progress_unpause_handler (server->user_data,
                                           server);
     }
   else if (strcmp (command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_NEWROOT) == 0)
     {
+      ply_trace ("got newroot request");
       if (server->newroot_handler != NULL)
         server->newroot_handler(server->user_data, argument, server);
+    }
+  else if (strcmp (command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_HAS_ACTIVE_VT) == 0)
+    {
+      bool answer = false;
+
+      ply_trace ("got has_active vt? request");
+      if (server->has_active_vt_handler != NULL)
+        answer = server->has_active_vt_handler(server->user_data, server);
+
+      if (!answer)
+        {
+          if (!ply_write (connection->fd,
+                          PLY_BOOT_PROTOCOL_RESPONSE_TYPE_NAK,
+                          strlen (PLY_BOOT_PROTOCOL_RESPONSE_TYPE_NAK)))
+            ply_error ("could not write bytes: %m");
+
+          free(command);
+          return;
+        }
     }
   else if (strcmp (command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_PING) != 0)
     {
@@ -701,6 +753,12 @@ on_deactivate (ply_event_loop_t *loop)
 }
 
 static void
+on_reactivate (ply_event_loop_t *loop)
+{
+  printf ("got reactivate request\n");
+}
+
+static void
 on_quit (ply_event_loop_t *loop)
 {
   printf ("got quit request, quiting...\n");
@@ -767,6 +825,13 @@ on_ignore_keystroke (ply_event_loop_t *loop)
   return;
 }
 
+static bool
+on_has_active_vt (ply_event_loop_t *loop)
+{
+  printf ("got has_active vt? request\n");
+  return true;
+}
+
 int
 main (int    argc,
       char **argv)
@@ -793,7 +858,9 @@ main (int    argc,
                                 (ply_boot_server_system_initialized_handler_t) on_system_initialized,
                                 (ply_boot_server_error_handler_t) on_error,
                                 (ply_boot_server_deactivate_handler_t) on_deactivate,
+                                (ply_boot_server_reactivate_handler_t) on_reactivate,
                                 (ply_boot_server_quit_handler_t) on_quit,
+                                (ply_boot_server_has_active_vt_handler_t) on_has_active_vt,
                                 loop);
 
   if (!ply_boot_server_listen (server))
