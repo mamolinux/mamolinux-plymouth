@@ -1,3 +1,10 @@
+plymouth (0.8.0~-14) lucid; urgency=low
+
+  * Add Breaks: against old versions of mountall and casper, due to the soname
+    changes in ~-13.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Fri, 12 Mar 2010 12:27:50 -0800
+
 plymouth (0.8.0~-13) lucid; urgency=low
 
   [ Steve Langasek ]
