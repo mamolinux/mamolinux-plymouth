@@ -82,6 +82,7 @@ struct _ply_renderer_head
 
 struct _ply_renderer_input_source
 {
+  ply_renderer_backend_t *backend;
   ply_fd_watch_t *terminal_input_watch;
 
   ply_buffer_t   *key_buffer;
@@ -93,7 +94,6 @@ struct _ply_renderer_input_source
 struct _ply_renderer_backend
 {
   ply_event_loop_t *loop;
-  ply_console_t *console;
   ply_terminal_t *terminal;
 
   ply_renderer_driver_interface_t *driver_interface;
@@ -111,12 +111,14 @@ struct _ply_renderer_backend
   int32_t dither_green;
   int32_t dither_blue;
 
-  uint32_t is_inactive : 1;
+  uint32_t is_active : 1;
 };
 
 ply_renderer_plugin_interface_t *ply_renderer_backend_get_interface (void);
 static void ply_renderer_head_redraw (ply_renderer_backend_t *backend,
                                       ply_renderer_head_t    *head);
+static bool open_input_source (ply_renderer_backend_t      *backend,
+                               ply_renderer_input_source_t *input_source);
 
 static ply_renderer_head_t *
 ply_renderer_head_new (ply_renderer_backend_t *backend,
@@ -298,8 +300,7 @@ free_heads (ply_renderer_backend_t *backend)
 
 static ply_renderer_backend_t *
 create_backend (const char *device_name,
-                ply_terminal_t *terminal,
-                ply_console_t *console)
+                ply_terminal_t *terminal)
 {
   ply_renderer_backend_t *backend;
 
@@ -315,7 +316,6 @@ create_backend (const char *device_name,
   backend->loop = ply_event_loop_get_default ();
   backend->heads = ply_list_new ();
   backend->input_source.key_buffer = ply_buffer_new ();
-  backend->console = console;
   backend->terminal = terminal;
 
   return backend;
@@ -373,7 +373,7 @@ activate (ply_renderer_backend_t *backend)
 {
   ply_list_node_t *node;
 
-  backend->is_inactive = false;
+  backend->is_active = true;
 
   drmSetMaster (backend->device_fd);
   node = ply_list_get_first_node (backend->heads);
@@ -398,25 +398,22 @@ deactivate (ply_renderer_backend_t *backend)
 {
   ply_trace ("dropping master");
   drmDropMaster (backend->device_fd);
-  backend->is_inactive = true;
+  backend->is_active = false;
 }
 
 static void
 on_active_vt_changed (ply_renderer_backend_t *backend)
 {
-  if (backend->is_inactive)
-    return;
-
-  if (ply_console_get_active_vt (backend->console) !=
-      ply_terminal_get_vt_number (backend->terminal))
+  if (ply_terminal_is_active (backend->terminal))
+    {
+      ply_trace ("activating on vt change");
+      activate (backend);
+    }
+  else
     {
       ply_trace ("deactivating on vt change");
       deactivate (backend);
-      return;
     }
-
-  ply_trace ("activating on vt change");
-  activate (backend);
 }
 
 static bool
@@ -500,10 +497,23 @@ open_device (ply_renderer_backend_t *backend)
   if (!load_driver (backend))
     return false;
 
-  ply_console_watch_for_active_vt_change (backend->console,
-                                          (ply_console_active_vt_changed_handler_t)
-                                          on_active_vt_changed,
-                                          backend);
+  if (!ply_terminal_open (backend->terminal))
+    {
+      ply_trace ("could not open terminal: %m");
+      return false;
+    }
+
+  if (!ply_terminal_is_vt (backend->terminal))
+    {
+      ply_trace ("terminal is not a VT");
+      ply_terminal_close (backend->terminal);
+      return false;
+    }
+
+  ply_terminal_watch_for_active_vt_changed (backend->terminal,
+                                            (ply_terminal_active_vt_changed_handler_t)
+                                            on_active_vt_changed,
+                                            backend);
 
   return true;
 }
@@ -513,11 +523,10 @@ close_device (ply_renderer_backend_t *backend)
 {
   free_heads (backend);
 
-  ply_console_stop_watching_for_active_vt_change (backend->console,
-                                                  (ply_console_active_vt_changed_handler_t)
-                                                  on_active_vt_changed,
-                                                  backend);
-
+  ply_terminal_stop_watching_for_active_vt_changed (backend->terminal,
+                                                    (ply_terminal_active_vt_changed_handler_t)
+                                                    on_active_vt_changed,
+                                                    backend);
   unload_driver (backend);
 }
 
@@ -794,9 +803,6 @@ map_to_device (ply_renderer_backend_t *backend)
   ply_list_node_t *node;
   bool head_mapped;
 
-  ply_console_set_active_vt (backend->console,
-                             ply_terminal_get_vt_number (backend->terminal));
-
   head_mapped = false;
   node = ply_list_get_first_node (backend->heads);
   while (node != NULL)
@@ -812,6 +818,11 @@ map_to_device (ply_renderer_backend_t *backend)
 
       node = next_node;
     }
+
+  if (ply_terminal_is_active (backend->terminal))
+      activate (backend);
+  else
+      ply_terminal_activate_vt (backend->terminal);
 
   return head_mapped;
 }
@@ -913,7 +924,7 @@ unmap_from_device (ply_renderer_backend_t *backend)
       head = (ply_renderer_head_t *) ply_list_node_get_data (node);
       next_node = ply_list_get_next_node (backend->heads, node);
 
-      if (!backend->is_inactive)
+      if (backend->is_active)
         {
           ply_trace ("scanning out directly to console");
           ply_renderer_head_set_scan_out_buffer_to_console (backend, head,
@@ -932,8 +943,7 @@ reset_scan_out_buffer_if_needed (ply_renderer_backend_t *backend,
 {
   drmModeCrtc *controller;
 
-  if (ply_console_get_active_vt (backend->console) !=
-      ply_terminal_get_vt_number (backend->terminal))
+  if (!ply_terminal_is_active (backend->terminal))
     return;
 
   controller = drmModeGetCrtc (backend->device_fd, head->controller_id);
@@ -963,10 +973,10 @@ flush_head (ply_renderer_backend_t *backend,
 
   assert (backend != NULL);
 
-  if (backend->is_inactive)
+  if (!backend->is_active)
     return;
 
-  ply_console_set_mode (backend->console, PLY_CONSOLE_MODE_GRAPHICS);
+  ply_terminal_set_mode (backend->terminal, PLY_TERMINAL_MODE_GRAPHICS);
   ply_terminal_set_unbuffered_input (backend->terminal);
   pixel_buffer = head->pixel_buffer;
   updated_region = ply_pixel_buffer_get_updated_areas (pixel_buffer);
@@ -1053,6 +1063,14 @@ on_key_event (ply_renderer_input_source_t *input_source,
 
 }
 
+static void
+on_input_source_disconnected (ply_renderer_input_source_t *input_source)
+{
+  ply_trace ("input source disconnected, reopening");
+
+  open_input_source (input_source->backend, input_source);
+}
+
 static bool
 open_input_source (ply_renderer_backend_t      *backend,
                    ply_renderer_input_source_t *input_source)
@@ -1064,9 +1082,11 @@ open_input_source (ply_renderer_backend_t      *backend,
 
   terminal_fd = ply_terminal_get_fd (backend->terminal);
 
+  input_source->backend = backend;
   input_source->terminal_input_watch = ply_event_loop_watch_fd (backend->loop, terminal_fd, PLY_EVENT_LOOP_FD_STATUS_HAS_DATA,
                                                                 (ply_event_handler_t) on_key_event,
-                                                                NULL, input_source);
+                                                                (ply_event_handler_t)
+                                                                on_input_source_disconnected, input_source);
   return true;
 }
 
@@ -1092,6 +1112,7 @@ close_input_source (ply_renderer_backend_t      *backend,
 
   ply_event_loop_stop_watching_fd (backend->loop, input_source->terminal_input_watch);
   input_source->terminal_input_watch = NULL;
+  input_source->backend = NULL;
 }
 
 ply_renderer_plugin_interface_t *

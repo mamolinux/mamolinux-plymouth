@@ -8,6 +8,5 @@ from apport.hookutils import *
 
 def add_info(report):
 	attach_hardware(report)
-	attach_file(report,'/proc/cmdline','ProcCmdline')
 	attach_file(report,'/proc/fb','ProcFB')
 

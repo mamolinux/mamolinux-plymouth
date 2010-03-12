@@ -75,12 +75,6 @@
 static int errno_stack[PLY_ERRNO_STACK_SIZE];
 static int errno_stack_position = 0;
 
-void ply_remove_pid_file (const char *pid_file)
-{
-  if (ply_file_exists (pid_file))
-    unlink (pid_file);
-}
-
 bool 
 ply_open_unidirectional_pipe (int *sender_fd,
                               int *receiver_fd)
@@ -826,17 +820,21 @@ ply_create_daemon (const char *pid_file)
           _exit (1);
         }
 
-      if (pid_file != NULL) {
-        /* Create pid file */
-        FILE *pidf = fopen(pid_file, "w");
-        if (!pidf) {
-          ply_error ("could not open file for writing: %s", pid_file);
+      if ((byte == 0) && (pid_file != NULL))
+        {
+          FILE *pidf;
+
+          pidf = fopen (pid_file, "w");
+          if (!pidf)
+            {
+              ply_error ("could not write pid file %s: %m", pid_file);
+            }
+          else
+            {
+              fprintf (pidf, "%d\n", (int)pid);
+              fclose (pidf);
+            }
         }
-        else {
-          fprintf(pidf, "%d\n", pid);
-          fclose(pidf);
-        }
-      }
 
       _exit ((int) byte);
     }

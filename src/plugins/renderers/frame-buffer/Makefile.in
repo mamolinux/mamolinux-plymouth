@@ -71,7 +71,7 @@ LTLIBRARIES = $(plugin_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 frame_buffer_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	../../../libply/libply.la \
-	../../../libplybootsplash/libplybootsplash.la
+	../../../libply-splash-core/libply-splash-core.la
 am_frame_buffer_la_OBJECTS = frame_buffer_la-plugin.lo
 frame_buffer_la_OBJECTS = $(am_frame_buffer_la_OBJECTS)
 AM_V_lt = $(am__v_lt_$(V))
@@ -180,6 +180,9 @@ PANGO_LIBS = @PANGO_LIBS@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
 PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
+PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
+PLYMOUTH_LIBDIR = @PLYMOUTH_LIBDIR@
+PLYMOUTH_LIBEXECDIR = @PLYMOUTH_LIBEXECDIR@
 PLYMOUTH_LIBS = @PLYMOUTH_LIBS@
 PLYMOUTH_PLUGIN_PATH = @PLYMOUTH_PLUGIN_PATH@
 PLYMOUTH_THEME_PATH = @PLYMOUTH_THEME_PATH@
@@ -251,7 +254,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 INCLUDES = -I$(top_srcdir)                                                    \
            -I$(srcdir)/../../../libply                                        \
-           -I$(srcdir)/../../../libplybootsplash                              \
+           -I$(srcdir)/../../../libply-splash-core                            \
            -I$(srcdir)/../../..                                               \
            -I$(srcdir)/../..                                                  \
            -I$(srcdir)/..                                                     \
@@ -263,7 +266,7 @@ frame_buffer_la_CFLAGS = $(PLYMOUTH_CFLAGS)
 frame_buffer_la_LDFLAGS = -module -avoid-version -export-dynamic
 frame_buffer_la_LIBADD = $(PLYMOUTH_LIBS)                                     \
                          ../../../libply/libply.la                            \
-                         ../../../libplybootsplash/libplybootsplash.la
+                         ../../../libply-splash-core/libply-splash-core.la
 
 frame_buffer_la_SOURCES = $(srcdir)/plugin.c
 MAINTAINERCLEANFILES = Makefile.in

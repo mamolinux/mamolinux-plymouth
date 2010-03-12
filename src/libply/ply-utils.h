@@ -107,8 +107,6 @@ int ply_utf8_character_get_size (const char   *string,
 int ply_utf8_string_get_length (const char   *string,
                                 size_t        n);
 
-void ply_remove_pid_file (const char *pid_file);
-
 #endif
 
 #endif /* PLY_UTILS_H */

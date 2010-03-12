@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <wchar.h>
 #include <paths.h>
+#include <assert.h>
 
 #include <linux/kd.h>
 #include <linux/vt.h>
@@ -79,7 +80,6 @@ typedef struct
 typedef struct
 {
   ply_event_loop_t *loop;
-  ply_console_t *console;
   ply_boot_server_t *boot_server;
   ply_list_t *pixel_displays;
   ply_list_t *text_displays;
@@ -134,12 +134,10 @@ static void on_error_message (ply_buffer_t *debug_buffer,
                               size_t        number_of_bytes);
 static ply_buffer_t *debug_buffer;
 static char *debug_buffer_path = NULL;
+static char *pid_file = NULL;
 static void check_for_consoles (state_t    *state,
                                 const char *default_tty,
                                 bool        should_add_displays);
-
-/* pid file, if any */
-static const char *pid_file = NULL;
 
 static void
 on_session_output (state_t    *state,
@@ -163,8 +161,9 @@ on_update (state_t     *state,
            const char  *status)
 {
   ply_trace ("updating status to '%s'", status);
-  ply_progress_status_update (state->progress,
-                               status);
+  if (strncmp (status, "fsck:", 5))
+    ply_progress_status_update (state->progress,
+                                status);
   if (state->boot_splash != NULL)
     ply_boot_splash_update_status (state->boot_splash,
                                    status);
@@ -175,8 +174,6 @@ show_detailed_splash (state_t *state)
 {
   if (state->boot_splash != NULL)
     return;
-
-//  add_display_and_keyboard_for_terminal(state, state->default_tty);
 
   ply_trace ("Showing detailed splash screen");
   state->boot_splash = start_boot_splash (state,
@@ -243,7 +240,6 @@ show_default_splash (state_t *state)
     {
       ply_trace ("Could not start graphical splash screen,"
                  "showing text splash screen");
-//      add_display_and_keyboard_for_terminal(state, state->default_tty);
       state->boot_splash = start_boot_splash (state,
                                               PLYMOUTH_THEME_PATH "text/text.plymouth");
     }
@@ -257,8 +253,17 @@ on_ask_for_password (state_t      *state,
                      const char   *prompt,
                      ply_trigger_t *answer)
 {
-  ply_entry_trigger_t *entry_trigger =
-                                  calloc (1, sizeof (ply_entry_trigger_t));
+  ply_entry_trigger_t *entry_trigger;
+
+  /* No splash, client will have to get password
+   */
+  if (state->boot_splash == NULL)
+    {
+      ply_trigger_pull (answer, NULL);
+      return;
+    }
+
+  entry_trigger = calloc (1, sizeof (ply_entry_trigger_t));
   entry_trigger->type = PLY_ENTRY_TRIGGER_TYPE_PASSWORD;
   entry_trigger->prompt = prompt;
   entry_trigger->trigger = answer;
@@ -271,8 +276,9 @@ on_ask_question (state_t      *state,
                  const char   *prompt,
                  ply_trigger_t *answer)
 {
-  ply_entry_trigger_t *entry_trigger =
-                                  calloc (1, sizeof (ply_entry_trigger_t));
+  ply_entry_trigger_t *entry_trigger;
+
+  entry_trigger = calloc (1, sizeof (ply_entry_trigger_t));
   entry_trigger->type = PLY_ENTRY_TRIGGER_TYPE_QUESTION;
   entry_trigger->prompt = prompt;
   entry_trigger->trigger = answer;
@@ -564,6 +570,9 @@ on_show_splash (state_t *state)
 {
   bool has_display;
 
+  if (state->is_inactive)
+    return;
+
   check_for_consoles (state, state->default_tty, true);
 
   has_display = ply_list_get_length (state->pixel_displays) > 0 ||
@@ -593,9 +602,9 @@ on_show_splash (state_t *state)
 }
 
 static void
-deactivate_splash (state_t *state)
+quit_splash (state_t *state)
 {
-  ply_trace ("deactivating splash");
+  ply_trace ("quiting splash");
   if (state->boot_splash != NULL)
     {
       ply_trace ("freeing splash");
@@ -605,14 +614,7 @@ deactivate_splash (state_t *state)
 
   ply_trace ("removing displays and keyboard");
   remove_displays_and_keyboard (state);
-}
-                   
-static void
-quit_splash (state_t *state)
-{
-  deactivate_splash (state);
 
-  ply_trace ("quiting splash");
   if (state->renderer != NULL)
     {
       ply_renderer_close (state->renderer);
@@ -622,6 +624,9 @@ quit_splash (state_t *state)
 
   if (state->terminal != NULL)
     {
+      if (!state->should_retain_splash)
+        ply_terminal_restore_vt (state->terminal);
+
       ply_terminal_close (state->terminal);
       ply_terminal_free (state->terminal);
       state->terminal = NULL;
@@ -642,12 +647,8 @@ dump_details_and_quit_splash (state_t *state)
   state->showing_details = false;
   on_escape_pressed (state);
 
-  if (pid_file != NULL) {
-    ply_trace ("trying to remove pid file");
-    ply_remove_pid_file (pid_file);
-    free(pid_file);
-  }
-
+  if (state->renderer != NULL)
+    ply_renderer_deactivate (state->renderer);
   if (state->boot_splash != NULL)
     ply_boot_splash_hide (state->boot_splash);
 
@@ -657,6 +658,9 @@ dump_details_and_quit_splash (state_t *state)
 static void
 on_hide_splash (state_t *state)
 {
+  if (state->is_inactive)
+    return;
+
   if (state->boot_splash == NULL)
     return;
 
@@ -681,6 +685,13 @@ quit_program (state_t *state)
   ply_trace ("exiting event loop");
   ply_event_loop_exit (state->loop, 0);
 
+  if (pid_file != NULL)
+    {
+      unlink (pid_file);
+      free (pid_file);
+      pid_file = NULL;
+    }
+
 #ifdef PLY_ENABLE_GDM_TRANSITION
   if (state->should_retain_splash)
     {
@@ -688,6 +699,11 @@ quit_program (state_t *state)
     }
 #endif
 
+  if (state->deactivate_trigger != NULL)
+    {
+      ply_trigger_pull (state->deactivate_trigger, NULL);
+      state->deactivate_trigger = NULL;
+    }
   if (state->quit_trigger != NULL)
     {
       ply_trigger_pull (state->quit_trigger, NULL);
@@ -696,40 +712,72 @@ quit_program (state_t *state)
 }
 
 static void
+deactivate (state_t *state)
+{
+  assert (!state->is_inactive);
+
+  if (state->renderer != NULL)
+    {
+      ply_trace ("deactivating renderer");
+      ply_renderer_deactivate (state->renderer);
+    }
+
+  if (state->keyboard != NULL)
+    {
+      ply_trace ("deactivating keyboard");
+      ply_keyboard_stop_watching_for_input (state->keyboard);
+    }
+
+  if ((state->session != NULL) && state->is_attached)
+    {
+      ply_trace ("deactivating terminal session");
+      ply_terminal_session_detach (state->session);
+      state->is_redirected = false;
+      state->is_attached = false;
+    }
+
+  if (state->terminal != NULL)
+    {
+      ply_trace ("deactivating terminal");
+      ply_terminal_stop_watching_for_vt_changes (state->terminal);
+      ply_terminal_set_buffered_input (state->terminal);
+      ply_terminal_ignore_mode_changes (state->terminal, true);
+    }
+
+  state->is_inactive = true;
+
+  ply_trigger_pull (state->deactivate_trigger, NULL);
+  state->deactivate_trigger = NULL;
+}
+
+static void
 on_boot_splash_idle (state_t *state)
 {
-
   ply_trace ("boot splash idle");
 
-  if (state->deactivate_trigger != NULL)
+  /* In the case where we've received both a deactivate command and a
+   * quit command, the quit command takes precedence
+   */
+  if (state->quit_trigger != NULL)
     {
-      if (state->renderer != NULL)
+      if (!state->should_retain_splash)
         {
-          ply_trace ("deactivating renderer");
-          ply_renderer_deactivate (state->renderer);
+          ply_trace ("hiding splash");
+          if (state->renderer != NULL)
+            ply_renderer_deactivate (state->renderer);
+          if (state->boot_splash != NULL)
+            ply_boot_splash_hide (state->boot_splash);
         }
 
-      ply_trace ("deactivating splash");
-      deactivate_splash (state);
-
-      ply_trigger_pull (state->deactivate_trigger, NULL);
-      state->deactivate_trigger = NULL;
-      state->is_inactive = true;
-
-      return;
+      ply_trace ("quitting splash");
+      quit_splash (state);
+      ply_trace ("quitting program");
+      quit_program (state);
     }
-
-  if (!state->should_retain_splash)
+  else if (state->deactivate_trigger != NULL)
     {
-      ply_trace ("hiding splash");
-      if (state->boot_splash != NULL)
-          ply_boot_splash_hide (state->boot_splash);
+      deactivate (state);
     }
-
-  ply_trace ("quitting splash");
-  quit_splash (state);
-  ply_trace ("quitting program");
-  quit_program (state);
 }
 
 
@@ -737,10 +785,17 @@ static void
 on_deactivate (state_t       *state,
                ply_trigger_t *deactivate_trigger)
 {
+  if ((state->deactivate_trigger != NULL) || state->is_inactive)
+    {
+      ply_trigger_pull (deactivate_trigger, NULL);
+      return;
+    }
+
+  state->deactivate_trigger = deactivate_trigger;
+
   ply_trace ("deactivating");
   if (state->boot_splash != NULL)
     {
-      state->deactivate_trigger = deactivate_trigger;
       ply_boot_splash_become_idle (state->boot_splash,
                                    (ply_boot_splash_on_idle_handler_t)
                                    on_boot_splash_idle,
@@ -748,8 +803,44 @@ on_deactivate (state_t       *state,
     }
   else
     {
-      ply_trigger_pull (deactivate_trigger, NULL);
+      deactivate (state);
     }
+}
+
+static void
+on_reactivate (state_t *state)
+{
+  if (!state->is_inactive)
+    return;
+
+  if (state->terminal != NULL)
+    {
+      ply_terminal_watch_for_vt_changes (state->terminal);
+      ply_terminal_set_unbuffered_input (state->terminal);
+      ply_terminal_ignore_mode_changes (state->terminal, false);
+    }
+
+  if ((state->session != NULL) && state->should_be_attached)
+    {
+      ply_trace ("reactivating terminal session");
+      attach_to_running_session (state);
+    }
+
+  if (state->keyboard != NULL)
+    {
+      ply_trace ("activating keyboard");
+      ply_keyboard_watch_for_input (state->keyboard);
+    }
+
+  if (state->renderer != NULL)
+    {
+      ply_trace ("activating renderer");
+      ply_renderer_activate (state->renderer);
+    }
+
+  state->is_inactive = false;
+
+  update_display (state);
 }
 
 static void
@@ -757,14 +848,19 @@ on_quit (state_t       *state,
          bool           retain_splash,
          ply_trigger_t *quit_trigger)
 {
+  if (state->quit_trigger != NULL)
+    {
+      ply_trigger_pull (quit_trigger, NULL);
+      return;
+    }
+
+  state->quit_trigger = quit_trigger;
+  state->should_retain_splash = retain_splash;
+
   ply_trace ("time to quit, closing log");
   if (state->session != NULL)
     ply_terminal_session_close_log (state->session);
   ply_trace ("unloading splash");
-
-  state->should_retain_splash = retain_splash;
-
-  state->quit_trigger = quit_trigger;
 
   if (state->boot_splash != NULL)
     {
@@ -782,6 +878,15 @@ on_quit (state_t       *state,
     }
   else
     quit_program (state);
+}
+
+static bool
+on_has_active_vt (state_t *state)
+{
+  if (state->terminal != NULL)
+    return ply_terminal_is_active (state->terminal);
+  else
+    return false;
 }
 
 static ply_boot_server_t *
@@ -803,7 +908,9 @@ start_boot_server (state_t *state)
                                 (ply_boot_server_system_initialized_handler_t) on_system_initialized,
                                 (ply_boot_server_error_handler_t) on_error,
                                 (ply_boot_server_deactivate_handler_t) on_deactivate,
+                                (ply_boot_server_reactivate_handler_t) on_reactivate,
                                 (ply_boot_server_quit_handler_t) on_quit,
+                                (ply_boot_server_has_active_vt_handler_t) on_has_active_vt,
                                 state);
 
   if (!ply_boot_server_listen (server))
@@ -891,7 +998,7 @@ on_keyboard_input (state_t                  *state,
       if (character_size == 1 && ( keyboard_input[0] == '\x3' || keyboard_input[0] == '\x4' ))
         {
           ply_entry_trigger_t* entry_trigger = ply_list_node_get_data (node);
-          ply_trigger_pull (entry_trigger->trigger, NULL);
+          ply_trigger_pull (entry_trigger->trigger, "\x3");
           ply_buffer_clear (state->entry_buffer);
           ply_list_remove_node (state->entry_triggers, node);
           free (entry_trigger);
@@ -1007,11 +1114,8 @@ add_display_and_keyboard_for_terminal (state_t    *state,
 
   state->terminal = terminal;
 
-  ply_console_set_active_vt (state->console,
-                             ply_terminal_get_vt_number (terminal));
-
   keyboard = ply_keyboard_new_for_terminal (terminal);
-  display = ply_text_display_new (terminal, state->console);
+  display = ply_text_display_new (terminal);
 
   ply_list_append_data (state->text_displays, display);
   state->keyboard = keyboard;
@@ -1058,14 +1162,7 @@ add_default_displays_and_keyboard (state_t *state)
 
   terminal = ply_terminal_new (state->default_tty);
 
-  if (!ply_terminal_open (terminal))
-    {
-      ply_trace ("could not open terminal '%s': %m", state->default_tty);
-      ply_terminal_free (terminal);
-      return;
-    }
-
-  renderer = ply_renderer_new (NULL, terminal, state->console);
+  renderer = ply_renderer_new (NULL, terminal);
 
   if (!ply_renderer_open (renderer))
     {
@@ -1084,7 +1181,7 @@ add_default_displays_and_keyboard (state_t *state)
 
   add_pixel_displays_from_renderer (state, renderer);
 
-  text_display = ply_text_display_new (terminal, state->console);
+  text_display = ply_text_display_new (terminal);
   ply_list_append_data (state->text_displays, text_display);
 
   state->renderer = renderer;
@@ -1143,7 +1240,7 @@ start_boot_splash (state_t    *state,
   splash = ply_boot_splash_new (theme_path,
                                 PLYMOUTH_PLUGIN_PATH,
                                 state->boot_buffer,
-                                state->console);
+                                state->terminal);
 
   if (!ply_boot_splash_load (splash))
     {
@@ -1170,7 +1267,7 @@ start_boot_splash (state_t    *state,
   if (!ply_boot_splash_show (splash, splash_mode))
     {
       ply_save_errno ();
-      ply_boot_splash_unset_keyboard(splash);
+      ply_boot_splash_unset_keyboard (splash);
       ply_boot_splash_free (splash);
       ply_restore_errno ();
       return NULL;
@@ -1346,15 +1443,6 @@ check_for_consoles (state_t    *state,
 
   ply_trace ("checking if splash screen should be disabled");
 
-  if (state->console == NULL)
-    state->console = ply_console_new (default_tty);
-
-  if (!ply_console_is_open (state->console) &&
-      !ply_console_open (state->console))
-    {
-      ply_trace ("could not open %s", default_tty);
-    }
-
   remaining_command_line = state->kernel_command_line;
   while ((console_key = strstr (remaining_command_line, " console=")) != NULL)
     {
@@ -1401,7 +1489,7 @@ redirect_standard_io_to_device (const char *device)
   else
     asprintf (&file, "/dev/%s", device);
 
-  fd = open (file, O_RDWR | O_APPEND);
+  fd = open (file, O_RDWR | O_APPEND | O_NOCTTY);
 
   free (file);
 
@@ -1435,12 +1523,15 @@ initialize_environment (state_t *state)
   state->text_displays = ply_list_new ();
   state->keyboard = NULL;
 
-  if (state->mode == PLY_MODE_SHUTDOWN)
+  if (!state->default_tty)
     {
-      state->default_tty = "tty7";
+      if (state->mode == PLY_MODE_SHUTDOWN)
+        {
+          state->default_tty = "tty63";
+        }
+      else
+        state->default_tty = "tty7";
     }
-  else
-    state->default_tty = "tty7";
 
   check_for_consoles (state, state->default_tty, false);
 
@@ -1510,11 +1601,12 @@ on_crash (int signum)
         pause ();
       }
 
-    if (pid_file != NULL) {
-      ply_trace ("trying to remove pid file");
-      ply_remove_pid_file (pid_file);
-      free(pid_file);
-    }
+    if (pid_file != NULL)
+      {
+        unlink (pid_file);
+        free (pid_file);
+        pid_file = NULL;
+      }
 
     signal (signum, SIG_DFL);
     raise(signum);
@@ -1533,6 +1625,7 @@ main (int    argc,
   bool attach_to_session;
   ply_daemon_handle_t *daemon_handle;
   char *mode_string = NULL;
+  char *tty = NULL;
 
   state.command_parser = ply_command_parser_new ("plymouthd", "Boot splash control server");
 
@@ -1546,6 +1639,7 @@ main (int    argc,
                                   "debug-file", "File to output debugging information to", PLY_COMMAND_OPTION_TYPE_STRING,
                                   "mode", "Mode is one of: boot, shutdown", PLY_COMMAND_OPTION_TYPE_STRING,
                                   "pid-file", "Write the pid of the daemon to a file", PLY_COMMAND_OPTION_TYPE_STRING,
+                                  "tty", "TTY to use instead of default", PLY_COMMAND_OPTION_TYPE_STRING,
                                   NULL);
 
   if (!ply_command_parser_parse_arguments (state.command_parser, state.loop, argv, argc))
@@ -1568,6 +1662,7 @@ main (int    argc,
                                   "debug", &debug,
                                   "debug-file", &debug_buffer_path,
                                   "pid-file", &pid_file,
+                                  "tty", &tty,
                                   NULL);
 
   if (should_help)
@@ -1596,6 +1691,11 @@ main (int    argc,
         state.mode = PLY_MODE_BOOT;
 
       free (mode_string);
+    }
+
+  if (tty != NULL)
+    {
+      state.default_tty = tty;
     }
 
   if (geteuid () != 0)

@@ -1,8 +1,10 @@
 lib/libply.a
 lib/libply.so
-lib/libplybootsplash.a
-lib/libplybootsplash.so
-lib/libplybootclient.a
-lib/libplybootclient.so
+lib/libply-boot-client.a
+lib/libply-boot-client.so
+lib/libply-splash-core.a
+lib/libply-splash-core.so
+lib/libply-splash-graphics.a
+lib/libply-splash-graphics.so
 usr/include/plymouth-1/
-lib/pkgconfig/plymouth-1.pc usr/lib/pkgconfig/
+lib/pkgconfig/*.pc usr/lib/pkgconfig/

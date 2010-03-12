@@ -1,3 +1,90 @@
+plymouth (0.8.0~-13) lucid; urgency=low
+
+  [ Steve Langasek ]
+  * Don't attach /proc/cmdline to apport reports, this is already in the
+    standard info that gets collected...
+
+  [ Alberto Milone ]
+  * ubuntu_logo theme:
+    - New logo from Otto Greenslade.
+    - Switch off dots starting from the ones on the left instead of
+      switching them off all at once.
+
+  [ Scott James Remnant ]
+  * Move the Ubuntu logo up as discussed with Otto, this makes the mouse
+    cursor appear between the logo and dots and solves the optical illusion
+    of the logo being too low.  LP: #535014.
+  * Don't include message about disk checks, which can come from mountall.
+  * Drop the rc script splash functions, we don't want the SysV-rc compat
+    stuff messing around with the splash screen - this can be entirely
+    managed by Upstart now.  LP: #528787, #537262.
+
+  * Plymouth Fix Mega Patch:
+    - This hasn't yet been broken up into enough bits to send upstream, and
+      doesn't *quite* address all the issues yet, but it's a major step.
+
+    - Rewrite the VT handling, rather than abusing /dev/tty0 keep all VT
+      operations on the actual VT (tty7), this avoids issues where we set
+      the graphics mode of the wrong VT or put the wrong VT into VT_PROCESS
+      mode.  LP: #520460, #522598, #526321, #533135
+    - Don't attempt VT switch when using non-VT consoles.
+    - Make VT mandatory for renderer plugins, so we fallback gracefully to
+      text when the console is not a VT.  LP: #516825, #527083.
+    - Restore VT when finished displaying the splash unless plymouth quit
+      is called with --retain-splash.  LP: #506297.
+    - Activate VT from text and details plugins, rather than haphardly in
+      the main code, this means the textual boot is also on VT7.
+      LP: #518352, #520122.
+    - Add a --has-active-vt command that can let gdm inquire whether it
+      should reuse Plymouth's VT; fixes the issue where Plymouth has no
+      visible splash screen and X ends up on VT1.  LP: #519641, #533572.
+
+    - Don't open terminal device in X11, fixes the issue where X will crash
+      when debugging plugins using the X11 renderer.
+    - Add --tty option to plymouthd for debugging when X is running and
+      thus using an alternate VT.
+
+    - Improve deactivate command so that the terminal is no longer watched
+      for keyboard input, session is closed, etc.  LP: #528787, #531650.
+    - Ignore mode changes while deactivated, otherwise we can end up
+      resetting the VT back into text mode while X is starting up.
+      LP: #523788, #502509.
+
+    - Fix races with simultaneous quit and deactivate commands, or multiples
+      of those commands.
+    - Ignore --show-splash, --hide-splash, etc. commands while deactivated.
+    - Add reactivate command for testing purposes.
+
+    - Don't scan out drm buffer contents to fbcon when not called with
+      quit --retain-splash.  LP: #527180.
+
+    - Avoid resetting the terminal to unbuffered mode on every write, this
+      results in setting X's VT into raw mode and results in the X server
+      crashing on key presses.  LP: #532047, #534861, #519460, #520593,
+      #522974, #525393
+
+  * I'm aware that if you see the TEXT plugin, it's possible for Enter to
+    still crash the X server for some people.  I will be opening a new bug
+    for this, and would appreciate details from people affected.
+
+  * If you have issues with Enter crashing the X server, and you see a
+    GRAPHICAL plugin, check that gdm is up to date - if it is, please
+    file new bugs.
+
+  * I'm also aware of an issue where after boot, rather than seeing an X
+    server, you see the ordinary "login:" getty screen.  Pressing Alt+F7
+    should take you to X.  I will be opening a new bug for this, and would
+    appreciate details from people affected.
+
+  * Don't send fsck progress updates to the boot-duration file.
+  * Make all the dots orange just before starting the X server.
+
+  * Cute text-version of the splash screen.
+    - Added basic support for fsck notification.
+    - Added support for showing keys information on separate lines.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 12 Mar 2010 19:02:54 +0000
+
 plymouth (0.8.0~-12) lucid; urgency=low
 
   * ubuntu_logo theme:
