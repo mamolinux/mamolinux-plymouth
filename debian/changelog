@@ -1,3 +1,22 @@
+plymouth (0.8.0~-17) lucid; urgency=low
+
+  [ Scott James Remnant ]
+  * src/libply-splash-core/ply-terminal.c:
+    - To restore a terminal into Canonical Mode, rather than setting flags
+      that happen to be the opposite of what cfmakeraw() removes, set the
+      flags that stty's sane mode sets.
+    - Ensure that we clear the "is unbuffered" flag on every exit path from
+      ply_terminal_set_buffered() that means the terminal is Canonical Mode
+      so that we don't reset it back to Canonical Mode again unexpectedly
+      when closing out the terminal under X.
+    LP: #540256.
+
+  [ Steve Langasek ]
+  * src/main.c: allow clients to watch for <enter> as a keystroke.
+    LP: #539182
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 17 Mar 2010 22:36:47 +0000
+
 plymouth (0.8.0~-16) lucid; urgency=low
 
   * src/libply-splash-core/ply-text-display.c:
