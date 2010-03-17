@@ -1,3 +1,30 @@
+plymouth (0.8.0~-15) lucid; urgency=low
+
+  * debian/plymouth.upstart, debian/plymouth.plymouth-stop.upstart:
+    - Replace the "stop on" clause in plymouth's own job with a job that
+      handles stopping plymouth for the normal cases.
+
+      For a display manager that handles the plymouth transition properly
+      (gdm & ubiquity only at this point), this simply appears to be running
+      until plymouth is stopped by that display manager.  This blocks plymouth
+      from being stopped for other reasons, e.g. rc2 exiting.  LP: #538214.
+
+      For other display managers, and when we reach the end of rc2 or
+      other reasons, this simply asks plymouth to quit.  We never use
+      --retain-splash, if the display manager can't do plymouth transitions,
+      we never want to leave the VT in KD_GRAPHICS in case the display
+      manager gets things wrong (hi, kdm!).  LP: #538524.
+  * debian/plymouth.plymouth-splash.upstart:
+    - Add LXDM.  LP: #526748
+
+  * debian/plymouth.plymouth-splash.upstart:
+    - Remove the "starting gdm" bit from the job, since that won't have any
+      effect (job is already started by the time gdm is); and as a result of
+      the above changes could end up with plymouth --show-splash and quit
+      being called together if someone runs "start gdm" themselves.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 17 Mar 2010 01:19:37 +0000
+
 plymouth (0.8.0~-14) lucid; urgency=low
 
   * Add Breaks: against old versions of mountall and casper, due to the soname

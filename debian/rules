@@ -45,6 +45,7 @@ override_dh_installinit:
 	dh_installinit --noscripts
 	dh_installinit --name=plymouth-log --noscripts
 	dh_installinit --name=plymouth-splash --noscripts
+	dh_installinit --name=plymouth-stop --noscripts
 
 # Make the initramfs scripts executable
 override_dh_fixperms:

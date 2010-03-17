@@ -12,18 +12,14 @@
 
 description	"Userspace bootsplash"
 
-start on ((started plymouth
-           and (graphics-device-added PRIMARY_DEVICE_FOR_DISPLAY=1
-                or drm-device-added PRIMARY_DEVICE_FOR_DISPLAY=1
-                or stopped udevtrigger
-                or (runlevel [016]
-                    and (stopped gdm
-                         or stopped kdm
-                         or stopped xdm
-                        )
-                   )
-               )
-          ) or starting gdm)
-stop on stopped plymouth
+start on (started plymouth
+          and (graphics-device-added PRIMARY_DEVICE_FOR_DISPLAY=1
+               or drm-device-added PRIMARY_DEVICE_FOR_DISPLAY=1
+               or stopped udevtrigger
+               or (runlevel [016]
+                   and (stopped gdm
+                        or stopped kdm
+                        or stopped xdm
+                        or stopped lxdm))))
 
-pre-start exec /bin/plymouth --show-splash
+exec /bin/plymouth --show-splash

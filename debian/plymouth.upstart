@@ -7,12 +7,6 @@
 
 description	"Userspace bootsplash utility"
 
-# gdm is deliberately missing
-stop on (starting kdm
-         or starting xdm
-         or stopped rc RUNLEVEL=[2345]
-         or starting rcS
-         or starting mountall-shell)
 start on (starting mountall
           or (runlevel [016]
               and (stopped gdm
@@ -30,8 +24,4 @@ script
     fi
 end script
 
-pre-stop script
-    [ "$UPSTART_EVENTS" = "starting" -a "$JOB" = "kdm" ] && retain_splash="--retain-splash"
-    [ "$UPSTART_EVENTS" = "starting" -a "$JOB" = "xdm" ] && retain_splash="--retain-splash"
-    exec plymouth quit $retain_splash
-end script
+pre-stop exec plymouth quit
