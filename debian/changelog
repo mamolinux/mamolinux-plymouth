@@ -1,3 +1,12 @@
+plymouth (0.8.0~-16) lucid; urgency=low
+
+  * src/libply-splash-core/ply-text-display.c:
+    - It turns out that resetting the VT back into KD_TEXT mode every
+      second, while the X server is starting, is not perhaps the best
+      idea.  LP: #538213.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Wed, 17 Mar 2010 03:28:03 +0000
+
 plymouth (0.8.0~-15) lucid; urgency=low
 
   * debian/plymouth.upstart, debian/plymouth.plymouth-stop.upstart:
