@@ -202,19 +202,25 @@
     * and they seem good enough, bail
     */
    if (term_attributes.c_lflag & ICANON)
-     return true;
+     {
+       terminal->is_unbuffered = false;
+
+       return true;
+     }
 
    /* If we don't know the original term attributes, or they were originally sucky,
     * then invent some that are probably good enough.
     */
    if (!terminal->original_term_attributes_saved || !(terminal->original_term_attributes.c_lflag & ICANON))
      {
-       term_attributes.c_iflag |= IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON;
+       term_attributes.c_iflag |= BRKINT | IGNPAR | ISTRIP | ICRNL | IXON;
        term_attributes.c_oflag |= OPOST;
-       term_attributes.c_lflag |= ECHO | ECHONL | ICANON | ISIG | IEXTEN;
+       term_attributes.c_lflag |= ECHO | ICANON | ISIG | IEXTEN;
 
        if (tcsetattr (terminal->fd, TCSAFLUSH, &term_attributes) != 0)
          return false;
+
+       terminal->is_unbuffered = false;
 
        return true;
      }
