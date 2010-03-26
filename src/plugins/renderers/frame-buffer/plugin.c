@@ -56,7 +56,7 @@
 #include "ply-renderer-plugin.h"
 
 #ifndef PLY_FRAME_BUFFER_DEFAULT_FB_DEVICE_NAME
-#define PLY_FRAME_BUFFER_DEFAULT_FB_DEVICE_NAME "/dev/fb0"
+#define PLY_FRAME_BUFFER_DEFAULT_FB_DEVICE_NAME "/dev/fb"
 #endif
 
 struct _ply_renderer_head
@@ -258,6 +258,8 @@ create_backend (const char *device_name,
     backend->device_name =
       strdup (PLY_FRAME_BUFFER_DEFAULT_FB_DEVICE_NAME);
 
+  ply_trace ("creating renderer backend for device %s", backend->device_name);
+
   backend->loop = ply_event_loop_get_default ();
   backend->heads = ply_list_new ();
   backend->input_source.key_buffer = ply_buffer_new ();
@@ -270,6 +272,8 @@ static void
 initialize_head (ply_renderer_backend_t *backend,
                  ply_renderer_head_t    *head)
 {
+  ply_trace ("initializing %lux%lu head",
+             head->area.width, head->area.height);
   head->pixel_buffer = ply_pixel_buffer_new (head->area.width,
                                              head->area.height);
   ply_pixel_buffer_fill_with_color (backend->head.pixel_buffer, NULL,
@@ -281,6 +285,8 @@ static void
 uninitialize_head (ply_renderer_backend_t *backend,
                    ply_renderer_head_t    *head)
 {
+  ply_trace ("uninitializing %lux%lu head",
+             head->area.width, head->area.height);
   if (head->pixel_buffer != NULL)
     {
       ply_pixel_buffer_free (head->pixel_buffer);
@@ -294,6 +300,8 @@ static void
 destroy_backend (ply_renderer_backend_t *backend)
 {
 
+  ply_trace ("destroying renderer backend for device %s",
+             backend->device_name);
   free (backend->device_name);
   uninitialize_head (backend, &backend->head);
 
@@ -305,6 +313,7 @@ destroy_backend (ply_renderer_backend_t *backend)
 static void
 activate (ply_renderer_backend_t *backend)
 {
+  ply_trace ("Redrawing screen");
   backend->is_active = true;
 
   if (backend->head.map_address != MAP_FAILED)
@@ -322,10 +331,12 @@ on_active_vt_changed (ply_renderer_backend_t *backend)
 {
   if (ply_terminal_is_active (backend->terminal))
     {
+      ply_trace ("activating on vt change");
       activate (backend);
     }
   else
     {
+      ply_trace ("deactivating on vt change");
       deactivate (backend);
     }
 }
@@ -354,10 +365,10 @@ open_device (ply_renderer_backend_t *backend)
       return false;
     }
 
-  ply_terminal_watch_for_active_vt_changed (backend->terminal,
+  ply_terminal_watch_for_active_vt_change (backend->terminal,
                                            (ply_terminal_active_vt_changed_handler_t)
-                                            on_active_vt_changed,
-                                            backend);
+                                           on_active_vt_changed,
+                                           backend);
 
   return true;
 }
@@ -366,10 +377,10 @@ static void
 close_device (ply_renderer_backend_t *backend)
 {
 
-  ply_terminal_stop_watching_for_active_vt_changed (backend->terminal,
-                                                    (ply_terminal_active_vt_changed_handler_t)
-                                                    on_active_vt_changed,
-                                                    backend);
+  ply_terminal_stop_watching_for_active_vt_change (backend->terminal,
+                                                   (ply_terminal_active_vt_changed_handler_t)
+                                                   on_active_vt_changed,
+                                                   backend);
   uninitialize_head (backend, &backend->head);
 
   close (backend->device_fd);
@@ -492,6 +503,14 @@ query_device (ply_renderer_backend_t *backend)
   backend->dither_green = 0;
   backend->dither_blue = 0;
 
+  ply_trace ("%d bpp (%d, %d, %d, %d) with rowstride %d",
+             (int) backend->bytes_per_pixel * 8, 
+             backend->bits_for_red,
+             backend->bits_for_green,
+             backend->bits_for_blue,
+             backend->bits_for_alpha,
+             (int) backend->row_stride);
+
   backend->head.size = backend->head.area.height * backend->row_stride;
 
   if (backend->bytes_per_pixel == 4 &&
@@ -523,12 +542,21 @@ map_to_device (ply_renderer_backend_t *backend)
                             MAP_SHARED, backend->device_fd, 0);
 
   if (head->map_address == MAP_FAILED)
-    return false;
+    {
+      ply_trace ("could not map fb device: %m");
+      return false;
+    }
 
   if (ply_terminal_is_active (backend->terminal))
+    {
+      ply_trace ("already on right vt, activating");
       activate (backend);
+    }
   else
+    {
+      ply_trace ("on wrong vt, changing vts");
       ply_terminal_activate_vt (backend->terminal);
+    }
 
   return true;
 }
@@ -540,6 +568,7 @@ unmap_from_device (ply_renderer_backend_t *backend)
 
   head = &backend->head;
 
+  ply_trace ("unmapping device");
   if (head->map_address != MAP_FAILED)
     {
       munmap (head->map_address, head->size);

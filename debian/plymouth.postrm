@@ -29,7 +29,6 @@
 
 case "$1" in
     remove)
-	rm -f /lib/plymouth/themes/default.plymouth || :
 	rmdir /lib/plymouth/themes || :
 	rmdir /lib/plymouth || :
 

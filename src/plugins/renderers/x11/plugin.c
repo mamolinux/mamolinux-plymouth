@@ -56,7 +56,6 @@
 #include "ply-logger.h"
 #include "ply-rectangle.h"
 #include "ply-region.h"
-#include "ply-terminal.h"
 
 #include "ply-renderer.h"
 #include "ply-renderer-plugin.h"

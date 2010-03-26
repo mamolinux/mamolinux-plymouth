@@ -85,9 +85,9 @@ static void ply_boot_splash_update_progress (ply_boot_splash_t *splash);
 static void ply_boot_splash_detach_from_event_loop (ply_boot_splash_t *splash);
 
 ply_boot_splash_t *
-ply_boot_splash_new (const char   *theme_path,
-                     const char   *plugin_dir,
-                     ply_buffer_t *boot_buffer,
+ply_boot_splash_new (const char     *theme_path,
+                     const char     *plugin_dir,
+                     ply_buffer_t   *boot_buffer,
                      ply_terminal_t *terminal)
 {
   ply_boot_splash_t *splash;
@@ -513,8 +513,7 @@ ply_boot_splash_hide (ply_boot_splash_t *splash)
   splash->plugin_interface->hide_splash_screen (splash->plugin,
                                                 splash->loop);
 
-  if (splash->terminal != NULL)
-    ply_terminal_set_mode (splash->terminal, PLY_TERMINAL_MODE_TEXT);
+  ply_terminal_set_mode (splash->terminal, PLY_TERMINAL_MODE_TEXT);
 
   splash->is_shown = false;
 

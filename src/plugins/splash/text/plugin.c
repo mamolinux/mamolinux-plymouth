@@ -81,7 +81,7 @@ typedef struct
 {
   ply_boot_splash_plugin_t *plugin;
   ply_text_display_t *display;
-  //ply_text_progress_bar_t *progress_bar;
+  ply_text_progress_bar_t *progress_bar;
 
 } view_t;
 
@@ -98,7 +98,7 @@ view_new (ply_boot_splash_plugin_t *plugin,
   view->plugin = plugin;
   view->display = display;
 
-  //  view->progress_bar = ply_text_progress_bar_new ();
+  view->progress_bar = ply_text_progress_bar_new ();
 
   return view;
 }
@@ -106,7 +106,7 @@ view_new (ply_boot_splash_plugin_t *plugin,
 static void
 view_free (view_t *view)
 {
-  //  ply_text_progress_bar_free (view->progress_bar);
+  ply_text_progress_bar_free (view->progress_bar);
 
   free (view);
 }
@@ -115,37 +115,22 @@ static void
 view_show_message (view_t *view)
 {
   ply_boot_splash_plugin_t *plugin;
-  int display_width, display_height, y;
-  ply_terminal_color_t color;
-  char *message;
+  int display_width, display_height;
 
   plugin = view->plugin;
 
   display_width = ply_text_display_get_number_of_columns (view->display);
   display_height = ply_text_display_get_number_of_rows (view->display);
 
-  if (!strncmp (plugin->message, "keys:", 5))
-    {
-      message = plugin->message + 5;
-      color = PLY_TERMINAL_COLOR_WHITE;
-      y = display_height - 4;
-    }
-  else
-    {
-      message = plugin->message;
-      color = PLY_TERMINAL_COLOR_BLUE;
-      y = display_height / 2 + 7;
-    }
-
-  ply_text_display_set_cursor_position (view->display, 0, y);
+  ply_text_display_set_cursor_position (view->display, 0,
+                                        display_height / 2);
   ply_text_display_clear_line (view->display);
   ply_text_display_set_cursor_position (view->display,
                                         (display_width -
-                                        strlen (message)) / 2,
-                                        y);
+                                        strlen (plugin->message)) / 2,
+                                        display_height / 2);
 
-  ply_text_display_set_foreground_color (view->display, color);
-  ply_text_display_write (view->display, "%s", message);
+  ply_text_display_write (view->display, "%s", plugin->message);
 }
 
 static void
@@ -162,13 +147,17 @@ view_show_prompt (view_t     *view,
 
   display_width = ply_text_display_get_number_of_columns (view->display);
   display_height = ply_text_display_get_number_of_rows (view->display);
+  ply_text_display_set_background_color (view->display, PLY_TERMINAL_COLOR_DEFAULT);
+  ply_text_display_clear_screen (view->display);
 
-  ply_text_display_set_cursor_position (view->display, 0,
-                                        display_height / 2 + 8);
-  ply_text_display_clear_line (view->display);
+  ply_text_display_set_cursor_position (view->display, 0, display_height / 2);
+
+  for (i=0; i < display_width; i++)
+    ply_text_display_write (view->display, "%c", ' ');
+
   ply_text_display_set_cursor_position (view->display,
                                         display_width / 2 - (strlen (prompt)),
-                                        display_height / 2 + 8);
+                                        display_height / 2);
 
   ply_text_display_write (view->display, "%s:%s", prompt, entered_text);
 
@@ -189,28 +178,22 @@ view_start_animation (view_t *view)
 
   ply_terminal_set_color_hex_value (terminal,
                                     PLY_TERMINAL_COLOR_BLACK,
-                                    0x2c001e); 
-  //                                    0x000000);
+                                    0x000000);
   ply_terminal_set_color_hex_value (terminal,
                                     PLY_TERMINAL_COLOR_WHITE,
                                     0xffffff);
-  //  ply_terminal_set_color_hex_value (terminal,
-  //                                    PLY_TERMINAL_COLOR_BLUE,
-  //0x0073B3);
-  ply_terminal_set_color_hex_value (terminal,
-                                    PLY_TERMINAL_COLOR_BROWN,
-                                    0xff4012);
-  //                                    0x00457E);
   ply_terminal_set_color_hex_value (terminal,
                                     PLY_TERMINAL_COLOR_BLUE,
-                                    0x988592);
+                                    0x0073B3);
+  ply_terminal_set_color_hex_value (terminal,
+                                    PLY_TERMINAL_COLOR_BROWN,
+                                    0x00457E);
 
   ply_text_display_set_background_color (view->display,
                                          PLY_TERMINAL_COLOR_BLACK);
   ply_text_display_clear_screen (view->display);
   ply_text_display_hide_cursor (view->display);
 
-  /*
   if (plugin->mode == PLY_BOOT_SPLASH_MODE_SHUTDOWN)
     {
       ply_text_progress_bar_hide (view->progress_bar);
@@ -219,7 +202,6 @@ view_start_animation (view_t *view)
 
   ply_text_progress_bar_show (view->progress_bar,
                               view->display);
-  */
 }
 
 static void
@@ -390,8 +372,6 @@ destroy_plugin (ply_boot_splash_plugin_t *plugin)
   /* It doesn't ever make sense to keep this plugin on screen
    * after exit
    */
-  //err, but hiding the splash screen will reset the terminal back into
-  //unbuffered mode, thus made into canonical mode *while X is running!*
   hide_splash_screen (plugin, plugin->loop);
 
   free_views (plugin);
@@ -419,80 +399,6 @@ show_message (ply_boot_splash_plugin_t *plugin)
 
       node = next_node;
     }
-}
-
-static void
-animate_frame (ply_boot_splash_plugin_t *plugin,
-               int                       frame)
-{
-  ply_list_node_t *node;
-
-  node = ply_list_get_first_node (plugin->views);
-  while (node != NULL)
-    {
-      ply_list_node_t *next_node;
-      view_t *view;
-      int display_width, display_height;
-
-      view = ply_list_node_get_data (node);
-      next_node = ply_list_get_next_node (plugin->views, node);
-
-      display_width = ply_text_display_get_number_of_columns (view->display);
-      display_height = ply_text_display_get_number_of_rows (view->display);
-
-      ply_text_display_set_cursor_position (view->display,
-                                            (display_width - 12) / 2,
-                                            display_height / 2);
-
-      ply_text_display_set_background_color (view->display, PLY_TERMINAL_COLOR_BLACK);
-      ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_WHITE);
-      ply_text_display_write (view->display, "Ubuntu 10.04");
-
-      ply_text_display_set_cursor_position (view->display,
-                                            (display_width - 10) / 2,
-                                            (display_height / 2) + 2);
-
-      if ((frame < 1) || (frame > 4))
-        ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_WHITE);
-      else
-        ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_BROWN);
-      ply_text_display_write (view->display, ".  ");
-
-      if ((frame < 2) || (frame > 5))
-        ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_WHITE);
-      else
-        ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_BROWN);
-      ply_text_display_write (view->display, ".  ");
-
-      if ((frame < 3) || (frame > 6))
-        ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_WHITE);
-      else
-        ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_BROWN);
-      ply_text_display_write (view->display, ".  ");
-
-      if (frame < 4)
-        ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_WHITE);
-      else
-        ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_BROWN);
-      ply_text_display_write (view->display, ".");
-
-      node = next_node;
-    }
-}
-
-static void
-on_timeout (ply_boot_splash_plugin_t *plugin)
-{
-  static int frame = 0;
-
-  frame += 1;
-  frame %= 8;
-
-  animate_frame (plugin, frame);
-
-  ply_event_loop_watch_for_timeout (plugin->loop, 1.0,
-                                    (ply_event_loop_timeout_handler_t)
-                                    on_timeout, plugin);
 }
 
 static void
@@ -526,11 +432,6 @@ start_animation (ply_boot_splash_plugin_t *plugin)
     }
 
   plugin->is_animating = true;
-
-  animate_frame (plugin, 0);
-  ply_event_loop_watch_for_timeout (plugin->loop, 1.0,
-                                    (ply_event_loop_timeout_handler_t)
-                                    on_timeout, plugin);
 }
 
 static void
@@ -555,15 +456,10 @@ stop_animation (ply_boot_splash_plugin_t *plugin)
       view = ply_list_node_get_data (node);
       next_node = ply_list_get_next_node (plugin->views, node);
 
-      //ply_text_progress_bar_hide (view->progress_bar);
+      ply_text_progress_bar_hide (view->progress_bar);
 
       node = next_node;
     }
-
-  ply_event_loop_stop_watching_for_timeout (plugin->loop,
-                                            (ply_event_loop_timeout_handler_t)
-                                            on_timeout, plugin);
-
   redraw_views (plugin);
 }
 
@@ -575,7 +471,7 @@ on_draw (view_t                   *view,
          int                       width,
          int                       height)
 {
-  //  ply_text_display_clear_screen (view->display);
+  ply_text_display_clear_screen (view->display);
 }
 
 static void
@@ -588,7 +484,8 @@ add_text_display (ply_boot_splash_plugin_t *plugin,
   view = view_new (plugin, display);
 
   terminal = ply_text_display_get_terminal (view->display);
-  ply_terminal_activate_vt (terminal);
+  if (ply_terminal_open (terminal))
+    ply_terminal_activate_vt (terminal);
 
   ply_text_display_set_draw_handler (view->display,
                                      (ply_text_display_draw_handler_t)
@@ -678,8 +575,8 @@ on_boot_progress (ply_boot_splash_plugin_t *plugin,
       view = ply_list_node_get_data (node);
       next_node = ply_list_get_next_node (plugin->views, node);
 
-      //      ply_text_progress_bar_set_percent_done (view->progress_bar, percent_done);
-      //ply_text_progress_bar_draw (view->progress_bar);
+      ply_text_progress_bar_set_percent_done (view->progress_bar, percent_done);
+      ply_text_progress_bar_draw (view->progress_bar);
 
       node = next_node;
     }
@@ -707,15 +604,6 @@ hide_splash_screen (ply_boot_splash_plugin_t *plugin,
   hide_views (plugin);
   ply_show_new_kernel_messages (true);
 }
-
-//static void
-//become_idle (ply_boot_splash_plugin_t *plugin,
-//             ply_trigger_t            *idle_trigger)
-//{
-//  stop_animation (plugin);
-//
-//  ply_trigger_pull (idle_trigger, NULL);
-//}
 
 static void
 display_normal (ply_boot_splash_plugin_t *plugin)
@@ -831,7 +719,6 @@ display_question (ply_boot_splash_plugin_t *plugin,
   unpause_views (plugin);
 }
 
-
 ply_boot_splash_plugin_interface_t *
 ply_boot_splash_plugin_get_interface (void)
 {
@@ -845,11 +732,10 @@ ply_boot_splash_plugin_get_interface (void)
       .update_status = update_status,
       .on_boot_progress = on_boot_progress,
       .hide_splash_screen = hide_splash_screen,
-      //      .become_idle = become_idle,
       .display_normal = display_normal,
       .display_message = display_message,
       .display_password = display_password,
-      .display_question = display_question
+      .display_question = display_question,      
     };
 
   return &plugin_interface;

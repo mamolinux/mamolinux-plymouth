@@ -19,20 +19,19 @@ override_dh_auto_configure:
 	dh_auto_configure -- CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
 		--libdir=/lib \
 		--datadir=/lib \
-		--disable-tracing \
+		--enable-tracing \
 		--disable-tests \
 		--disable-gdm-transition \
 		--with-system-root-install \
 		--without-rhgb-compat-link \
 		--without-gdm-autostart-file \
 		--without-default-plugin   \
-		--with-logo=/lib/plymouth/ubuntu-logo.png
-
-# --with-logo=/usr/share/plymouth/bizcom.png
-# --with-background-color=0x5d5950
-# --with-background-start-color-stop=0x807c71
-# --with-background-end-color-stop=0x3a362f
-# --with-release-file=/etc/system-release
+		--with-logo=/lib/plymouth/ubuntu-logo.png \
+		--with-background-color=0x2c001e \
+		--with-background-start-color-stop=0x2c001e \
+		--with-background-end-color-stop=0x2c001e \
+		--with-boot-tty=/dev/tty7 \
+		--with-shutdown-tty=/dev/tty7
 
 override_dh_auto_install:
 	dh_auto_install

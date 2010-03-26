@@ -1,3 +1,96 @@
+plymouth (0.8.1-1) lucid; urgency=low
+
+  [ Scott James Remnant ]
+  * Update to the upstream 0.8.1 release:
+    - Our patches have been merged upstream, some changes due to cleaning
+      them up for submission and noticing a few bugs along the way.
+      Remaining changes are:
+      + ubuntu-logo theme
+      + ubuntu version of the text theme
+      + call update-initramfs rather than plymouth-update-initrd in
+        plymouth-set-default-theme
+      + filter fsck progress updates from the progress bar tracker
+      + watch for enter key press
+      + support lbm-nouveau as an alternate driver name for nouveau to
+        permit backports once Lucid has released
+      + use /dev/fb0 as default framebuffer device name
+      + stop animation of script plugin in idle function
+    - Will become process group leader of its VT if possible (opens without
+      O_NOCTTY when redirecting stdio to it), this is almost certainly
+      correct keyboard-wise.
+    - Deallocates VT on "plymouth quit" after switching VT back to VT1
+    - Open terminal in text and details plugin, don't assume it's already
+      open.
+    - Calling "plymouth quit" or "plymouth deactivate" while the same
+      command is already running will now block the new command until the
+      old one complete, rather than returning immediately.
+    - Various window fixes for script plugin
+    - Script plugin updated to use the window X and Y offsets every time
+    - Plymouth client tool has been updated to have commands for many cases
+      in preference to the --command style.
+
+  * Restored code to disable Plymouth's graphical plugins when an alternate
+    init= is given on the kernel command-line, otherwise init=/bin/bash
+    doesn't work so well when Plymouth is in the initramfs.
+  * Restored crash handler that dumps boot messages to /dev/tty1.
+
+  * Split themes out into different packages, reducing the size of the
+    Plymouth package.  This also means that you can remove the themes
+    packages to remove the "graphical splash" part of Plymouth while keeping
+    the ability to prompt for questions on the console.
+  * Use the alternatives system to select the default themes.  The existing
+    symlink will be replaced on upgrade if you have not changed it.
+  * Also use alternatives to select the text theme.
+  * Restore the upstream text theme, renaming ours to "ubuntu-text".
+  * Fallback to the built-in details theme (boot messages on console, but
+    with the ability to prompt for questions) if no theme package is
+    installed.
+  (LP: #507238)
+
+    Unfortunately these changes mean that if you've selected a custom
+    theme, you will need to install that package and select it again.
+    Sorry about that.
+
+  * Include the 16-color VGA frame-buffer renderer.  LP: #526892.
+
+  * Fix text, ubuntu-text and details themes to restore the console to text
+    mode when adding text displays.
+
+  * debian/rules:
+    - Set default tty for boot and shutdown with configure arguments
+    - Set default background color to the Ubuntu Aubergine, this provides
+      some consistency with other default themes.
+  * debian/plymouth.upstart, debian/initramfs-tools/scripts/init-top/plymouth:
+    - Redirect console output to Plymouth, this will be both logged and made
+      available to splash themes that want it (details by default).
+      LP: #535108.
+  * debian/plymouth.upstart, debian/plymouth.plymouth-splash.upstart:
+    - Call show-splash from the plymouth script itself in the shutdown case.
+
+  * ubuntu-logo theme:
+    - Update in same manner as script has been to add Window.GetX() to
+      math that centers things.
+
+  [ Steve Langasek ]
+  * ubuntu-logo theme:
+    - fix the password prompt handling so the display of boot messages is
+      restored after the passphrase has been entered, and subsequent password
+      requests don't incorrectly reuse the previous prompt.  LP: #515822
+    - turn the message_notification[0].y check right-way-round in
+      password_dialogue_setup(), though this doesn't seem to have any
+      practical impact.
+    - pass logo.z to the SetZ() function, not the SetY() one; thanks to
+      Vishal Rao for this catch.  LP: #542458.
+    - refactor get_message_label: the y position of the second line shouldn't
+      vary according to its own height.  This brings the passphrase prompts
+      from cryptsetup back up to where they should be.  LP: #539723.
+  * Turn tracing on post-beta.
+  * src/main.c: when the user presses enter, compare the keystroke lists to
+    the enter key, not to some previously-typed string that we may or may not
+    have.
+
+ -- Scott James Remnant <scott@ubuntu.com>  Fri, 26 Mar 2010 18:52:37 +0000
+
 plymouth (0.8.0~-17) lucid; urgency=low
 
   [ Scott James Remnant ]

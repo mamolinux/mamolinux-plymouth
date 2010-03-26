@@ -10,4 +10,4 @@ start on filesystem
 
 task
 
-exec plymouth --sysinit
+exec /bin/plymouth update-root-fs --read-write

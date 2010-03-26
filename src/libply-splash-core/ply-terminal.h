@@ -32,7 +32,7 @@
 
 typedef struct _ply_terminal ply_terminal_t;
 typedef void (* ply_terminal_active_vt_changed_handler_t) (void           *user_data,
-                                                           ply_terminal_t *console);
+                                                           ply_terminal_t *terminal);
 
 typedef enum
 {
@@ -53,7 +53,6 @@ typedef enum
   PLY_TERMINAL_MODE_GRAPHICS
 } ply_terminal_mode_t;
 
-
 #ifndef PLY_HIDE_FUNCTION_DECLARATIONS
 ply_terminal_t *ply_terminal_new (const char *device_name);
 
@@ -61,7 +60,6 @@ void ply_terminal_free (ply_terminal_t *terminal);
 
 bool ply_terminal_open (ply_terminal_t *terminal);
 int ply_terminal_get_fd (ply_terminal_t *terminal);
-int ply_terminal_get_vt_number (ply_terminal_t *terminal);
 bool ply_terminal_is_vt (ply_terminal_t *terminal);
 bool ply_terminal_is_open (ply_terminal_t *terminal);
 bool ply_terminal_is_active (ply_terminal_t *terminal);
@@ -92,18 +90,19 @@ void ply_terminal_set_mode (ply_terminal_t     *terminal,
 void ply_terminal_ignore_mode_changes (ply_terminal_t *terminal,
                                        bool            should_ignore);
 
+int ply_terminal_get_vt_number (ply_terminal_t *terminal);
 bool ply_terminal_activate_vt (ply_terminal_t *terminal);
-bool ply_terminal_restore_vt (ply_terminal_t *terminal);
+bool ply_terminal_deactivate_vt (ply_terminal_t *terminal);
 
 void ply_terminal_watch_for_vt_changes (ply_terminal_t *terminal);
 void ply_terminal_stop_watching_for_vt_changes (ply_terminal_t *terminal);
 
-void ply_terminal_watch_for_active_vt_changed (ply_terminal_t *terminal,
-                                               ply_terminal_active_vt_changed_handler_t active_vt_changed_handler,
-                                               void *user_data);
-void ply_terminal_stop_watching_for_active_vt_changed (ply_terminal_t *terminal,
-                                                       ply_terminal_active_vt_changed_handler_t active_vt_changed_handler,
-                                                       void *user_data);
+void ply_terminal_watch_for_active_vt_change (ply_terminal_t *terminal,
+                                              ply_terminal_active_vt_changed_handler_t active_vt_changed_handler,
+                                              void *user_data);
+void ply_terminal_stop_watching_for_active_vt_change (ply_terminal_t *terminal,
+                                                      ply_terminal_active_vt_changed_handler_t active_vt_changed_handler,
+                                                      void *user_data);
 
 #endif
 
