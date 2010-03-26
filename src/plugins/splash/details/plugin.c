@@ -202,7 +202,11 @@ add_text_display (ply_boot_splash_plugin_t *plugin,
   view = view_new (plugin, display);
 
   terminal = ply_text_display_get_terminal (view->display);
-  ply_terminal_activate_vt (terminal);
+  if (ply_terminal_open (terminal))
+    {
+      ply_terminal_set_mode (terminal, PLY_TERMINAL_MODE_TEXT);
+      ply_terminal_activate_vt (terminal);
+    }
 
   ply_list_append_data (plugin->views, view);
 }

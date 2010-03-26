@@ -314,7 +314,7 @@ char *script_obj_as_string (script_obj_t *obj)              /* reply is strduppe
     }
   if (script_obj_is_null (obj))
     return strdup("#NULL");
-  asprintf (&reply, "#(0x%x)", (int) obj);
+  asprintf (&reply, "#(0x%p)", obj);
   return reply;
 }
 
@@ -409,8 +409,8 @@ static void *script_obj_direct_as_hash_element (script_obj_t *obj,
   if (obj->type == SCRIPT_OBJ_TYPE_HASH)
     {
       script_variable_t *variable = ply_hashtable_lookup (obj->data.hash, (void *) name);
-      if (!variable) return NULL;
-      return variable->object;
+      if (variable)
+        return variable->object;
     }
   return NULL;
 }

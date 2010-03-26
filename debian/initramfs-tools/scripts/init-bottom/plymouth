@@ -17,5 +17,5 @@ esac
 
 if [ -f ${rootmnt}/dev/.initramfs/plymouth.pid ]
 then
-	/bin/plymouth --newroot=${rootmnt}
+	/bin/plymouth update-root-fs --new-root-dir=${rootmnt}
 fi

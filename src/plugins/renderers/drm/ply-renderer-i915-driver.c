@@ -85,6 +85,7 @@ create_driver (int device_fd)
   driver->manager = drm_intel_bufmgr_gem_init (driver->device_fd, page_size);
   if (driver->manager == NULL)
     {
+      ply_trace ("intel buffer manager could not be initialized");
       free (driver);
       return NULL;
     }
@@ -100,6 +101,7 @@ destroy_driver (ply_renderer_driver_t *driver)
 {
   ply_hashtable_free (driver->buffers);
 
+  ply_trace ("uninitializing intel buffer manager");
   drm_intel_bufmgr_destroy (driver->manager);
   free (driver);
 }
@@ -120,6 +122,9 @@ ply_renderer_buffer_new (ply_renderer_driver_t *driver,
   buffer->width = width;
   buffer->height = height;
   buffer->row_stride = row_stride;
+
+  ply_trace ("returning %lux%lu buffer with stride %lu",
+             width, height, row_stride);
 
   return buffer;
 }
@@ -144,7 +149,10 @@ create_intel_bo_from_handle (ply_renderer_driver_t *driver,
   flink_request.handle = handle;
 
   if (ioctl (driver->device_fd, DRM_IOCTL_GEM_FLINK, &flink_request) < 0)
-    return NULL;
+    {
+      ply_trace ("Could not export global name for handle %u", handle);
+      return NULL;
+    }
 
   asprintf (&name, "buffer %u", handle);
 
@@ -166,12 +174,17 @@ ply_renderer_buffer_new_from_id (ply_renderer_driver_t *driver,
   fb = drmModeGetFB (driver->device_fd, buffer_id);
 
   if (fb == NULL)
-    return NULL;
+    {
+      ply_trace ("could not get FB with buffer id %u", buffer_id);
+      return NULL;
+    }
 
   buffer_object = create_intel_bo_from_handle (driver, fb->handle);
 
   if (buffer_object == NULL)
     {
+      ply_trace ("could not create buffer object from handle %lu",
+                 (unsigned long) fb->handle);
       drmModeFreeFB (fb);
       return NULL;
     }
@@ -208,10 +221,14 @@ fetch_buffer (ply_renderer_driver_t *driver,
 
   if (buffer == NULL)
     {
+      ply_trace ("could not fetch buffer %u, creating one", buffer_id);
       buffer = ply_renderer_buffer_new_from_id (driver, buffer_id);
 
       if (buffer == NULL)
-        return false;
+        {
+          ply_trace ("could not create buffer either %u", buffer_id);
+          return false;
+        }
 
       ply_hashtable_insert (driver->buffers,
                             (void *) (uintptr_t) buffer_id,
@@ -227,6 +244,8 @@ fetch_buffer (ply_renderer_driver_t *driver,
   if (row_stride != NULL)
     *row_stride = buffer->row_stride;
 
+  ply_trace ("fetched %lux%lu buffer with stride %lu",
+             buffer->width, buffer->height, buffer->row_stride);
   return true;
 }
 

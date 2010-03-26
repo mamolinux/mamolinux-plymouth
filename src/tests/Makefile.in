@@ -71,8 +71,6 @@ ply_boot_server_test_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(LDFLAGS) -o $@
 am__ply_boot_splash_test_SOURCES_DIST =  \
 	$(srcdir)/../libply-splash-core/ply-boot-splash-plugin.h \
-	$(srcdir)/../libply-splash-core/ply-console.h \
-	$(srcdir)/../libply-splash-core/ply-console.c \
 	$(srcdir)/../libply-splash-core/ply-keyboard.h \
 	$(srcdir)/../libply-splash-core/ply-keyboard.c \
 	$(srcdir)/../libply-splash-core/ply-pixel-buffer.h \
@@ -87,9 +85,7 @@ am__ply_boot_splash_test_SOURCES_DIST =  \
 	$(srcdir)/../libply-splash-core/ply-text-display.c \
 	$(srcdir)/../libply-splash-core/ply-boot-splash.h \
 	$(srcdir)/../libply-splash-core/ply-boot-splash.c
-@ENABLE_TESTS_TRUE@am_ply_boot_splash_test_OBJECTS =  \
-@ENABLE_TESTS_TRUE@	ply_boot_splash_test-ply-console.$(OBJEXT) \
-@ENABLE_TESTS_TRUE@	ply_boot_splash_test-ply-keyboard.$(OBJEXT) \
+@ENABLE_TESTS_TRUE@am_ply_boot_splash_test_OBJECTS = ply_boot_splash_test-ply-keyboard.$(OBJEXT) \
 @ENABLE_TESTS_TRUE@	ply_boot_splash_test-ply-pixel-buffer.$(OBJEXT) \
 @ENABLE_TESTS_TRUE@	ply_boot_splash_test-ply-pixel-display.$(OBJEXT) \
 @ENABLE_TESTS_TRUE@	ply_boot_splash_test-ply-renderer.$(OBJEXT) \
@@ -206,11 +202,13 @@ PANGO_LIBS = @PANGO_LIBS@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
 PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
+PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
 PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
 PLYMOUTH_LIBDIR = @PLYMOUTH_LIBDIR@
 PLYMOUTH_LIBEXECDIR = @PLYMOUTH_LIBEXECDIR@
 PLYMOUTH_LIBS = @PLYMOUTH_LIBS@
 PLYMOUTH_PLUGIN_PATH = @PLYMOUTH_PLUGIN_PATH@
+PLYMOUTH_POLICY_DIR = @PLYMOUTH_POLICY_DIR@
 PLYMOUTH_THEME_PATH = @PLYMOUTH_THEME_PATH@
 RANLIB = @RANLIB@
 RELEASE_FILE = @RELEASE_FILE@
@@ -242,7 +240,6 @@ build_vendor = @build_vendor@
 builddir = @builddir@
 datadir = @datadir@
 datarootdir = @datarootdir@
-default_plugin_name = @default_plugin_name@
 docdir = @docdir@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
@@ -299,8 +296,6 @@ INCLUDES = \
 @ENABLE_TESTS_TRUE@ply_boot_splash_test_LDADD = $(PLYMOUTH_LIBS) ../libply/libply.la
 @ENABLE_TESTS_TRUE@ply_boot_splash_test_SOURCES = \
 @ENABLE_TESTS_TRUE@                          $(srcdir)/../libply-splash-core/ply-boot-splash-plugin.h \
-@ENABLE_TESTS_TRUE@                          $(srcdir)/../libply-splash-core/ply-console.h            \
-@ENABLE_TESTS_TRUE@                          $(srcdir)/../libply-splash-core/ply-console.c            \
 @ENABLE_TESTS_TRUE@                          $(srcdir)/../libply-splash-core/ply-keyboard.h           \
 @ENABLE_TESTS_TRUE@                          $(srcdir)/../libply-splash-core/ply-keyboard.c           \
 @ENABLE_TESTS_TRUE@                          $(srcdir)/../libply-splash-core/ply-pixel-buffer.h       \
@@ -375,7 +370,6 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ply_boot_server_test-ply-boot-server.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ply_boot_splash_test-ply-boot-splash.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ply_boot_splash_test-ply-console.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ply_boot_splash_test-ply-keyboard.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ply_boot_splash_test-ply-pixel-buffer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ply_boot_splash_test-ply-pixel-display.Po@am__quote@
@@ -422,22 +416,6 @@ ply_boot_server_test-ply-boot-server.obj: $(srcdir)/../ply-boot-server.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(srcdir)/../ply-boot-server.c' object='ply_boot_server_test-ply-boot-server.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ply_boot_server_test_CFLAGS) $(CFLAGS) -c -o ply_boot_server_test-ply-boot-server.obj `if test -f '$(srcdir)/../ply-boot-server.c'; then $(CYGPATH_W) '$(srcdir)/../ply-boot-server.c'; else $(CYGPATH_W) '$(srcdir)/$(srcdir)/../ply-boot-server.c'; fi`
-
-ply_boot_splash_test-ply-console.o: $(srcdir)/../libply-splash-core/ply-console.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ply_boot_splash_test_CFLAGS) $(CFLAGS) -MT ply_boot_splash_test-ply-console.o -MD -MP -MF $(DEPDIR)/ply_boot_splash_test-ply-console.Tpo -c -o ply_boot_splash_test-ply-console.o `test -f '$(srcdir)/../libply-splash-core/ply-console.c' || echo '$(srcdir)/'`$(srcdir)/../libply-splash-core/ply-console.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ply_boot_splash_test-ply-console.Tpo $(DEPDIR)/ply_boot_splash_test-ply-console.Po
-@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(srcdir)/../libply-splash-core/ply-console.c' object='ply_boot_splash_test-ply-console.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ply_boot_splash_test_CFLAGS) $(CFLAGS) -c -o ply_boot_splash_test-ply-console.o `test -f '$(srcdir)/../libply-splash-core/ply-console.c' || echo '$(srcdir)/'`$(srcdir)/../libply-splash-core/ply-console.c
-
-ply_boot_splash_test-ply-console.obj: $(srcdir)/../libply-splash-core/ply-console.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ply_boot_splash_test_CFLAGS) $(CFLAGS) -MT ply_boot_splash_test-ply-console.obj -MD -MP -MF $(DEPDIR)/ply_boot_splash_test-ply-console.Tpo -c -o ply_boot_splash_test-ply-console.obj `if test -f '$(srcdir)/../libply-splash-core/ply-console.c'; then $(CYGPATH_W) '$(srcdir)/../libply-splash-core/ply-console.c'; else $(CYGPATH_W) '$(srcdir)/$(srcdir)/../libply-splash-core/ply-console.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ply_boot_splash_test-ply-console.Tpo $(DEPDIR)/ply_boot_splash_test-ply-console.Po
-@am__fastdepCC_FALSE@	$(AM_V_CC) @AM_BACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$(srcdir)/../libply-splash-core/ply-console.c' object='ply_boot_splash_test-ply-console.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ply_boot_splash_test_CFLAGS) $(CFLAGS) -c -o ply_boot_splash_test-ply-console.obj `if test -f '$(srcdir)/../libply-splash-core/ply-console.c'; then $(CYGPATH_W) '$(srcdir)/../libply-splash-core/ply-console.c'; else $(CYGPATH_W) '$(srcdir)/$(srcdir)/../libply-splash-core/ply-console.c'; fi`
 
 ply_boot_splash_test-ply-keyboard.o: $(srcdir)/../libply-splash-core/ply-keyboard.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ply_boot_splash_test_CFLAGS) $(CFLAGS) -MT ply_boot_splash_test-ply-keyboard.o -MD -MP -MF $(DEPDIR)/ply_boot_splash_test-ply-keyboard.Tpo -c -o ply_boot_splash_test-ply-keyboard.o `test -f '$(srcdir)/../libply-splash-core/ply-keyboard.c' || echo '$(srcdir)/'`$(srcdir)/../libply-splash-core/ply-keyboard.c

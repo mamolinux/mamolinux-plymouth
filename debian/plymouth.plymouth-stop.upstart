@@ -22,7 +22,7 @@ pre-start script
 	exit 0
 	;;
     *)
-	exec plymouth quit
+	exec /bin/plymouth quit
 	;;
     esac
 end script

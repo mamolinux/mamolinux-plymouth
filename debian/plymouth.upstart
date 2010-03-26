@@ -11,7 +11,8 @@ start on (starting mountall
           or (runlevel [016]
               and (stopped gdm
                    or stopped kdm
-                   or stopped xdm)))
+                   or stopped xdm
+                   or stopped lxdm)))
 
 expect fork
 kill timeout 60
@@ -20,8 +21,14 @@ script
     if [ "$RUNLEVEL" = "0" -o "$RUNLEVEL" = "1" -o "$RUNLEVEL" = "6" ]; then
         exec /sbin/plymouthd --mode=shutdown
     else
-        exec /sbin/plymouthd --mode=boot
+        exec /sbin/plymouthd --mode=boot --attach-to-session
     fi
 end script
 
-pre-stop exec plymouth quit
+post-start script
+    if [ "$RUNLEVEL" = "0" -o "$RUNLEVEL" = "1" -o "$RUNLEVEL" = "6" ]; then
+	exec /bin/plymouth show-splash
+    fi
+end script
+
+pre-stop exec /bin/plymouth quit

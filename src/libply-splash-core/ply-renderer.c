@@ -62,7 +62,7 @@ typedef const ply_renderer_plugin_interface_t *
 static void ply_renderer_unload_plugin (ply_renderer_t *renderer);
 
 ply_renderer_t *
-ply_renderer_new (const char    *device_name,
+ply_renderer_new (const char    * device_name,
                   ply_terminal_t *terminal)
 {
   ply_renderer_t *renderer;
@@ -231,6 +231,7 @@ ply_renderer_open (ply_renderer_t *renderer)
       PLYMOUTH_PLUGIN_PATH "renderers/x11.so",
       PLYMOUTH_PLUGIN_PATH "renderers/drm.so",
       PLYMOUTH_PLUGIN_PATH "renderers/frame-buffer.so",
+      PLYMOUTH_PLUGIN_PATH "renderers/vga16fb.so",
       NULL
     };
 
