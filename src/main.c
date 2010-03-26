@@ -164,8 +164,9 @@ on_update (state_t     *state,
            const char  *status)
 {
   ply_trace ("updating status to '%s'", status);
-  ply_progress_status_update (state->progress,
-                               status);
+  if (strncmp (status, "fsck:", 5))
+    ply_progress_status_update (state->progress,
+                                status);
   if (state->boot_splash != NULL)
     ply_boot_splash_update_status (state->boot_splash,
                                    status);
@@ -319,11 +320,15 @@ show_default_splash (state_t *state)
       ply_trace ("Could not start default splash screen,"
                  "showing text splash screen");
       state->boot_splash = start_boot_splash (state,
-                                              PLYMOUTH_THEME_PATH "text/text.plymouth");
+                                              PLYMOUTH_THEME_PATH "text.plymouth");
     }
 
   if (state->boot_splash == NULL)
-    ply_error ("could not start boot splash: %m");
+    {
+      if (errno != ENOENT)
+        ply_error ("could not start boot splash: %m");
+      show_detailed_splash (state);
+    }
 }
 
 static void
@@ -661,13 +666,13 @@ on_show_splash (state_t *state)
   if (state->is_inactive)
     return;
 
+  check_for_consoles (state, state->default_tty, true);
+
   if (plymouth_should_ignore_show_splash_calls (state))
     {
       dump_details_and_quit_splash (state);
       return;
     }
-
-  check_for_consoles (state, state->default_tty, true);
 
   has_display = ply_list_get_length (state->pixel_displays) > 0 ||
                 ply_list_get_length (state->text_displays) > 0;
@@ -1182,6 +1187,22 @@ on_enter (state_t                  *state,
       free (entry_trigger);
       update_display (state);
     }
+  else
+    {
+      for (node = ply_list_get_first_node (state->keystroke_triggers); node;
+                        node = ply_list_get_next_node (state->keystroke_triggers, node))
+        {
+          ply_keystroke_watch_t* keystroke_trigger = ply_list_node_get_data (node);
+          if (!keystroke_trigger->keys || strstr(keystroke_trigger->keys, "\n"))  /* assume strstr works on utf8 arrays */
+            {
+              ply_trigger_pull (keystroke_trigger->trigger, line);
+              ply_list_remove_node (state->keystroke_triggers, node);
+              free(keystroke_trigger);
+              return;
+            }
+        }
+      return;
+    }
 }
 
 static void
@@ -1216,6 +1237,10 @@ add_display_and_keyboard_for_terminal (state_t    *state,
   ply_trace ("adding display and keyboard for %s", tty_name);
 
   state->terminal = ply_terminal_new (tty_name);
+
+  // urgh
+  if (!ply_terminal_open (state->terminal))
+    return;
 
   keyboard = ply_keyboard_new_for_terminal (state->terminal);
   display = ply_text_display_new (state->terminal);
