@@ -81,10 +81,24 @@ fun DebugMedium(text) {
     debugsprite_medium.SetPosition(0, (Window.GetHeight (0) - 60), 1);
 }
 
-# use a fixed string with ascending and descending stems to calibrate the
-# bounding box for the first message, so the messages below don't move up
-# and down according to *their* height.
-first_line_height = ImageToTintedText ("AfpqtM").GetHeight();
+fun TextYOffset() {
+    local.y;
+    local.text_height;
+    local.min_height;
+
+    # Put the 1st line below the logo + some spacing 
+    y = logo.y + logo.height + (progress_indicator.bullet_height * 7 ); # + logo_spacing;
+
+    text_height = first_line_height * 7.5;
+
+    min_height = Window.GetHeight();
+    if (y + text_height > min_height)
+        y = min_height - text_height;
+
+    if (y < progress_indicator.y + progress_indicator.height)
+        return progress_indicator.y + progress_indicator.height;
+    return y;
+}
 
 #------------------------------String functions-------------------------------
 
@@ -171,6 +185,16 @@ progress_indicator.width = progress_indicator.bullet_width * 5;
 progress_indicator.height = progress_indicator.bullet_height;
 progress_indicator.y = logo.y + logo.height + (logo.height / 4);
 progress_indicator.x = Window.GetX () + Window.GetWidth () / 2 - progress_indicator.width / 2; # logo.x + 26;
+
+# use a fixed string with ascending and descending stems to calibrate the
+# bounding box for the first message, so the messages below don't move up
+# and down according to *their* height.
+first_line_height = ImageToTintedText ("AfpqtM").GetHeight();
+
+# if the user has a 640x480 or 800x600 display, we can't quite fit everything
+# (including passphrase prompts) with the target spacing, so scoot the text up
+# a bit if needed.
+top_of_the_text = TextYOffset();
 
 #-----------------------------------------Logo functions------------------------------
 
@@ -331,8 +355,7 @@ fun get_message_label (label, is_fake, is_action_line) {
     # Center the line horizontally
     message_label.x = Window.GetX () + Window.GetWidth () / 2 - message_label.width / 2;
 
-    # Put the 1st line below the logo + some spacing 
-    message_label.y = logo.y + logo.height + (progress_indicator.bullet_height * 7 ); # + logo_spacing;
+    message_label.y = top_of_the_text;
 
     # Put the 2nd line below the fsck line
     if (is_action_line) {
@@ -440,7 +463,7 @@ fun message_callback (message)
     label.z = 10000;
     
     setup_message (message, label.x, label.y, label.z, is_action_line);
-    if (prompt_active)
+    if (prompt_active && local.is_action_line)
         hide_message (is_action_line);
     else
         show_message (is_action_line);
@@ -462,8 +485,7 @@ fun password_dialogue_setup (message_label) {
     
     # Hide the normal labels
     prompt_active = 1;
-    for (index = 0; index <= 1; index++)
-        if (message_notification[index].sprite) hide_message (index);
+    if (message_notification[1].sprite) hide_message (1);
     
     # Set the prompt label
     label = get_message_label(message_label, 0, 1);
@@ -478,15 +500,10 @@ fun password_dialogue_setup (message_label) {
     
     # Centre the box horizontally
     entry.x = Window.GetX () + Window.GetWidth () / 2 - entry.image.GetWidth () / 2;
-    
-    # Put the entry exactly where the 1st label (which is now hidden) should be.
-    if (message_notification[0].y != NULL) {
-        entry.y = message_notification[0].y;
-    }
-    else {
-        local.tmp_label = get_message_label (message_label, 1, 0);
-        entry.y = local.tmp_label.y;
-    }
+
+    # Put the entry below the second label.
+    entry.y = message_notification[2].y + label.height;
+
     #Debug ("entry x = " + entry.x + ", y = " + entry.y);
     entry.z = 10000;
     entry.sprite.SetX (entry.x);
@@ -985,8 +1002,7 @@ fun display_normal_callback ()
         prompt_active = 0;
     }
     
-    for (index = 0; index <= 1; index++)
-        if (message_notification[index].sprite) show_message (index);
+    if (message_notification[1].sprite) show_message (1);
     
     
 }

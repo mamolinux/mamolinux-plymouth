@@ -1,3 +1,16 @@
+plymouth (0.8.1-1ubuntu1) lucid; urgency=low
+
+  * ubuntu-logo theme:
+    - move the entry box below the passphrase prompt where it belongs.
+      LP: #540685, #540806
+    - add some code to notice if our text boxes are going to run off the
+      bottom of the screen, and move them up in that case.
+  * debian/initramfs-tools/hooks/plymouth: fix to work with the new
+    update-alternatives theme handling. LP: #549247
+  * include the vga16fb renderer in the initramfs.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Sat, 27 Mar 2010 01:20:26 +0000
+
 plymouth (0.8.1-1) lucid; urgency=low
 
   [ Scott James Remnant ]
