@@ -8,9 +8,9 @@ Standards-Version: 3.8.3.0
 Package: plymouth
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libplymouth2 (= ${binary:Version}), libdrm-intel1 | libdrm-radeon1 | libdrm-nouveau1, udev (>= 149-2), mountall (>= 2.0)
-Recommends: plymouth-theme
+Recommends: plymouth-theme-ubuntu-text | plymouth-theme
 Conflicts: usplash
-Breaks: gdm (<< 2.29.1-0ubuntu4)
+Breaks: gdm (<< 2.29.1-0ubuntu4), ubuntustudio-plymouth-theme (<= 0.38), xubuntu-plymouth-theme (<< 10.04.4), lubuntu-plymouth-theme (<= 0.4)
 Description: graphical boot animation and logger - main package
  Plymouth is an application that runs very early in the boot process
  (even before the root filesystem is mounted!) that provides a graphical
@@ -57,6 +57,7 @@ Package: plymouth-theme-fade-in
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, plymouth
 Provides: plymouth-theme
+Replaces: plymouth (<< 0.8.1-1~)
 Description: graphical boot animation and logger - fade-in theme
  Plymouth is an application that runs very early in the boot process
  (even before the root filesystem is mounted!) that provides a graphical
@@ -72,6 +73,7 @@ Package: plymouth-theme-glow
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, plymouth
 Provides: plymouth-theme
+Replaces: plymouth (<< 0.8.1-1~)
 Description: graphical boot animation and logger - glow theme
  Plymouth is an application that runs very early in the boot process
  (even before the root filesystem is mounted!) that provides a graphical
@@ -87,6 +89,7 @@ Package: plymouth-theme-script
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, plymouth
 Provides: plymouth-theme
+Replaces: plymouth (<< 0.8.1-1~)
 Description: graphical boot animation and logger - script theme
  Plymouth is an application that runs very early in the boot process
  (even before the root filesystem is mounted!) that provides a graphical
@@ -116,6 +119,7 @@ Package: plymouth-theme-spinfinity
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, plymouth
 Provides: plymouth-theme
+Replaces: plymouth (<< 0.8.1-1~)
 Description: graphical boot animation and logger - spinfinity theme
  Plymouth is an application that runs very early in the boot process
  (even before the root filesystem is mounted!) that provides a graphical
@@ -131,6 +135,7 @@ Package: plymouth-theme-ubuntu-logo
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, plymouth
 Provides: plymouth-theme
+Replaces: plymouth (<< 0.8.1-1~)
 Description: graphical boot animation and logger - ubuntu-logo theme
  Plymouth is an application that runs very early in the boot process
  (even before the root filesystem is mounted!) that provides a graphical
@@ -142,6 +147,7 @@ Package: plymouth-theme-text
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, plymouth
 Provides: plymouth-theme
+Replaces: plymouth (<< 0.8.1-1~)
 Description: graphical boot animation and logger - text theme
  Plymouth is an application that runs very early in the boot process
  (even before the root filesystem is mounted!) that provides a graphical
@@ -157,6 +163,7 @@ Package: plymouth-theme-ubuntu-text
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, plymouth
 Provides: plymouth-theme
+Replaces: plymouth (<< 0.8.1-1~)
 Description: graphical boot animation and logger - ubuntu-logo theme
  Plymouth is an application that runs very early in the boot process
  (even before the root filesystem is mounted!) that provides a graphical
