@@ -1,3 +1,14 @@
+plymouth (0.8.1-1ubuntu2) lucid; urgency=low
+
+  * Make sure all the plymouth themes declare Replaces: plymouth (<< 0.8.1-1~)
+    to give a smooth upgrade.  LP: #549701.
+  * Add Breaks: against the old versions of the out-of-tree plymouth theme
+    packages.
+  * Recommend plymouth-theme-ubuntu-text | plymouth-theme, to avoid pulling
+    in a theme at random.  LP: #550237.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Sun, 28 Mar 2010 15:36:41 -0700
+
 plymouth (0.8.1-1ubuntu1) lucid; urgency=low
 
   * ubuntu-logo theme:

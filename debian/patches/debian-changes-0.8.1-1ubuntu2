@@ -1,24 +1,21 @@
-Description: Upstream changes introduced in version 0.8.1-1ubuntu1
+Description: Upstream changes introduced in version 0.8.1-1ubuntu2
  This patch has been created by dpkg-source during the package build.
  Here's the last changelog entry, hopefully it gives details on why
  those changes were made:
  .
- plymouth (0.8.1-1ubuntu1) lucid; urgency=low
+ plymouth (0.8.1-1ubuntu2) lucid; urgency=low
  .
-   * ubuntu-logo theme:
-     - move the entry box below the passphrase prompt where it belongs.
-       LP: #540685, #540806
-     - add some code to notice if our text boxes are going to run off the
-       bottom of the screen, and move them up in that case.
-   * debian/initramfs-tools/hooks/plymouth: fix to work with the new
-     update-alternatives theme handling. LP: #549247
-   * include the vga16fb renderer in the initramfs.
+   * Make sure all the plymouth themes declare Replaces: plymouth (<< 0.8.1-1~)
+     to give a smooth upgrade.  LP: #549701.
+   * Add Breaks: against the old versions of the out-of-tree plymouth theme
+     packages.
+   * Recommend plymouth-theme-ubuntu-text | plymouth-theme, to avoid pulling
+     in a theme at random.  LP: #550237.
  .
  The person named in the Author field signed this changelog entry.
 Author: Steve Langasek <steve.langasek@ubuntu.com>
-Bug-Ubuntu: https://bugs.launchpad.net/bugs/540685
-Bug-Ubuntu: https://bugs.launchpad.net/bugs/540806
-Bug-Ubuntu: https://bugs.launchpad.net/bugs/549247
+Bug-Ubuntu: https://bugs.launchpad.net/bugs/549701
+Bug-Ubuntu: https://bugs.launchpad.net/bugs/550237
 
 ---
 The information above should follow the Patch Tagging Guidelines, please
