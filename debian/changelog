@@ -1,3 +1,11 @@
+plymouth (0.8.1-1ubuntu3) lucid; urgency=low
+
+  * configure.ac, src/plugins/renderers/Makefile.am, debian/rules,
+    debian/plymouth.install.in: if sys/io.h is absent, as on powerpc or sparc,
+    omit building the vga16fb renderer.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Mon, 29 Mar 2010 04:52:22 +0000
+
 plymouth (0.8.1-1ubuntu2) lucid; urgency=low
 
   * Make sure all the plymouth themes declare Replaces: plymouth (<< 0.8.1-1~)

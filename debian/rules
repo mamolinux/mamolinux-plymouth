@@ -15,12 +15,19 @@ else
 	LDFLAGS += -Wl,-O1
 endif
 
+# This renderer is only available on architectures that are sufficiently
+# PC-like
+ifneq (,$(filter $(DEB_HOST_ARCH),amd64 armel i386 ia64))
+	VGA_RENDERER=lib/plymouth/renderers/vga16fb.so
+endif	
+
 override_dh_auto_configure:
 	dh_auto_configure -- CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
 		--libdir=/lib \
 		--datadir=/lib \
 		--enable-tracing \
 		--disable-tests \
+		--disable-maintainer-mode \
 		--disable-gdm-transition \
 		--with-system-root-install \
 		--without-rhgb-compat-link \
@@ -38,6 +45,14 @@ override_dh_auto_install:
 	mkdir -p debian/tmp/usr/share/apport/package-hooks
 	install -m 644 debian/libplymouth2.apport debian/tmp/usr/share/apport/package-hooks/source_plymouth.py
 
+override_dh_install:
+	sed -e'/frame-buffer\.so$$/a\
+$(VGA_RENDERER)' < debian/plymouth.install.in > debian/plymouth.install
+	dh_install
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -f debian/plymouth.install
 
 # Don't start plymouth when installing!
 override_dh_installinit:
