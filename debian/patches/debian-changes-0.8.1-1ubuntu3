@@ -1,21 +1,16 @@
-Description: Upstream changes introduced in version 0.8.1-1ubuntu2
+Description: Upstream changes introduced in version 0.8.1-1ubuntu3
  This patch has been created by dpkg-source during the package build.
  Here's the last changelog entry, hopefully it gives details on why
  those changes were made:
  .
- plymouth (0.8.1-1ubuntu2) lucid; urgency=low
+ plymouth (0.8.1-1ubuntu3) lucid; urgency=low
  .
-   * Make sure all the plymouth themes declare Replaces: plymouth (<< 0.8.1-1~)
-     to give a smooth upgrade.  LP: #549701.
-   * Add Breaks: against the old versions of the out-of-tree plymouth theme
-     packages.
-   * Recommend plymouth-theme-ubuntu-text | plymouth-theme, to avoid pulling
-     in a theme at random.  LP: #550237.
+   * configure.ac, src/plugins/renderers/Makefile.am, debian/rules,
+     debian/plymouth.install.in: if sys/io.h is absent, as on powerpc or sparc,
+     omit building the vga16fb renderer.
  .
  The person named in the Author field signed this changelog entry.
 Author: Steve Langasek <steve.langasek@ubuntu.com>
-Bug-Ubuntu: https://bugs.launchpad.net/bugs/549701
-Bug-Ubuntu: https://bugs.launchpad.net/bugs/550237
 
 ---
 The information above should follow the Patch Tagging Guidelines, please
@@ -53,7 +48,17 @@ Last-Update: <YYYY-MM-DD>
  
 --- plymouth-0.8.1.orig/configure.ac
 +++ plymouth-0.8.1/configure.ac
-@@ -225,9 +225,11 @@ AC_CONFIG_FILES([Makefile
+@@ -121,6 +121,9 @@ AC_DEFINE_UNQUOTED(BOOT_TTY, "$BOOT_TTY"
+ AC_ARG_WITH(shutdown-tty, AS_HELP_STRING([--with-shutdown-tty=<tty>],[Default TTY to use in shutdown mode (by default tty63)]),SHUTDOWN_TTY=${withval},SHUTDOWN_TTY=/dev/tty63)
+ AC_DEFINE_UNQUOTED(SHUTDOWN_TTY, "$SHUTDOWN_TTY", [TTY to use in shutdown mode])
+ 
++AC_CHECK_HEADERS([sys/io.h])
++AM_CONDITIONAL([BUILD_VGA16FB], [test "x$ac_cv_header_sys_io_h" = xyes])
++
+ # Turn on the additional warnings last, so -Werror doesn't affect other tests.
+ 
+ AC_DEFUN([PLYMOUTH_CC_TRY_FLAG], [
+@@ -225,9 +228,11 @@ AC_CONFIG_FILES([Makefile
             src/plugins/renderers/frame-buffer/Makefile
             src/plugins/renderers/drm/Makefile
             src/plugins/renderers/x11/Makefile
@@ -65,7 +70,7 @@ Last-Update: <YYYY-MM-DD>
             src/plugins/splash/text/Makefile
             src/plugins/splash/details/Makefile
             src/plugins/splash/space-flares/Makefile
-@@ -250,6 +252,8 @@ AC_CONFIG_FILES([Makefile
+@@ -250,6 +255,8 @@ AC_CONFIG_FILES([Makefile
             themes/solar/Makefile
             themes/glow/Makefile
             themes/script/Makefile
@@ -1575,7 +1580,16 @@ Last-Update: <YYYY-MM-DD>
  
  ac_unique_file="src/main.c"
  # Factoring default headers for most tests.
-@@ -932,6 +890,7 @@ bindir
+@@ -797,6 +755,8 @@ PLYMOUTH_CONF_DIR
+ PLYMOUTH_POLICY_DIR
+ PLYMOUTH_PLUGIN_PATH
+ PLYMOUTH_THEME_PATH
++BUILD_VGA16FB_FALSE
++BUILD_VGA16FB_TRUE
+ RELEASE_FILE
+ background_end_color
+ background_start_color
+@@ -932,6 +892,7 @@ bindir
  program_transform_name
  prefix
  exec_prefix
@@ -1583,7 +1597,7 @@ Last-Update: <YYYY-MM-DD>
  PACKAGE_BUGREPORT
  PACKAGE_STRING
  PACKAGE_VERSION
-@@ -1093,8 +1052,7 @@ do
+@@ -1093,8 +1054,7 @@ do
      ac_useropt=`expr "x$ac_option" : 'x-*disable-\(.*\)'`
      # Reject names that are not valid shell variable names.
      expr "x$ac_useropt" : ".*[^-+._$as_cr_alnum]" >/dev/null &&
@@ -1593,7 +1607,7 @@ Last-Update: <YYYY-MM-DD>
      ac_useropt_orig=$ac_useropt
      ac_useropt=`$as_echo "$ac_useropt" | sed 's/[-+.]/_/g'`
      case $ac_user_opts in
-@@ -1120,8 +1078,7 @@ do
+@@ -1120,8 +1080,7 @@ do
      ac_useropt=`expr "x$ac_option" : 'x-*enable-\([^=]*\)'`
      # Reject names that are not valid shell variable names.
      expr "x$ac_useropt" : ".*[^-+._$as_cr_alnum]" >/dev/null &&
@@ -1603,7 +1617,7 @@ Last-Update: <YYYY-MM-DD>
      ac_useropt_orig=$ac_useropt
      ac_useropt=`$as_echo "$ac_useropt" | sed 's/[-+.]/_/g'`
      case $ac_user_opts in
-@@ -1325,8 +1282,7 @@ do
+@@ -1325,8 +1284,7 @@ do
      ac_useropt=`expr "x$ac_option" : 'x-*with-\([^=]*\)'`
      # Reject names that are not valid shell variable names.
      expr "x$ac_useropt" : ".*[^-+._$as_cr_alnum]" >/dev/null &&
@@ -1613,7 +1627,7 @@ Last-Update: <YYYY-MM-DD>
      ac_useropt_orig=$ac_useropt
      ac_useropt=`$as_echo "$ac_useropt" | sed 's/[-+.]/_/g'`
      case $ac_user_opts in
-@@ -1342,8 +1298,7 @@ do
+@@ -1342,8 +1300,7 @@ do
      ac_useropt=`expr "x$ac_option" : 'x-*without-\(.*\)'`
      # Reject names that are not valid shell variable names.
      expr "x$ac_useropt" : ".*[^-+._$as_cr_alnum]" >/dev/null &&
@@ -1623,7 +1637,7 @@ Last-Update: <YYYY-MM-DD>
      ac_useropt_orig=$ac_useropt
      ac_useropt=`$as_echo "$ac_useropt" | sed 's/[-+.]/_/g'`
      case $ac_user_opts in
-@@ -1373,17 +1328,17 @@ do
+@@ -1373,17 +1330,17 @@ do
    | --x-librar=* | --x-libra=* | --x-libr=* | --x-lib=* | --x-li=* | --x-l=*)
      x_libraries=$ac_optarg ;;
  
@@ -1647,7 +1661,7 @@ Last-Update: <YYYY-MM-DD>
      eval $ac_envvar=\$ac_optarg
      export $ac_envvar ;;
  
-@@ -1400,15 +1355,13 @@ done
+@@ -1400,15 +1357,13 @@ done
  
  if test -n "$ac_prev"; then
    ac_option=--`echo $ac_prev | sed 's/_/-/g'`
@@ -1665,7 +1679,7 @@ Last-Update: <YYYY-MM-DD>
      *)     $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2 ;;
    esac
  fi
-@@ -1431,8 +1384,7 @@ do
+@@ -1431,8 +1386,7 @@ do
      [\\/$]* | ?:[\\/]* )  continue;;
      NONE | '' ) case $ac_var in *prefix ) continue;; esac;;
    esac
@@ -1675,7 +1689,7 @@ Last-Update: <YYYY-MM-DD>
  done
  
  # There might be people who depend on the old broken behavior: `$host'
-@@ -1462,11 +1414,9 @@ test "$silent" = yes && exec 6>/dev/null
+@@ -1462,11 +1416,9 @@ test "$silent" = yes && exec 6>/dev/null
  ac_pwd=`pwd` && test -n "$ac_pwd" &&
  ac_ls_di=`ls -di .` &&
  ac_pwd_ls_di=`cd "$ac_pwd" && ls -di .` ||
@@ -1689,7 +1703,7 @@ Last-Update: <YYYY-MM-DD>
  
  
  # Find the source files, if location was not specified.
-@@ -1505,13 +1455,11 @@ else
+@@ -1505,13 +1457,11 @@ else
  fi
  if test ! -r "$srcdir/$ac_unique_file"; then
    test "$ac_srcdir_defaulted" = yes && srcdir="$ac_confdir or .."
@@ -1705,7 +1719,7 @@ Last-Update: <YYYY-MM-DD>
  	pwd)`
  # When building in place, set srcdir=.
  if test "$ac_abs_confdir" = "$ac_pwd"; then
-@@ -1666,7 +1614,7 @@ Some influential environment variables:
+@@ -1666,7 +1616,7 @@ Some influential environment variables:
    LDFLAGS     linker flags, e.g. -L<lib dir> if you have libraries in a
                nonstandard directory <lib dir>
    LIBS        libraries to pass to the linker, e.g. -l<library>
@@ -1714,23 +1728,58 @@ Last-Update: <YYYY-MM-DD>
                you have headers in a nonstandard directory <include dir>
    CPP         C preprocessor
    PKG_CONFIG  path to pkg-config utility
-@@ -1729,40 +1677,397 @@ case $srcdir in
- esac
- ac_abs_srcdir=$ac_abs_top_srcdir$ac_dir_suffix
+@@ -1684,85 +1634,442 @@ Some influential environment variables:
+ Use these variables to override the choices made by `configure' or to help
+ it to find libraries and programs with nonstandard names/locations.
  
--    cd "$ac_dir" || { ac_status=$?; continue; }
--    # Check for guested configure.
--    if test -f "$ac_srcdir/configure.gnu"; then
--      echo &&
--      $SHELL "$ac_srcdir/configure.gnu" --help=recursive
--    elif test -f "$ac_srcdir/configure"; then
--      echo &&
--      $SHELL "$ac_srcdir/configure" --help=recursive
--    else
--      $as_echo "$as_me: WARNING: no configuration information is in $ac_dir" >&2
--    fi || ac_status=$?
--    cd "$ac_pwd" || { ac_status=$?; break; }
--  done
+-Report bugs to <https://bugs.freedesktop.org/enter_bug.cgi?product=plymouth>.
+-_ACEOF
+-ac_status=$?
++Report bugs to <https://bugs.freedesktop.org/enter_bug.cgi?product=plymouth>.
++_ACEOF
++ac_status=$?
++fi
++
++if test "$ac_init_help" = "recursive"; then
++  # If there are subdirs, report their specific --help.
++  for ac_dir in : $ac_subdirs_all; do test "x$ac_dir" = x: && continue
++    test -d "$ac_dir" ||
++      { cd "$srcdir" && ac_pwd=`pwd` && srcdir=. && test -d "$ac_dir"; } ||
++      continue
++    ac_builddir=.
++
++case "$ac_dir" in
++.) ac_dir_suffix= ac_top_builddir_sub=. ac_top_build_prefix= ;;
++*)
++  ac_dir_suffix=/`$as_echo "$ac_dir" | sed 's|^\.[\\/]||'`
++  # A ".." for each directory in $ac_dir_suffix.
++  ac_top_builddir_sub=`$as_echo "$ac_dir_suffix" | sed 's|/[^\\/]*|/..|g;s|/||'`
++  case $ac_top_builddir_sub in
++  "") ac_top_builddir_sub=. ac_top_build_prefix= ;;
++  *)  ac_top_build_prefix=$ac_top_builddir_sub/ ;;
++  esac ;;
++esac
++ac_abs_top_builddir=$ac_pwd
++ac_abs_builddir=$ac_pwd$ac_dir_suffix
++# for backward compatibility:
++ac_top_builddir=$ac_top_build_prefix
++
++case $srcdir in
++  .)  # We are building in place.
++    ac_srcdir=.
++    ac_top_srcdir=$ac_top_builddir_sub
++    ac_abs_top_srcdir=$ac_pwd ;;
++  [\\/]* | ?:[\\/]* )  # Absolute name.
++    ac_srcdir=$srcdir$ac_dir_suffix;
++    ac_top_srcdir=$srcdir
++    ac_abs_top_srcdir=$srcdir ;;
++  *) # Relative name.
++    ac_srcdir=$ac_top_build_prefix$srcdir$ac_dir_suffix
++    ac_top_srcdir=$ac_top_build_prefix$srcdir
++    ac_abs_top_srcdir=$ac_pwd/$srcdir ;;
++esac
++ac_abs_srcdir=$ac_abs_top_srcdir$ac_dir_suffix
++
 +    cd "$ac_dir" || { ac_status=$?; continue; }
 +    # Check for guested configure.
 +    if test -f "$ac_srcdir/configure.gnu"; then
@@ -2048,17 +2097,30 @@ Last-Update: <YYYY-MM-DD>
 +  eval $as_lineno_stack; test "x$as_lineno_stack" = x && { as_lineno=; unset as_lineno;}
 +  as_fn_set_status $ac_retval
  
--test -n "$ac_init_help" && exit $ac_status
--if $ac_init_version; then
--  cat <<\_ACEOF
--plymouth configure 0.8.1
--generated by GNU Autoconf 2.63
+-if test "$ac_init_help" = "recursive"; then
+-  # If there are subdirs, report their specific --help.
+-  for ac_dir in : $ac_subdirs_all; do test "x$ac_dir" = x: && continue
+-    test -d "$ac_dir" ||
+-      { cd "$srcdir" && ac_pwd=`pwd` && srcdir=. && test -d "$ac_dir"; } ||
+-      continue
+-    ac_builddir=.
 +} # ac_fn_c_try_link
  
--Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
--2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
--This configure script is free software; the Free Software Foundation
--gives unlimited permission to copy, distribute and modify it.
+-case "$ac_dir" in
+-.) ac_dir_suffix= ac_top_builddir_sub=. ac_top_build_prefix= ;;
+-*)
+-  ac_dir_suffix=/`$as_echo "$ac_dir" | sed 's|^\.[\\/]||'`
+-  # A ".." for each directory in $ac_dir_suffix.
+-  ac_top_builddir_sub=`$as_echo "$ac_dir_suffix" | sed 's|/[^\\/]*|/..|g;s|/||'`
+-  case $ac_top_builddir_sub in
+-  "") ac_top_builddir_sub=. ac_top_build_prefix= ;;
+-  *)  ac_top_build_prefix=$ac_top_builddir_sub/ ;;
+-  esac ;;
+-esac
+-ac_abs_top_builddir=$ac_pwd
+-ac_abs_builddir=$ac_pwd$ac_dir_suffix
+-# for backward compatibility:
+-ac_top_builddir=$ac_top_build_prefix
 +# ac_fn_c_check_func LINENO FUNC VAR
 +# ----------------------------------
 +# Tests whether FUNC exists, setting the cache variable VAR accordingly
@@ -2075,20 +2137,58 @@ Last-Update: <YYYY-MM-DD>
 +/* Define $2 to an innocuous variant, in case <limits.h> declares $2.
 +   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
 +#define $2 innocuous_$2
-+
+ 
+-case $srcdir in
+-  .)  # We are building in place.
+-    ac_srcdir=.
+-    ac_top_srcdir=$ac_top_builddir_sub
+-    ac_abs_top_srcdir=$ac_pwd ;;
+-  [\\/]* | ?:[\\/]* )  # Absolute name.
+-    ac_srcdir=$srcdir$ac_dir_suffix;
+-    ac_top_srcdir=$srcdir
+-    ac_abs_top_srcdir=$srcdir ;;
+-  *) # Relative name.
+-    ac_srcdir=$ac_top_build_prefix$srcdir$ac_dir_suffix
+-    ac_top_srcdir=$ac_top_build_prefix$srcdir
+-    ac_abs_top_srcdir=$ac_pwd/$srcdir ;;
+-esac
+-ac_abs_srcdir=$ac_abs_top_srcdir$ac_dir_suffix
 +/* System header to define __stub macros and hopefully few prototypes,
 +    which can conflict with char $2 (); below.
 +    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
 +    <limits.h> exists even on freestanding compilers.  */
-+
+ 
+-    cd "$ac_dir" || { ac_status=$?; continue; }
+-    # Check for guested configure.
+-    if test -f "$ac_srcdir/configure.gnu"; then
+-      echo &&
+-      $SHELL "$ac_srcdir/configure.gnu" --help=recursive
+-    elif test -f "$ac_srcdir/configure"; then
+-      echo &&
+-      $SHELL "$ac_srcdir/configure" --help=recursive
+-    else
+-      $as_echo "$as_me: WARNING: no configuration information is in $ac_dir" >&2
+-    fi || ac_status=$?
+-    cd "$ac_pwd" || { ac_status=$?; break; }
+-  done
+-fi
 +#ifdef __STDC__
 +# include <limits.h>
 +#else
 +# include <assert.h>
 +#endif
-+
+ 
+-test -n "$ac_init_help" && exit $ac_status
+-if $ac_init_version; then
+-  cat <<\_ACEOF
+-plymouth configure 0.8.1
+-generated by GNU Autoconf 2.63
 +#undef $2
-+
+ 
+-Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
+-2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+-This configure script is free software; the Free Software Foundation
+-gives unlimited permission to copy, distribute and modify it.
 +/* Override any GCC internal prototype to avoid an error.
 +   Use char because int might match the return type of a GCC
 +   builtin and then its argument prototype would still apply.  */
@@ -2136,7 +2236,7 @@ Last-Update: <YYYY-MM-DD>
  
    $ $0 $@
  
-@@ -1798,8 +2103,8 @@ for as_dir in $PATH
+@@ -1798,8 +2105,8 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -2147,7 +2247,7 @@ Last-Update: <YYYY-MM-DD>
  IFS=$as_save_IFS
  
  } >&5
-@@ -1836,9 +2141,9 @@ do
+@@ -1836,9 +2143,9 @@ do
        ac_arg=`$as_echo "$ac_arg" | sed "s/'/'\\\\\\\\''/g"` ;;
      esac
      case $ac_pass in
@@ -2159,7 +2259,7 @@ Last-Update: <YYYY-MM-DD>
        if test $ac_must_keep_next = true; then
  	ac_must_keep_next=false # Got value, back to normal.
        else
-@@ -1854,13 +2159,13 @@ do
+@@ -1854,13 +2161,13 @@ do
  	  -* ) ac_must_keep_next=true ;;
  	esac
        fi
@@ -2176,7 +2276,7 @@ Last-Update: <YYYY-MM-DD>
  
  # When interrupted or exit'd, cleanup temporary files, and complete
  # config.log.  We remove comments because anyway the quotes in there
-@@ -1885,13 +2190,13 @@ _ASBOX
+@@ -1885,13 +2192,13 @@ _ASBOX
      case $ac_val in #(
      *${as_nl}*)
        case $ac_var in #(
@@ -2192,7 +2292,7 @@ Last-Update: <YYYY-MM-DD>
        esac ;;
      esac
    done
-@@ -1963,39 +2268,41 @@ _ASBOX
+@@ -1963,39 +2270,41 @@ _ASBOX
      exit $exit_status
  ' 0
  for ac_signal in 1 2 13 15; do
@@ -2239,7 +2339,7 @@ Last-Update: <YYYY-MM-DD>
  
  # Let the site file select an alternate cache file if it wants to.
  # Prefer an explicitly selected file to automatically selected ones.
-@@ -2013,8 +2320,8 @@ fi
+@@ -2013,8 +2322,8 @@ fi
  for ac_site_file in "$ac_site_file1" "$ac_site_file2"
  do
    test "x$ac_site_file" = xNONE && continue
@@ -2250,7 +2350,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: loading site script $ac_site_file" >&6;}
      sed 's/^/| /' "$ac_site_file" >&5
      . "$ac_site_file"
-@@ -2022,10 +2329,10 @@ $as_echo "$as_me: loading site script $a
+@@ -2022,10 +2331,10 @@ $as_echo "$as_me: loading site script $a
  done
  
  if test -r "$cache_file"; then
@@ -2265,7 +2365,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: loading cache $cache_file" >&6;}
      case $cache_file in
        [\\/]* | ?:[\\/]* ) . "$cache_file";;
-@@ -2033,7 +2340,7 @@ $as_echo "$as_me: loading cache $cache_f
+@@ -2033,7 +2342,7 @@ $as_echo "$as_me: loading cache $cache_f
      esac
    fi
  else
@@ -2274,7 +2374,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: creating cache $cache_file" >&6;}
    >$cache_file
  fi
-@@ -2048,11 +2355,11 @@ for ac_var in $ac_precious_vars; do
+@@ -2048,11 +2357,11 @@ for ac_var in $ac_precious_vars; do
    eval ac_new_val=\$ac_env_${ac_var}_value
    case $ac_old_set,$ac_new_set in
      set,)
@@ -2288,7 +2388,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: error: \`$ac_var' was not set in the previous run" >&2;}
        ac_cache_corrupted=: ;;
      ,);;
-@@ -2062,17 +2369,17 @@ $as_echo "$as_me: error: \`$ac_var' was 
+@@ -2062,17 +2371,17 @@ $as_echo "$as_me: error: \`$ac_var' was 
  	ac_old_val_w=`echo x $ac_old_val`
  	ac_new_val_w=`echo x $ac_new_val`
  	if test "$ac_old_val_w" != "$ac_new_val_w"; then
@@ -2310,7 +2410,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me:   current value: \`$ac_new_val'" >&2;}
        fi;;
    esac
-@@ -2084,43 +2391,20 @@ $as_echo "$as_me:   current value: \`$ac
+@@ -2084,43 +2393,20 @@ $as_echo "$as_me:   current value: \`$ac
      esac
      case " $ac_configure_args " in
        *" '$ac_arg' "*) ;; # Avoid dups.  Use of quotes ensures accuracy.
@@ -2361,7 +2461,7 @@ Last-Update: <YYYY-MM-DD>
  
  ac_ext=c
  ac_cpp='$CPP $CPPFLAGS'
-@@ -2134,24 +2418,16 @@ ac_config_headers="$ac_config_headers co
+@@ -2134,24 +2420,16 @@ ac_config_headers="$ac_config_headers co
  
  ac_aux_dir=
  for ac_dir in build-tools "$srcdir"/build-tools; do
@@ -2394,7 +2494,7 @@ Last-Update: <YYYY-MM-DD>
  fi
  
  # These three variables are undocumented and unsupported,
-@@ -2172,9 +2448,9 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
+@@ -2172,9 +2450,9 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
  if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}gcc", so it can be a program name with args.
  set dummy ${ac_tool_prefix}gcc; ac_word=$2
@@ -2406,7 +2506,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -2185,24 +2461,24 @@ for as_dir in $PATH
+@@ -2185,24 +2463,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -2436,7 +2536,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -2212,9 +2488,9 @@ if test -z "$ac_cv_prog_CC"; then
+@@ -2212,9 +2490,9 @@ if test -z "$ac_cv_prog_CC"; then
    ac_ct_CC=$CC
    # Extract the first word of "gcc", so it can be a program name with args.
  set dummy gcc; ac_word=$2
@@ -2448,7 +2548,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_CC"; then
-@@ -2225,24 +2501,24 @@ for as_dir in $PATH
+@@ -2225,24 +2503,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -2478,7 +2578,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -2251,7 +2527,7 @@ fi
+@@ -2251,7 +2529,7 @@ fi
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -2487,7 +2587,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -2265,9 +2541,9 @@ if test -z "$CC"; then
+@@ -2265,9 +2543,9 @@ if test -z "$CC"; then
            if test -n "$ac_tool_prefix"; then
      # Extract the first word of "${ac_tool_prefix}cc", so it can be a program name with args.
  set dummy ${ac_tool_prefix}cc; ac_word=$2
@@ -2499,7 +2599,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -2278,24 +2554,24 @@ for as_dir in $PATH
+@@ -2278,24 +2556,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -2529,7 +2629,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -2305,9 +2581,9 @@ fi
+@@ -2305,9 +2583,9 @@ fi
  if test -z "$CC"; then
    # Extract the first word of "cc", so it can be a program name with args.
  set dummy cc; ac_word=$2
@@ -2541,7 +2641,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -2319,18 +2595,18 @@ for as_dir in $PATH
+@@ -2319,18 +2597,18 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -2563,7 +2663,7 @@ Last-Update: <YYYY-MM-DD>
  IFS=$as_save_IFS
  
  if test $ac_prog_rejected = yes; then
-@@ -2349,10 +2625,10 @@ fi
+@@ -2349,10 +2627,10 @@ fi
  fi
  CC=$ac_cv_prog_CC
  if test -n "$CC"; then
@@ -2576,7 +2676,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -2364,9 +2640,9 @@ if test -z "$CC"; then
+@@ -2364,9 +2642,9 @@ if test -z "$CC"; then
    do
      # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
  set dummy $ac_tool_prefix$ac_prog; ac_word=$2
@@ -2588,7 +2688,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -2377,24 +2653,24 @@ for as_dir in $PATH
+@@ -2377,24 +2655,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -2618,7 +2718,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -2408,9 +2684,9 @@ if test -z "$CC"; then
+@@ -2408,9 +2686,9 @@ if test -z "$CC"; then
  do
    # Extract the first word of "$ac_prog", so it can be a program name with args.
  set dummy $ac_prog; ac_word=$2
@@ -2630,7 +2730,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_CC"; then
-@@ -2421,24 +2697,24 @@ for as_dir in $PATH
+@@ -2421,24 +2699,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -2660,7 +2760,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -2451,7 +2727,7 @@ done
+@@ -2451,7 +2729,7 @@ done
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -2669,7 +2769,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -2462,57 +2738,37 @@ fi
+@@ -2462,57 +2740,37 @@ fi
  fi
  
  
@@ -2747,7 +2847,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  int
-@@ -2528,8 +2784,8 @@ ac_clean_files="$ac_clean_files a.out a.
+@@ -2528,8 +2786,8 @@ ac_clean_files="$ac_clean_files a.out a.
  # Try to create an executable without -o first, disregard a.out.
  # It will help us diagnose broken compilers, and finding out an intuition
  # of exeext.
@@ -2758,7 +2858,7 @@ Last-Update: <YYYY-MM-DD>
  ac_link_default=`$as_echo "$ac_link" | sed 's/ -o *conftest[^ ]*//'`
  
  # The possible output files:
-@@ -2545,17 +2801,17 @@ do
+@@ -2545,17 +2803,17 @@ do
  done
  rm -f $ac_rmfiles
  
@@ -2781,7 +2881,7 @@ Last-Update: <YYYY-MM-DD>
    # Autoconf-2.13 could set the ac_cv_exeext variable to `no'.
  # So ignore a value of `no', otherwise this would lead to `EXEEXT = no'
  # in a Makefile.  We should not override ac_cv_exeext if it was cached,
-@@ -2572,7 +2828,7 @@ do
+@@ -2572,7 +2830,7 @@ do
  	# certainly right.
  	break;;
      *.* )
@@ -2790,7 +2890,7 @@ Last-Update: <YYYY-MM-DD>
  	then :; else
  	   ac_cv_exeext=`expr "$ac_file" : '[^.]*\(\..*\)'`
  	fi
-@@ -2591,84 +2847,42 @@ test "$ac_cv_exeext" = no && ac_cv_exeex
+@@ -2591,84 +2849,42 @@ test "$ac_cv_exeext" = no && ac_cv_exeex
  else
    ac_file=''
  fi
@@ -2896,32 +2996,23 @@ Last-Update: <YYYY-MM-DD>
    # If both `conftest.exe' and `conftest' are `present' (well, observable)
  # catch `conftest.exe'.  For instance with Cygwin, `ls conftest' will
  # work properly (i.e., refer to `conftest.exe'), while it won't with
-@@ -2683,32 +2897,83 @@ for ac_file in conftest.exe conftest con
+@@ -2683,32 +2899,83 @@ for ac_file in conftest.exe conftest con
    esac
  done
  else
 -  { { $as_echo "$as_me:$LINENO: error: in \`$ac_pwd':" >&5
 +  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
- $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
--{ { $as_echo "$as_me:$LINENO: error: cannot compute suffix of executables: cannot compile and link
--See \`config.log' for more details." >&5
--$as_echo "$as_me: error: cannot compute suffix of executables: cannot compile and link
--See \`config.log' for more details." >&2;}
--   { (exit 1); exit 1; }; }; }
++$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 +as_fn_error "cannot compute suffix of executables: cannot compile and link
 +See \`config.log' for more details." "$LINENO" 5; }
- fi
--
--rm -f conftest$ac_cv_exeext
--{ $as_echo "$as_me:$LINENO: result: $ac_cv_exeext" >&5
++fi
 +rm -f conftest conftest$ac_cv_exeext
 +{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_exeext" >&5
- $as_echo "$ac_cv_exeext" >&6; }
- 
- rm -f conftest.$ac_ext
- EXEEXT=$ac_cv_exeext
- ac_exeext=$EXEEXT
--{ $as_echo "$as_me:$LINENO: checking for suffix of object files" >&5
++$as_echo "$ac_cv_exeext" >&6; }
++
++rm -f conftest.$ac_ext
++EXEEXT=$ac_cv_exeext
++ac_exeext=$EXEEXT
 +cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 +/* end confdefs.h.  */
 +#include <stdio.h>
@@ -2969,16 +3060,29 @@ Last-Update: <YYYY-MM-DD>
 +	cross_compiling=yes
 +    else
 +	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+ $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+-{ { $as_echo "$as_me:$LINENO: error: cannot compute suffix of executables: cannot compile and link
+-See \`config.log' for more details." >&5
+-$as_echo "$as_me: error: cannot compute suffix of executables: cannot compile and link
+-See \`config.log' for more details." >&2;}
+-   { (exit 1); exit 1; }; }; }
 +as_fn_error "cannot run C compiled programs.
 +If you meant to cross compile, use \`--host'.
 +See \`config.log' for more details." "$LINENO" 5; }
 +    fi
 +  fi
-+fi
+ fi
 +{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $cross_compiling" >&5
 +$as_echo "$cross_compiling" >&6; }
-+
+ 
+-rm -f conftest$ac_cv_exeext
+-{ $as_echo "$as_me:$LINENO: result: $ac_cv_exeext" >&5
+-$as_echo "$ac_cv_exeext" >&6; }
+-
+-rm -f conftest.$ac_ext
+-EXEEXT=$ac_cv_exeext
+-ac_exeext=$EXEEXT
+-{ $as_echo "$as_me:$LINENO: checking for suffix of object files" >&5
 +rm -f conftest.$ac_ext conftest$ac_cv_exeext conftest.out
 +ac_clean_files=$ac_clean_files_save
 +{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for suffix of object files" >&5
@@ -2996,7 +3100,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  int
-@@ -2720,17 +2985,17 @@ main ()
+@@ -2720,17 +2987,17 @@ main ()
  }
  _ACEOF
  rm -f conftest.o conftest.obj
@@ -3019,7 +3123,7 @@ Last-Update: <YYYY-MM-DD>
    for ac_file in conftest.o conftest.obj conftest.*; do
    test -f "$ac_file" || continue;
    case $ac_file in
-@@ -2743,31 +3008,23 @@ else
+@@ -2743,31 +3010,23 @@ else
    $as_echo "$as_me: failed program was:" >&5
  sed 's/^/| /' conftest.$ac_ext >&5
  
@@ -3058,7 +3162,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  int
-@@ -2781,37 +3038,16 @@ main ()
+@@ -2781,37 +3040,16 @@ main ()
    return 0;
  }
  _ACEOF
@@ -3099,7 +3203,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$ac_cv_c_compiler_gnu" >&6; }
  if test $ac_compiler_gnu = yes; then
    GCC=yes
-@@ -2820,59 +3056,31 @@ else
+@@ -2820,20 +3058,16 @@ else
  fi
  ac_test_CFLAGS=${CFLAGS+set}
  ac_save_CFLAGS=$CFLAGS
@@ -3119,16 +3223,14 @@ Last-Update: <YYYY-MM-DD>
 -_ACEOF
 -cat confdefs.h >>conftest.$ac_ext
 -cat >>conftest.$ac_ext <<_ACEOF
--/* end confdefs.h.  */
--
--int
--main ()
--{
--
--  ;
--  return 0;
--}
--_ACEOF
++   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ 
+ int
+@@ -2844,35 +3078,11 @@ main ()
+   return 0;
+ }
+ _ACEOF
 -rm -f conftest.$ac_objext
 -if { (ac_try="$ac_compile"
 -case "(($ac_try" in
@@ -3147,35 +3249,24 @@ Last-Update: <YYYY-MM-DD>
 -	 test -z "$ac_c_werror_flag" ||
 -	 test ! -s conftest.err
 -       } && test -s conftest.$ac_objext; then
--  ac_cv_prog_cc_g=yes
--else
++if ac_fn_c_try_compile "$LINENO"; then :
+   ac_cv_prog_cc_g=yes
+ else
 -  $as_echo "$as_me: failed program was:" >&5
 -sed 's/^/| /' conftest.$ac_ext >&5
-+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-+/* end confdefs.h.  */
-+
-+int
-+main ()
-+{
- 
+-
 -	CFLAGS=""
 -      cat >conftest.$ac_ext <<_ACEOF
 -/* confdefs.h.  */
-+  ;
-+  return 0;
-+}
- _ACEOF
+-_ACEOF
 -cat confdefs.h >>conftest.$ac_ext
 -cat >>conftest.$ac_ext <<_ACEOF
-+if ac_fn_c_try_compile "$LINENO"; then :
-+  ac_cv_prog_cc_g=yes
-+else
 +  CFLAGS=""
 +      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
  int
-@@ -2883,36 +3091,12 @@ main ()
+@@ -2883,36 +3093,12 @@ main ()
    return 0;
  }
  _ACEOF
@@ -3216,7 +3307,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  int
-@@ -2923,42 +3107,17 @@ main ()
+@@ -2923,42 +3109,17 @@ main ()
    return 0;
  }
  _ACEOF
@@ -3261,7 +3352,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$ac_cv_prog_cc_g" >&6; }
  if test "$ac_test_CFLAGS" = set; then
    CFLAGS=$ac_save_CFLAGS
-@@ -2975,18 +3134,14 @@ else
+@@ -2975,18 +3136,14 @@ else
      CFLAGS=
    fi
  fi
@@ -3283,7 +3374,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  #include <stdarg.h>
  #include <stdio.h>
-@@ -3043,32 +3198,9 @@ for ac_arg in '' -qlanglvl=extc89 -qlang
+@@ -3043,32 +3200,9 @@ for ac_arg in '' -qlanglvl=extc89 -qlang
  	-Ae "-Aa -D_HPUX_SOURCE" "-Xc -D__EXTENSIONS__"
  do
    CC="$ac_save_CC $ac_arg"
@@ -3317,7 +3408,7 @@ Last-Update: <YYYY-MM-DD>
  rm -f core conftest.err conftest.$ac_objext
    test "x$ac_cv_prog_cc_c89" != "xno" && break
  done
-@@ -3079,17 +3211,19 @@ fi
+@@ -3079,17 +3213,19 @@ fi
  # AC_CACHE_VAL
  case "x$ac_cv_prog_cc_c89" in
    x)
@@ -3340,7 +3431,7 @@ Last-Update: <YYYY-MM-DD>
  
  ac_ext=c
  ac_cpp='$CPP $CPPFLAGS'
-@@ -3103,14 +3237,14 @@ ac_cpp='$CPP $CPPFLAGS'
+@@ -3103,14 +3239,14 @@ ac_cpp='$CPP $CPPFLAGS'
  ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
  ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
  ac_compiler_gnu=$ac_cv_c_compiler_gnu
@@ -3357,7 +3448,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
        # Double quotes because CPP needs to be expanded
-@@ -3125,11 +3259,7 @@ do
+@@ -3125,11 +3261,7 @@ do
    # <limits.h> exists even on freestanding compilers.
    # On the NeXT, cc -E runs the code through the compiler's parser,
    # not just through cpp. "Syntax error" is here to catch this case.
@@ -3370,7 +3461,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  #ifdef __STDC__
  # include <limits.h>
-@@ -3138,78 +3268,34 @@ cat >>conftest.$ac_ext <<_ACEOF
+@@ -3138,78 +3270,34 @@ cat >>conftest.$ac_ext <<_ACEOF
  #endif
  		     Syntax error
  _ACEOF
@@ -3454,7 +3545,7 @@ Last-Update: <YYYY-MM-DD>
    break
  fi
  
-@@ -3221,7 +3307,7 @@ fi
+@@ -3221,7 +3309,7 @@ fi
  else
    ac_cv_prog_CPP=$CPP
  fi
@@ -3463,7 +3554,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$CPP" >&6; }
  ac_preproc_ok=false
  for ac_c_preproc_warn_flag in '' yes
-@@ -3232,11 +3318,7 @@ do
+@@ -3232,11 +3320,7 @@ do
    # <limits.h> exists even on freestanding compilers.
    # On the NeXT, cc -E runs the code through the compiler's parser,
    # not just through cpp. "Syntax error" is here to catch this case.
@@ -3476,7 +3567,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  #ifdef __STDC__
  # include <limits.h>
-@@ -3245,87 +3327,40 @@ cat >>conftest.$ac_ext <<_ACEOF
+@@ -3245,87 +3329,40 @@ cat >>conftest.$ac_ext <<_ACEOF
  #endif
  		     Syntax error
  _ACEOF
@@ -3573,7 +3664,7 @@ Last-Update: <YYYY-MM-DD>
  fi
  
  ac_ext=c
-@@ -3335,9 +3370,9 @@ ac_link='$CC -o conftest$ac_exeext $CFLA
+@@ -3335,9 +3372,9 @@ ac_link='$CC -o conftest$ac_exeext $CFLA
  ac_compiler_gnu=$ac_cv_c_compiler_gnu
  
  
@@ -3585,7 +3676,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -z "$GREP"; then
-@@ -3348,7 +3383,7 @@ for as_dir in $PATH$PATH_SEPARATOR/usr/x
+@@ -3348,7 +3385,7 @@ for as_dir in $PATH$PATH_SEPARATOR/usr/x
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -3594,7 +3685,7 @@ Last-Update: <YYYY-MM-DD>
      for ac_exec_ext in '' $ac_executable_extensions; do
        ac_path_GREP="$as_dir/$ac_prog$ac_exec_ext"
        { test -f "$ac_path_GREP" && $as_test_x "$ac_path_GREP"; } || continue
-@@ -3368,7 +3403,7 @@ case `"$ac_path_GREP" --version 2>&1` in
+@@ -3368,7 +3405,7 @@ case `"$ac_path_GREP" --version 2>&1` in
      $as_echo 'GREP' >> "conftest.nl"
      "$ac_path_GREP" -e 'GREP$' -e '-(cannot match)-' < "conftest.nl" >"conftest.out" 2>/dev/null || break
      diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
@@ -3603,7 +3694,7 @@ Last-Update: <YYYY-MM-DD>
      if test $ac_count -gt ${ac_path_GREP_max-0}; then
        # Best one so far, save it but keep looking for a better one
        ac_cv_path_GREP="$ac_path_GREP"
-@@ -3383,26 +3418,24 @@ esac
+@@ -3383,26 +3420,24 @@ esac
        $ac_path_GREP_found && break 3
      done
    done
@@ -3635,7 +3726,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if echo a | $GREP -E '(a|b)' >/dev/null 2>&1
-@@ -3416,7 +3449,7 @@ for as_dir in $PATH$PATH_SEPARATOR/usr/x
+@@ -3416,7 +3451,7 @@ for as_dir in $PATH$PATH_SEPARATOR/usr/x
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -3644,7 +3735,7 @@ Last-Update: <YYYY-MM-DD>
      for ac_exec_ext in '' $ac_executable_extensions; do
        ac_path_EGREP="$as_dir/$ac_prog$ac_exec_ext"
        { test -f "$ac_path_EGREP" && $as_test_x "$ac_path_EGREP"; } || continue
-@@ -3436,7 +3469,7 @@ case `"$ac_path_EGREP" --version 2>&1` i
+@@ -3436,7 +3471,7 @@ case `"$ac_path_EGREP" --version 2>&1` i
      $as_echo 'EGREP' >> "conftest.nl"
      "$ac_path_EGREP" 'EGREP$' < "conftest.nl" >"conftest.out" 2>/dev/null || break
      diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
@@ -3653,7 +3744,7 @@ Last-Update: <YYYY-MM-DD>
      if test $ac_count -gt ${ac_path_EGREP_max-0}; then
        # Best one so far, save it but keep looking for a better one
        ac_cv_path_EGREP="$ac_path_EGREP"
-@@ -3451,12 +3484,10 @@ esac
+@@ -3451,12 +3486,10 @@ esac
        $ac_path_EGREP_found && break 3
      done
    done
@@ -3668,7 +3759,7 @@ Last-Update: <YYYY-MM-DD>
    fi
  else
    ac_cv_path_EGREP=$EGREP
-@@ -3464,21 +3495,17 @@ fi
+@@ -3464,21 +3497,17 @@ fi
  
     fi
  fi
@@ -3694,7 +3785,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  #include <stdlib.h>
  #include <stdarg.h>
-@@ -3493,48 +3520,23 @@ main ()
+@@ -3493,48 +3522,23 @@ main ()
    return 0;
  }
  _ACEOF
@@ -3748,7 +3839,7 @@ Last-Update: <YYYY-MM-DD>
  else
    ac_cv_header_stdc=no
  fi
-@@ -3544,18 +3546,14 @@ fi
+@@ -3544,18 +3548,14 @@ fi
  
  if test $ac_cv_header_stdc = yes; then
    # ISC 2.0.2 stdlib.h does not declare free, contrary to ANSI.
@@ -3770,7 +3861,7 @@ Last-Update: <YYYY-MM-DD>
  else
    ac_cv_header_stdc=no
  fi
-@@ -3565,14 +3563,10 @@ fi
+@@ -3565,14 +3565,10 @@ fi
  
  if test $ac_cv_header_stdc = yes; then
    # /bin/cc in Irix-4.0.5 gets non-ANSI ctype macros unless using -ansi.
@@ -3787,12 +3878,10 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  #include <ctype.h>
  #include <stdlib.h>
-@@ -3597,263 +3591,48 @@ main ()
- 	|| toupper (i) != TOUPPER (i))
-       return 2;
+@@ -3599,261 +3595,46 @@ main ()
    return 0;
--}
--_ACEOF
+ }
+ _ACEOF
 -rm -f conftest$ac_exeext
 -if { (ac_try="$ac_link"
 -case "(($ac_try" in
@@ -3820,21 +3909,27 @@ Last-Update: <YYYY-MM-DD>
 -  $as_echo "$as_me: program exited with status $ac_status" >&5
 -$as_echo "$as_me: failed program was:" >&5
 -sed 's/^/| /' conftest.$ac_ext >&5
--
++if ac_fn_c_try_run "$LINENO"; then :
+ 
 -( exit $ac_status )
 -ac_cv_header_stdc=no
--fi
++else
++  ac_cv_header_stdc=no
+ fi
 -rm -rf conftest.dSYM
 -rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$ac_objext conftest.$ac_ext
--fi
++rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
++  conftest.$ac_objext conftest.beam conftest.$ac_ext
+ fi
+ 
 -
--
--fi
--fi
+ fi
+ fi
 -{ $as_echo "$as_me:$LINENO: result: $ac_cv_header_stdc" >&5
--$as_echo "$ac_cv_header_stdc" >&6; }
--if test $ac_cv_header_stdc = yes; then
--
++{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_header_stdc" >&5
+ $as_echo "$ac_cv_header_stdc" >&6; }
+ if test $ac_cv_header_stdc = yes; then
+ 
 -cat >>confdefs.h <<\_ACEOF
 -#define STDC_HEADERS 1
 -_ACEOF
@@ -3958,10 +4053,11 @@ Last-Update: <YYYY-MM-DD>
 -else
 -  $as_echo "$as_me: failed program was:" >&5
 -sed 's/^/| /' conftest.$ac_ext >&5
--
++$as_echo "#define STDC_HEADERS 1" >>confdefs.h
+ 
 -	ac_header_compiler=no
--fi
--
+ fi
+ 
 -rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 -{ $as_echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
 -$as_echo "$ac_header_compiler" >&6; }
@@ -3976,7 +4072,18 @@ Last-Update: <YYYY-MM-DD>
 -cat >>conftest.$ac_ext <<_ACEOF
 -/* end confdefs.h.  */
 -#include <minix/config.h>
--_ACEOF
++# On IRIX 5.3, sys/types and inttypes.h are conflicting.
++for ac_header in sys/types.h sys/stat.h stdlib.h string.h memory.h strings.h \
++		  inttypes.h stdint.h unistd.h
++do :
++  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
++ac_fn_c_check_header_compile "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default
++"
++eval as_val=\$$as_ac_Header
++   if test "x$as_val" = x""yes; then :
++  cat >>confdefs.h <<_ACEOF
++#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+ _ACEOF
 -if { (ac_try="$ac_cpp conftest.$ac_ext"
 -case "(($ac_try" in
 -  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
@@ -3995,30 +4102,17 @@ Last-Update: <YYYY-MM-DD>
 -	 test ! -s conftest.err
 -       }; then
 -  ac_header_preproc=yes
-+}
-+_ACEOF
-+if ac_fn_c_try_run "$LINENO"; then :
-+
- else
+-else
 -  $as_echo "$as_me: failed program was:" >&5
 -sed 's/^/| /' conftest.$ac_ext >&5
-+  ac_cv_header_stdc=no
-+fi
-+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-+  conftest.$ac_objext conftest.beam conftest.$ac_ext
-+fi
  
 -  ac_header_preproc=no
  fi
-+fi
-+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_header_stdc" >&5
-+$as_echo "$ac_cv_header_stdc" >&6; }
-+if test $ac_cv_header_stdc = yes; then
  
 -rm -f conftest.err conftest.$ac_ext
 -{ $as_echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
 -$as_echo "$ac_header_preproc" >&6; }
-+$as_echo "#define STDC_HEADERS 1" >>confdefs.h
++done
  
 -# So?  What about this header?
 -case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
@@ -4056,36 +4150,19 @@ Last-Update: <YYYY-MM-DD>
 -  $as_echo_n "(cached) " >&6
 -else
 -  ac_cv_header_minix_config_h=$ac_header_preproc
- fi
+-fi
 -{ $as_echo "$as_me:$LINENO: result: $ac_cv_header_minix_config_h" >&5
 -$as_echo "$ac_cv_header_minix_config_h" >&6; }
-+
-+# On IRIX 5.3, sys/types and inttypes.h are conflicting.
-+for ac_header in sys/types.h sys/stat.h stdlib.h string.h memory.h strings.h \
-+		  inttypes.h stdint.h unistd.h
-+do :
-+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-+ac_fn_c_check_header_compile "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default
-+"
-+eval as_val=\$$as_ac_Header
-+   if test "x$as_val" = x""yes; then :
-+  cat >>confdefs.h <<_ACEOF
-+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
-+_ACEOF
  
- fi
+-fi
 -if test "x$ac_cv_header_minix_config_h" = x""yes; then
-+
-+done
-+
-+
 +
 +  ac_fn_c_check_header_mongrel "$LINENO" "minix/config.h" "ac_cv_header_minix_config_h" "$ac_includes_default"
 +if test "x$ac_cv_header_minix_config_h" = x""yes; then :
    MINIX=yes
  else
    MINIX=
-@@ -3862,34 +3641,23 @@ fi
+@@ -3862,34 +3643,23 @@ fi
  
    if test "$MINIX" = yes; then
  
@@ -4126,7 +4203,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  #	  define __EXTENSIONS__ 1
-@@ -3902,65 +3670,34 @@ main ()
+@@ -3902,65 +3672,34 @@ main ()
    return 0;
  }
  _ACEOF
@@ -4202,7 +4279,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$AWK"; then
-@@ -3971,24 +3708,24 @@ for as_dir in $PATH
+@@ -3971,24 +3710,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -4232,7 +4309,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -4004,9 +3741,9 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
+@@ -4004,9 +3743,9 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
  if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}gcc", so it can be a program name with args.
  set dummy ${ac_tool_prefix}gcc; ac_word=$2
@@ -4244,7 +4321,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -4017,24 +3754,24 @@ for as_dir in $PATH
+@@ -4017,24 +3756,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -4274,7 +4351,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -4044,9 +3781,9 @@ if test -z "$ac_cv_prog_CC"; then
+@@ -4044,9 +3783,9 @@ if test -z "$ac_cv_prog_CC"; then
    ac_ct_CC=$CC
    # Extract the first word of "gcc", so it can be a program name with args.
  set dummy gcc; ac_word=$2
@@ -4286,7 +4363,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_CC"; then
-@@ -4057,24 +3794,24 @@ for as_dir in $PATH
+@@ -4057,24 +3796,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -4316,7 +4393,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -4083,7 +3820,7 @@ fi
+@@ -4083,7 +3822,7 @@ fi
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -4325,7 +4402,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -4097,9 +3834,9 @@ if test -z "$CC"; then
+@@ -4097,9 +3836,9 @@ if test -z "$CC"; then
            if test -n "$ac_tool_prefix"; then
      # Extract the first word of "${ac_tool_prefix}cc", so it can be a program name with args.
  set dummy ${ac_tool_prefix}cc; ac_word=$2
@@ -4337,7 +4414,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -4110,24 +3847,24 @@ for as_dir in $PATH
+@@ -4110,24 +3849,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -4367,7 +4444,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -4137,9 +3874,9 @@ fi
+@@ -4137,9 +3876,9 @@ fi
  if test -z "$CC"; then
    # Extract the first word of "cc", so it can be a program name with args.
  set dummy cc; ac_word=$2
@@ -4379,7 +4456,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -4151,18 +3888,18 @@ for as_dir in $PATH
+@@ -4151,18 +3890,18 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -4401,7 +4478,7 @@ Last-Update: <YYYY-MM-DD>
  IFS=$as_save_IFS
  
  if test $ac_prog_rejected = yes; then
-@@ -4181,10 +3918,10 @@ fi
+@@ -4181,10 +3920,10 @@ fi
  fi
  CC=$ac_cv_prog_CC
  if test -n "$CC"; then
@@ -4414,7 +4491,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -4196,9 +3933,9 @@ if test -z "$CC"; then
+@@ -4196,9 +3935,9 @@ if test -z "$CC"; then
    do
      # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
  set dummy $ac_tool_prefix$ac_prog; ac_word=$2
@@ -4426,7 +4503,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -4209,24 +3946,24 @@ for as_dir in $PATH
+@@ -4209,24 +3948,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -4456,7 +4533,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -4240,9 +3977,9 @@ if test -z "$CC"; then
+@@ -4240,9 +3979,9 @@ if test -z "$CC"; then
  do
    # Extract the first word of "$ac_prog", so it can be a program name with args.
  set dummy $ac_prog; ac_word=$2
@@ -4468,7 +4545,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_CC"; then
-@@ -4253,24 +3990,24 @@ for as_dir in $PATH
+@@ -4253,24 +3992,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -4498,7 +4575,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -4283,7 +4020,7 @@ done
+@@ -4283,7 +4022,7 @@ done
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -4507,7 +4584,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -4294,62 +4031,42 @@ fi
+@@ -4294,62 +4033,42 @@ fi
  fi
  
  
@@ -4539,6 +4616,17 @@ Last-Update: <YYYY-MM-DD>
 -  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
 -  (exit $ac_status); }
 -{ (ac_try="$ac_compiler -v >&5"
+-case "(($ac_try" in
+-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+-  *) ac_try_echo=$ac_try;;
+-esac
+-eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
+-$as_echo "$ac_try_echo") >&5
+-  (eval "$ac_compiler -v >&5") 2>&5
+-  ac_status=$?
+-  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
+-  (exit $ac_status); }
+-{ (ac_try="$ac_compiler -V >&5"
 +for ac_option in --version -v -V -qversion; do
 +  { { ac_try="$ac_compiler $ac_option >&5"
  case "(($ac_try" in
@@ -4547,22 +4635,11 @@ Last-Update: <YYYY-MM-DD>
  esac
 -eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
 -$as_echo "$ac_try_echo") >&5
--  (eval "$ac_compiler -v >&5") 2>&5
+-  (eval "$ac_compiler -V >&5") 2>&5
 +eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
 +$as_echo "$ac_try_echo"; } >&5
 +  (eval "$ac_compiler $ac_option >&5") 2>conftest.err
    ac_status=$?
--  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
--  (exit $ac_status); }
--{ (ac_try="$ac_compiler -V >&5"
--case "(($ac_try" in
--  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
--  *) ac_try_echo=$ac_try;;
--esac
--eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
--$as_echo "$ac_try_echo") >&5
--  (eval "$ac_compiler -V >&5") 2>&5
--  ac_status=$?
 -  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
 -  (exit $ac_status); }
 +  if test -s conftest.err; then
@@ -4592,7 +4669,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  int
-@@ -4363,37 +4080,16 @@ main ()
+@@ -4363,37 +4082,16 @@ main ()
    return 0;
  }
  _ACEOF
@@ -4633,7 +4710,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$ac_cv_c_compiler_gnu" >&6; }
  if test $ac_compiler_gnu = yes; then
    GCC=yes
-@@ -4402,20 +4098,16 @@ else
+@@ -4402,20 +4100,16 @@ else
  fi
  ac_test_CFLAGS=${CFLAGS+set}
  ac_save_CFLAGS=$CFLAGS
@@ -4657,7 +4734,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  int
-@@ -4426,35 +4118,11 @@ main ()
+@@ -4426,35 +4120,11 @@ main ()
    return 0;
  }
  _ACEOF
@@ -4696,7 +4773,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  int
-@@ -4465,36 +4133,12 @@ main ()
+@@ -4465,36 +4135,12 @@ main ()
    return 0;
  }
  _ACEOF
@@ -4737,7 +4814,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  int
-@@ -4505,42 +4149,17 @@ main ()
+@@ -4505,42 +4151,17 @@ main ()
    return 0;
  }
  _ACEOF
@@ -4782,7 +4859,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$ac_cv_prog_cc_g" >&6; }
  if test "$ac_test_CFLAGS" = set; then
    CFLAGS=$ac_save_CFLAGS
-@@ -4557,18 +4176,14 @@ else
+@@ -4557,18 +4178,14 @@ else
      CFLAGS=
    fi
  fi
@@ -4804,7 +4881,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  #include <stdarg.h>
  #include <stdio.h>
-@@ -4625,32 +4240,9 @@ for ac_arg in '' -qlanglvl=extc89 -qlang
+@@ -4625,32 +4242,9 @@ for ac_arg in '' -qlanglvl=extc89 -qlang
  	-Ae "-Aa -D_HPUX_SOURCE" "-Xc -D__EXTENSIONS__"
  do
    CC="$ac_save_CC $ac_arg"
@@ -4838,7 +4915,7 @@ Last-Update: <YYYY-MM-DD>
  rm -f core conftest.err conftest.$ac_objext
    test "x$ac_cv_prog_cc_c89" != "xno" && break
  done
-@@ -4661,17 +4253,19 @@ fi
+@@ -4661,17 +4255,19 @@ fi
  # AC_CACHE_VAL
  case "x$ac_cv_prog_cc_c89" in
    x)
@@ -4861,7 +4938,7 @@ Last-Update: <YYYY-MM-DD>
  
  ac_ext=c
  ac_cpp='$CPP $CPPFLAGS'
-@@ -4680,22 +4274,18 @@ ac_link='$CC -o conftest$ac_exeext $CFLA
+@@ -4680,22 +4276,18 @@ ac_link='$CC -o conftest$ac_exeext $CFLA
  ac_compiler_gnu=$ac_cv_c_compiler_gnu
  
  if test "x$CC" != xcc; then
@@ -4888,7 +4965,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  int
-@@ -4711,63 +4301,63 @@ _ACEOF
+@@ -4711,63 +4303,63 @@ _ACEOF
  # existing .o file with -o, though they will create one.
  ac_try='$CC -c conftest.$ac_ext -o conftest2.$ac_objext >&5'
  rm -f conftest2.*
@@ -4977,7 +5054,7 @@ Last-Update: <YYYY-MM-DD>
        then
  	# cc works too.
  	:
-@@ -4784,15 +4374,13 @@ rm -f core conftest*
+@@ -4784,15 +4376,13 @@ rm -f core conftest*
  
  fi
  if eval test \$ac_cv_prog_cc_${ac_cc}_c_o = yes; then
@@ -4996,7 +5073,7 @@ Last-Update: <YYYY-MM-DD>
  
  fi
  
-@@ -4814,16 +4402,12 @@ if test "$am_t" != yes; then
+@@ -4814,16 +4404,12 @@ if test "$am_t" != yes; then
  fi
  
  
@@ -5016,7 +5093,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  #include <stdlib.h>
  #include <stdarg.h>
-@@ -4838,48 +4422,23 @@ main ()
+@@ -4838,48 +4424,23 @@ main ()
    return 0;
  }
  _ACEOF
@@ -5070,7 +5147,7 @@ Last-Update: <YYYY-MM-DD>
  else
    ac_cv_header_stdc=no
  fi
-@@ -4889,18 +4448,14 @@ fi
+@@ -4889,18 +4450,14 @@ fi
  
  if test $ac_cv_header_stdc = yes; then
    # ISC 2.0.2 stdlib.h does not declare free, contrary to ANSI.
@@ -5092,7 +5169,7 @@ Last-Update: <YYYY-MM-DD>
  else
    ac_cv_header_stdc=no
  fi
-@@ -4910,14 +4465,10 @@ fi
+@@ -4910,14 +4467,10 @@ fi
  
  if test $ac_cv_header_stdc = yes; then
    # /bin/cc in Irix-4.0.5 gets non-ANSI ctype macros unless using -ansi.
@@ -5109,7 +5186,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  #include <ctype.h>
  #include <stdlib.h>
-@@ -4944,64 +4495,31 @@ main ()
+@@ -4944,64 +4497,31 @@ main ()
    return 0;
  }
  _ACEOF
@@ -5184,7 +5261,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  int
-@@ -5061,41 +4579,18 @@ main ()
+@@ -5061,41 +4581,18 @@ main ()
    return 0;
  }
  _ACEOF
@@ -5230,7 +5307,7 @@ Last-Update: <YYYY-MM-DD>
  
  fi
  
-@@ -5116,10 +4611,10 @@ am__api_version='1.11'
+@@ -5116,10 +4613,10 @@ am__api_version='1.11'
  # OS/2's system install, which has a completely different semantic
  # ./install, which can be erroneously created by make from ./install.sh.
  # Reject install programs that cannot install multiple files.
@@ -5243,7 +5320,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-@@ -5127,11 +4622,11 @@ for as_dir in $PATH
+@@ -5127,11 +4624,11 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -5259,7 +5336,7 @@ Last-Update: <YYYY-MM-DD>
    /usr/ucb/* ) ;;
    *)
      # OSF1 and SCO ODT 3.0 have their own names for install.
-@@ -5168,7 +4663,7 @@ case $as_dir/ in
+@@ -5168,7 +4665,7 @@ case $as_dir/ in
      ;;
  esac
  
@@ -5268,7 +5345,7 @@ Last-Update: <YYYY-MM-DD>
  IFS=$as_save_IFS
  
  rm -rf conftest.one conftest.two conftest.dir
-@@ -5184,7 +4679,7 @@ fi
+@@ -5184,7 +4681,7 @@ fi
      INSTALL=$ac_install_sh
    fi
  fi
@@ -5277,7 +5354,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$INSTALL" >&6; }
  
  # Use test -z because SunOS4 sh mishandles braces in ${var-val}.
-@@ -5195,7 +4690,7 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCR
+@@ -5195,7 +4692,7 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCR
  
  test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
  
@@ -5286,7 +5363,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo_n "checking whether build environment is sane... " >&6; }
  # Just in case
  sleep 1
-@@ -5206,15 +4701,11 @@ am_lf='
+@@ -5206,15 +4703,11 @@ am_lf='
  '
  case `pwd` in
    *[\\\"\#\$\&\'\`$am_lf]*)
@@ -5304,7 +5381,7 @@ Last-Update: <YYYY-MM-DD>
  esac
  
  # Do `set' in a subshell so we don't clobber the current shell's
-@@ -5236,11 +4727,8 @@ if (
+@@ -5236,11 +4729,8 @@ if (
        # if, for instance, CONFIG_SHELL is bash and it inherits a
        # broken ls alias from the environment.  This has actually
        # happened.  Such a system could not be considered "sane".
@@ -5318,7 +5395,7 @@ Last-Update: <YYYY-MM-DD>
     fi
  
     test "$2" = conftest.file
-@@ -5249,13 +4737,10 @@ then
+@@ -5249,13 +4739,10 @@ then
     # Ok.
     :
  else
@@ -5335,7 +5412,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "yes" >&6; }
  test "$program_prefix" != NONE &&
    program_transform_name="s&^&$program_prefix&;$program_transform_name"
-@@ -5280,7 +4765,7 @@ if eval "$MISSING --run true"; then
+@@ -5280,7 +4767,7 @@ if eval "$MISSING --run true"; then
    am_missing_run="$MISSING --run "
  else
    am_missing_run=
@@ -5344,7 +5421,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: \`missing' script is too old or missing" >&2;}
  fi
  
-@@ -5301,9 +4786,9 @@ if test "$cross_compiling" != no; then
+@@ -5301,9 +4788,9 @@ if test "$cross_compiling" != no; then
    if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}strip", so it can be a program name with args.
  set dummy ${ac_tool_prefix}strip; ac_word=$2
@@ -5356,7 +5433,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$STRIP"; then
-@@ -5314,24 +4799,24 @@ for as_dir in $PATH
+@@ -5314,24 +4801,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -5386,7 +5463,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -5341,9 +4826,9 @@ if test -z "$ac_cv_prog_STRIP"; then
+@@ -5341,9 +4828,9 @@ if test -z "$ac_cv_prog_STRIP"; then
    ac_ct_STRIP=$STRIP
    # Extract the first word of "strip", so it can be a program name with args.
  set dummy strip; ac_word=$2
@@ -5398,7 +5475,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_STRIP"; then
-@@ -5354,24 +4839,24 @@ for as_dir in $PATH
+@@ -5354,24 +4841,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -5428,7 +5505,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -5380,7 +4865,7 @@ fi
+@@ -5380,7 +4867,7 @@ fi
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -5437,7 +5514,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -5393,10 +4878,10 @@ fi
+@@ -5393,10 +4880,10 @@ fi
  fi
  INSTALL_STRIP_PROGRAM="\$(install_sh) -c -s"
  
@@ -5450,7 +5527,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-@@ -5404,7 +4889,7 @@ for as_dir in $PATH$PATH_SEPARATOR/opt/s
+@@ -5404,7 +4891,7 @@ for as_dir in $PATH$PATH_SEPARATOR/opt/s
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -5459,7 +5536,7 @@ Last-Update: <YYYY-MM-DD>
  	 for ac_exec_ext in '' $ac_executable_extensions; do
  	   { test -f "$as_dir/$ac_prog$ac_exec_ext" && $as_test_x "$as_dir/$ac_prog$ac_exec_ext"; } || continue
  	   case `"$as_dir/$ac_prog$ac_exec_ext" --version 2>&1` in #(
-@@ -5416,11 +4901,12 @@ do
+@@ -5416,11 +4903,12 @@ do
  	   esac
  	 done
         done
@@ -5473,7 +5550,7 @@ Last-Update: <YYYY-MM-DD>
    if test "${ac_cv_path_mkdir+set}" = set; then
      MKDIR_P="$ac_cv_path_mkdir -p"
    else
-@@ -5428,11 +4914,10 @@ fi
+@@ -5428,11 +4916,10 @@ fi
      # value for MKDIR_P within a source directory, because that will
      # break other packages using the cache if that directory is
      # removed, or if the value is a relative name.
@@ -5486,7 +5563,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$MKDIR_P" >&6; }
  
  mkdir_p="$MKDIR_P"
-@@ -5441,11 +4926,11 @@ case $mkdir_p in
+@@ -5441,11 +4928,11 @@ case $mkdir_p in
    */*) mkdir_p="\$(top_builddir)/$mkdir_p" ;;
  esac
  
@@ -5500,7 +5577,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    cat >conftest.make <<\_ACEOF
-@@ -5463,11 +4948,11 @@ esac
+@@ -5463,11 +4950,11 @@ esac
  rm -f conftest.make
  fi
  if eval test \$ac_cv_prog_make_${ac_make}_set = yes; then
@@ -5514,7 +5591,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
    SET_MAKE="MAKE=${MAKE-make}"
  fi
-@@ -5493,7 +4978,7 @@ am__doit:
+@@ -5493,7 +4980,7 @@ am__doit:
  .PHONY: am__doit
  END
  # If we don't find an include directive, just comment out the code.
@@ -5523,7 +5600,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo_n "checking for style of include used by $am_make... " >&6; }
  am__include="#"
  am__quote=
-@@ -5521,12 +5006,12 @@ if test "$am__include" = "#"; then
+@@ -5521,12 +5008,12 @@ if test "$am__include" = "#"; then
  fi
  
  
@@ -5538,7 +5615,7 @@ Last-Update: <YYYY-MM-DD>
    enableval=$enable_dependency_tracking;
  fi
  
-@@ -5549,9 +5034,7 @@ if test "`cd $srcdir && pwd`" != "`pwd`"
+@@ -5549,9 +5036,7 @@ if test "`cd $srcdir && pwd`" != "`pwd`"
    am__isrc=' -I$(srcdir)'
    # test to see if srcdir already configured
    if test -f $srcdir/config.status; then
@@ -5549,7 +5626,7 @@ Last-Update: <YYYY-MM-DD>
    fi
  fi
  
-@@ -5608,9 +5091,9 @@ am__tar='${AMTAR} chof - "$$tardir"'; am
+@@ -5608,9 +5093,9 @@ am__tar='${AMTAR} chof - "$$tardir"'; am
  
  depcc="$CC"   am_compiler_list=
  
@@ -5561,7 +5638,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -z "$AMDEP_TRUE" && test -f "$am_depcomp"; then
-@@ -5718,7 +5201,7 @@ else
+@@ -5718,7 +5203,7 @@ else
  fi
  
  fi
@@ -5570,7 +5647,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$am_cv_CC_dependencies_compiler_type" >&6; }
  CCDEPMODE=depmode=$am_cv_CC_dependencies_compiler_type
  
-@@ -5735,7 +5218,7 @@ fi
+@@ -5735,7 +5220,7 @@ fi
  
  
  # Check whether --enable-silent-rules was given.
@@ -5579,7 +5656,7 @@ Last-Update: <YYYY-MM-DD>
    enableval=$enable_silent_rules;
  fi
  
-@@ -5747,16 +5230,16 @@ esac
+@@ -5747,16 +5232,16 @@ esac
  AM_BACKSLASH='\'
  
  
@@ -5599,7 +5676,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$USE_MAINTAINER_MODE" >&6; }
     if test $USE_MAINTAINER_MODE = yes; then
    MAINTAINER_MODE_TRUE=
-@@ -5776,9 +5259,9 @@ if test "x$ac_cv_env_PKG_CONFIG_set" != 
+@@ -5776,9 +5261,9 @@ if test "x$ac_cv_env_PKG_CONFIG_set" != 
  	if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
  set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
@@ -5611,7 +5688,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    case $PKG_CONFIG in
-@@ -5791,14 +5274,14 @@ for as_dir in $PATH
+@@ -5791,14 +5276,14 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -5629,7 +5706,7 @@ Last-Update: <YYYY-MM-DD>
  IFS=$as_save_IFS
  
    ;;
-@@ -5806,10 +5289,10 @@ esac
+@@ -5806,10 +5291,10 @@ esac
  fi
  PKG_CONFIG=$ac_cv_path_PKG_CONFIG
  if test -n "$PKG_CONFIG"; then
@@ -5642,7 +5719,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -5819,9 +5302,9 @@ if test -z "$ac_cv_path_PKG_CONFIG"; the
+@@ -5819,9 +5304,9 @@ if test -z "$ac_cv_path_PKG_CONFIG"; the
    ac_pt_PKG_CONFIG=$PKG_CONFIG
    # Extract the first word of "pkg-config", so it can be a program name with args.
  set dummy pkg-config; ac_word=$2
@@ -5654,7 +5731,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    case $ac_pt_PKG_CONFIG in
-@@ -5834,14 +5317,14 @@ for as_dir in $PATH
+@@ -5834,14 +5319,14 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -5672,7 +5749,7 @@ Last-Update: <YYYY-MM-DD>
  IFS=$as_save_IFS
  
    ;;
-@@ -5849,10 +5332,10 @@ esac
+@@ -5849,10 +5334,10 @@ esac
  fi
  ac_pt_PKG_CONFIG=$ac_cv_path_ac_pt_PKG_CONFIG
  if test -n "$ac_pt_PKG_CONFIG"; then
@@ -5685,7 +5762,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -5861,7 +5344,7 @@ fi
+@@ -5861,7 +5346,7 @@ fi
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -5694,7 +5771,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -5874,13 +5357,13 @@ fi
+@@ -5874,13 +5359,13 @@ fi
  fi
  if test -n "$PKG_CONFIG"; then
  	_pkg_min_version=0.9.0
@@ -5711,7 +5788,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  		PKG_CONFIG=""
  	fi
-@@ -5888,14 +5371,14 @@ $as_echo "no" >&6; }
+@@ -5888,14 +5373,14 @@ $as_echo "no" >&6; }
  fi
  case `pwd` in
    *\ * | *\	*)
@@ -5729,7 +5806,7 @@ Last-Update: <YYYY-MM-DD>
  
  
  
-@@ -5913,35 +5396,27 @@ ltmain="$ac_aux_dir/ltmain.sh"
+@@ -5913,35 +5398,27 @@ ltmain="$ac_aux_dir/ltmain.sh"
  
  # Make sure we can run config.sub.
  $SHELL "$ac_aux_dir/config.sub" sun4 >/dev/null 2>&1 ||
@@ -5772,7 +5849,7 @@ Last-Update: <YYYY-MM-DD>
  esac
  build=$ac_cv_build
  ac_save_IFS=$IFS; IFS='-'
-@@ -5957,28 +5432,24 @@ IFS=$ac_save_IFS
+@@ -5957,28 +5434,24 @@ IFS=$ac_save_IFS
  case $build_os in *\ *) build_os=`echo "$build_os" | sed 's/ /-/g'`;; esac
  
  
@@ -5806,7 +5883,7 @@ Last-Update: <YYYY-MM-DD>
  esac
  host=$ac_cv_host
  ac_save_IFS=$IFS; IFS='-'
-@@ -5994,9 +5465,9 @@ IFS=$ac_save_IFS
+@@ -5994,9 +5467,9 @@ IFS=$ac_save_IFS
  case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
  
  
@@ -5818,7 +5895,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
              ac_script=s/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/
-@@ -6004,7 +5475,7 @@ else
+@@ -6004,7 +5477,7 @@ else
         ac_script="$ac_script$as_nl$ac_script"
       done
       echo "$ac_script" 2>/dev/null | sed 99q >conftest.sed
@@ -5827,7 +5904,7 @@ Last-Update: <YYYY-MM-DD>
       if test -z "$SED"; then
    ac_path_SED_found=false
    # Loop through the user's path and test for each of PROGNAME-LIST
-@@ -6013,7 +5484,7 @@ for as_dir in $PATH
+@@ -6013,7 +5486,7 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -5836,7 +5913,7 @@ Last-Update: <YYYY-MM-DD>
      for ac_exec_ext in '' $ac_executable_extensions; do
        ac_path_SED="$as_dir/$ac_prog$ac_exec_ext"
        { test -f "$ac_path_SED" && $as_test_x "$ac_path_SED"; } || continue
-@@ -6033,7 +5504,7 @@ case `"$ac_path_SED" --version 2>&1` in
+@@ -6033,7 +5506,7 @@ case `"$ac_path_SED" --version 2>&1` in
      $as_echo '' >> "conftest.nl"
      "$ac_path_SED" -f conftest.sed < "conftest.nl" >"conftest.out" 2>/dev/null || break
      diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
@@ -5845,7 +5922,7 @@ Last-Update: <YYYY-MM-DD>
      if test $ac_count -gt ${ac_path_SED_max-0}; then
        # Best one so far, save it but keep looking for a better one
        ac_cv_path_SED="$ac_path_SED"
-@@ -6048,19 +5519,17 @@ esac
+@@ -6048,19 +5521,17 @@ esac
        $ac_path_SED_found && break 3
      done
    done
@@ -5868,7 +5945,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$ac_cv_path_SED" >&6; }
   SED="$ac_cv_path_SED"
    rm -f conftest.sed
-@@ -6078,9 +5547,9 @@ Xsed="$SED -e 1s/^X//"
+@@ -6078,9 +5549,9 @@ Xsed="$SED -e 1s/^X//"
  
  
  
@@ -5880,7 +5957,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if echo 'ab*c' | $GREP -F 'ab*c' >/dev/null 2>&1
-@@ -6094,7 +5563,7 @@ for as_dir in $PATH$PATH_SEPARATOR/usr/x
+@@ -6094,7 +5565,7 @@ for as_dir in $PATH$PATH_SEPARATOR/usr/x
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -5889,7 +5966,7 @@ Last-Update: <YYYY-MM-DD>
      for ac_exec_ext in '' $ac_executable_extensions; do
        ac_path_FGREP="$as_dir/$ac_prog$ac_exec_ext"
        { test -f "$ac_path_FGREP" && $as_test_x "$ac_path_FGREP"; } || continue
-@@ -6114,7 +5583,7 @@ case `"$ac_path_FGREP" --version 2>&1` i
+@@ -6114,7 +5585,7 @@ case `"$ac_path_FGREP" --version 2>&1` i
      $as_echo 'FGREP' >> "conftest.nl"
      "$ac_path_FGREP" FGREP < "conftest.nl" >"conftest.out" 2>/dev/null || break
      diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
@@ -5898,7 +5975,7 @@ Last-Update: <YYYY-MM-DD>
      if test $ac_count -gt ${ac_path_FGREP_max-0}; then
        # Best one so far, save it but keep looking for a better one
        ac_cv_path_FGREP="$ac_path_FGREP"
-@@ -6129,12 +5598,10 @@ esac
+@@ -6129,12 +5600,10 @@ esac
        $ac_path_FGREP_found && break 3
      done
    done
@@ -5913,7 +5990,7 @@ Last-Update: <YYYY-MM-DD>
    fi
  else
    ac_cv_path_FGREP=$FGREP
-@@ -6142,7 +5609,7 @@ fi
+@@ -6142,7 +5611,7 @@ fi
  
     fi
  fi
@@ -5922,7 +5999,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$ac_cv_path_FGREP" >&6; }
   FGREP="$ac_cv_path_FGREP"
  
-@@ -6168,7 +5635,7 @@ test -z "$GREP" && GREP=grep
+@@ -6168,7 +5637,7 @@ test -z "$GREP" && GREP=grep
  
  
  # Check whether --with-gnu-ld was given.
@@ -5931,7 +6008,7 @@ Last-Update: <YYYY-MM-DD>
    withval=$with_gnu_ld; test "$withval" = no || with_gnu_ld=yes
  else
    with_gnu_ld=no
-@@ -6177,7 +5644,7 @@ fi
+@@ -6177,7 +5646,7 @@ fi
  ac_prog=ld
  if test "$GCC" = yes; then
    # Check if gcc -print-prog-name=ld gives a path.
@@ -5940,7 +6017,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo_n "checking for ld used by $CC... " >&6; }
    case $host in
    *-*-mingw*)
-@@ -6207,13 +5674,13 @@ $as_echo_n "checking for ld used by $CC.
+@@ -6207,13 +5676,13 @@ $as_echo_n "checking for ld used by $CC.
      ;;
    esac
  elif test "$with_gnu_ld" = yes; then
@@ -5957,7 +6034,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -z "$LD"; then
-@@ -6244,18 +5711,16 @@ fi
+@@ -6244,18 +5713,16 @@ fi
  
  LD="$lt_cv_path_LD"
  if test -n "$LD"; then
@@ -5981,7 +6058,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    # I'd rather use --version here, but apparently some GNU lds only accept -v.
-@@ -6268,7 +5733,7 @@ case `$LD -v 2>&1 </dev/null` in
+@@ -6268,7 +5735,7 @@ case `$LD -v 2>&1 </dev/null` in
    ;;
  esac
  fi
@@ -5990,7 +6067,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$lt_cv_prog_gnu_ld" >&6; }
  with_gnu_ld=$lt_cv_prog_gnu_ld
  
-@@ -6280,9 +5745,9 @@ with_gnu_ld=$lt_cv_prog_gnu_ld
+@@ -6280,9 +5747,9 @@ with_gnu_ld=$lt_cv_prog_gnu_ld
  
  
  
@@ -6002,7 +6079,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$NM"; then
-@@ -6329,7 +5794,7 @@ else
+@@ -6329,7 +5796,7 @@ else
    : ${lt_cv_path_NM=no}
  fi
  fi
@@ -6011,7 +6088,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$lt_cv_path_NM" >&6; }
  if test "$lt_cv_path_NM" != "no"; then
    NM="$lt_cv_path_NM"
-@@ -6340,9 +5805,9 @@ else
+@@ -6340,9 +5807,9 @@ else
    do
      # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
  set dummy $ac_tool_prefix$ac_prog; ac_word=$2
@@ -6023,7 +6100,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$DUMPBIN"; then
-@@ -6353,24 +5818,24 @@ for as_dir in $PATH
+@@ -6353,24 +5820,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6053,7 +6130,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -6384,9 +5849,9 @@ if test -z "$DUMPBIN"; then
+@@ -6384,9 +5851,9 @@ if test -z "$DUMPBIN"; then
  do
    # Extract the first word of "$ac_prog", so it can be a program name with args.
  set dummy $ac_prog; ac_word=$2
@@ -6065,7 +6142,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_DUMPBIN"; then
-@@ -6397,24 +5862,24 @@ for as_dir in $PATH
+@@ -6397,24 +5864,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6095,7 +6172,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -6427,7 +5892,7 @@ done
+@@ -6427,7 +5894,7 @@ done
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -6104,7 +6181,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -6447,44 +5912,44 @@ test -z "$NM" && NM=nm
+@@ -6447,44 +5914,44 @@ test -z "$NM" && NM=nm
  
  
  
@@ -6118,15 +6195,15 @@ Last-Update: <YYYY-MM-DD>
    lt_cv_nm_interface="BSD nm"
    echo "int some_variable = 0;" > conftest.$ac_ext
 -  (eval echo "\"\$as_me:6457: $ac_compile\"" >&5)
-+  (eval echo "\"\$as_me:5922: $ac_compile\"" >&5)
++  (eval echo "\"\$as_me:5924: $ac_compile\"" >&5)
    (eval "$ac_compile" 2>conftest.err)
    cat conftest.err >&5
 -  (eval echo "\"\$as_me:6460: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
-+  (eval echo "\"\$as_me:5925: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
++  (eval echo "\"\$as_me:5927: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
    (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
    cat conftest.err >&5
 -  (eval echo "\"\$as_me:6463: output\"" >&5)
-+  (eval echo "\"\$as_me:5928: output\"" >&5)
++  (eval echo "\"\$as_me:5930: output\"" >&5)
    cat conftest.out >&5
    if $GREP 'External.*some_variable' conftest.out > /dev/null; then
      lt_cv_nm_interface="MS dumpbin"
@@ -6160,7 +6237,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
      i=0
-@@ -6602,10 +6067,10 @@ else
+@@ -6602,10 +6069,10 @@ else
  fi
  
  if test -n $lt_cv_sys_max_cmd_len ; then
@@ -6173,7 +6250,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "none" >&6; }
  fi
  max_cmd_len=$lt_cv_sys_max_cmd_len
-@@ -6619,7 +6084,7 @@ max_cmd_len=$lt_cv_sys_max_cmd_len
+@@ -6619,7 +6086,7 @@ max_cmd_len=$lt_cv_sys_max_cmd_len
  : ${MV="mv -f"}
  : ${RM="rm -f"}
  
@@ -6182,7 +6259,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo_n "checking whether the shell understands some XSI constructs... " >&6; }
  # Try some XSI features
  xsi_shell=no
-@@ -6629,17 +6094,17 @@ xsi_shell=no
+@@ -6629,17 +6096,17 @@ xsi_shell=no
      && eval 'test $(( 1 + 1 )) -eq 2 \
      && test "${#_lt_dummy}" -eq 5' ) >/dev/null 2>&1 \
    && xsi_shell=yes
@@ -6203,7 +6280,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$lt_shell_append" >&6; }
  
  
-@@ -6674,14 +6139,14 @@ esac
+@@ -6674,14 +6141,14 @@ esac
  
  
  
@@ -6221,7 +6298,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$lt_cv_ld_reload_flag" >&6; }
  reload_flag=$lt_cv_ld_reload_flag
  case $reload_flag in
-@@ -6710,9 +6175,9 @@ esac
+@@ -6710,9 +6177,9 @@ esac
  if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}objdump", so it can be a program name with args.
  set dummy ${ac_tool_prefix}objdump; ac_word=$2
@@ -6233,7 +6310,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$OBJDUMP"; then
-@@ -6723,24 +6188,24 @@ for as_dir in $PATH
+@@ -6723,24 +6190,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6263,7 +6340,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -6750,9 +6215,9 @@ if test -z "$ac_cv_prog_OBJDUMP"; then
+@@ -6750,9 +6217,9 @@ if test -z "$ac_cv_prog_OBJDUMP"; then
    ac_ct_OBJDUMP=$OBJDUMP
    # Extract the first word of "objdump", so it can be a program name with args.
  set dummy objdump; ac_word=$2
@@ -6275,7 +6352,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_OBJDUMP"; then
-@@ -6763,24 +6228,24 @@ for as_dir in $PATH
+@@ -6763,24 +6230,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6305,7 +6382,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -6789,7 +6254,7 @@ fi
+@@ -6789,7 +6256,7 @@ fi
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -6314,7 +6391,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -6809,9 +6274,9 @@ test -z "$OBJDUMP" && OBJDUMP=objdump
+@@ -6809,9 +6276,9 @@ test -z "$OBJDUMP" && OBJDUMP=objdump
  
  
  
@@ -6326,7 +6403,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    lt_cv_file_magic_cmd='$MAGIC_CMD'
-@@ -6926,11 +6391,11 @@ irix5* | irix6* | nonstopux*)
+@@ -6926,11 +6393,11 @@ irix5* | irix6* | nonstopux*)
    ;;
  
  # This must be Linux ELF.
@@ -6340,7 +6417,7 @@ Last-Update: <YYYY-MM-DD>
    if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
      lt_cv_deplibs_check_method='match_pattern /lib[^/]+(\.so\.[0-9]+\.[0-9]+|_pic\.a)$'
    else
-@@ -7005,7 +6470,7 @@ tpf*)
+@@ -7005,7 +6472,7 @@ tpf*)
  esac
  
  fi
@@ -6349,7 +6426,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$lt_cv_deplibs_check_method" >&6; }
  file_magic_cmd=$lt_cv_file_magic_cmd
  deplibs_check_method=$lt_cv_deplibs_check_method
-@@ -7025,9 +6490,9 @@ test -z "$deplibs_check_method" && depli
+@@ -7025,9 +6492,9 @@ test -z "$deplibs_check_method" && depli
  if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}ar", so it can be a program name with args.
  set dummy ${ac_tool_prefix}ar; ac_word=$2
@@ -6361,7 +6438,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$AR"; then
-@@ -7038,24 +6503,24 @@ for as_dir in $PATH
+@@ -7038,24 +6505,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6391,7 +6468,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -7065,9 +6530,9 @@ if test -z "$ac_cv_prog_AR"; then
+@@ -7065,9 +6532,9 @@ if test -z "$ac_cv_prog_AR"; then
    ac_ct_AR=$AR
    # Extract the first word of "ar", so it can be a program name with args.
  set dummy ar; ac_word=$2
@@ -6403,7 +6480,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_AR"; then
-@@ -7078,24 +6543,24 @@ for as_dir in $PATH
+@@ -7078,24 +6545,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6433,7 +6510,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -7104,7 +6569,7 @@ fi
+@@ -7104,7 +6571,7 @@ fi
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -6442,7 +6519,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -7130,9 +6595,9 @@ test -z "$AR_FLAGS" && AR_FLAGS=cru
+@@ -7130,9 +6597,9 @@ test -z "$AR_FLAGS" && AR_FLAGS=cru
  if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}strip", so it can be a program name with args.
  set dummy ${ac_tool_prefix}strip; ac_word=$2
@@ -6454,7 +6531,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$STRIP"; then
-@@ -7143,24 +6608,24 @@ for as_dir in $PATH
+@@ -7143,24 +6610,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6484,7 +6561,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -7170,9 +6635,9 @@ if test -z "$ac_cv_prog_STRIP"; then
+@@ -7170,9 +6637,9 @@ if test -z "$ac_cv_prog_STRIP"; then
    ac_ct_STRIP=$STRIP
    # Extract the first word of "strip", so it can be a program name with args.
  set dummy strip; ac_word=$2
@@ -6496,7 +6573,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_STRIP"; then
-@@ -7183,24 +6648,24 @@ for as_dir in $PATH
+@@ -7183,24 +6650,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6526,7 +6603,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -7209,7 +6674,7 @@ fi
+@@ -7209,7 +6676,7 @@ fi
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -6535,7 +6612,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -7229,9 +6694,9 @@ test -z "$STRIP" && STRIP=:
+@@ -7229,9 +6696,9 @@ test -z "$STRIP" && STRIP=:
  if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}ranlib", so it can be a program name with args.
  set dummy ${ac_tool_prefix}ranlib; ac_word=$2
@@ -6547,7 +6624,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$RANLIB"; then
-@@ -7242,24 +6707,24 @@ for as_dir in $PATH
+@@ -7242,24 +6709,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6577,7 +6654,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -7269,9 +6734,9 @@ if test -z "$ac_cv_prog_RANLIB"; then
+@@ -7269,9 +6736,9 @@ if test -z "$ac_cv_prog_RANLIB"; then
    ac_ct_RANLIB=$RANLIB
    # Extract the first word of "ranlib", so it can be a program name with args.
  set dummy ranlib; ac_word=$2
@@ -6589,7 +6666,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_RANLIB"; then
-@@ -7282,24 +6747,24 @@ for as_dir in $PATH
+@@ -7282,24 +6749,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6619,7 +6696,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -7308,7 +6773,7 @@ fi
+@@ -7308,7 +6775,7 @@ fi
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -6628,7 +6705,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -7386,9 +6851,9 @@ compiler=$CC
+@@ -7386,9 +6853,9 @@ compiler=$CC
  
  
  # Check for command to grab the raw symbol name followed by C symbol from nm.
@@ -6640,7 +6717,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
  
-@@ -7504,18 +6969,18 @@ void nm_test_func(void){}
+@@ -7504,18 +6971,18 @@ void nm_test_func(void){}
  int main(){nm_test_var='a';nm_test_func();return(0);}
  _LT_EOF
  
@@ -6665,7 +6742,7 @@ Last-Update: <YYYY-MM-DD>
        # Try sorting and uniquifying the output.
        if sort "$nlist" | uniq > "$nlist"T; then
  	mv -f "$nlist"T "$nlist"
-@@ -7568,11 +7033,11 @@ _LT_EOF
+@@ -7568,11 +7035,11 @@ _LT_EOF
  	  lt_save_CFLAGS="$CFLAGS"
  	  LIBS="conftstm.$ac_objext"
  	  CFLAGS="$CFLAGS$lt_prog_compiler_no_builtin_flag"
@@ -6680,7 +6757,7 @@ Last-Update: <YYYY-MM-DD>
  	    pipe_works=yes
  	  fi
  	  LIBS="$lt_save_LIBS"
-@@ -7606,10 +7071,10 @@ if test -z "$lt_cv_sys_global_symbol_pip
+@@ -7606,10 +7073,10 @@ if test -z "$lt_cv_sys_global_symbol_pip
    lt_cv_sys_global_symbol_to_cdecl=
  fi
  if test -z "$lt_cv_sys_global_symbol_pipe$lt_cv_sys_global_symbol_to_cdecl"; then
@@ -6693,7 +6770,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "ok" >&6; }
  fi
  
-@@ -7635,7 +7100,7 @@ fi
+@@ -7635,7 +7102,7 @@ fi
  
  
  # Check whether --enable-libtool-lock was given.
@@ -6702,7 +6779,7 @@ Last-Update: <YYYY-MM-DD>
    enableval=$enable_libtool_lock;
  fi
  
-@@ -7647,11 +7112,11 @@ case $host in
+@@ -7647,11 +7114,11 @@ case $host in
  ia64-*-hpux*)
    # Find out which ABI we are using.
    echo 'int i;' > conftest.$ac_ext
@@ -6717,13 +6794,13 @@ Last-Update: <YYYY-MM-DD>
      case `/usr/bin/file conftest.$ac_objext` in
        *ELF-32*)
  	HPUX_IA64_MODE="32"
-@@ -7665,12 +7130,12 @@ ia64-*-hpux*)
+@@ -7665,12 +7132,12 @@ ia64-*-hpux*)
    ;;
  *-*-irix6*)
    # Find out which ABI we are using.
 -  echo '#line 7668 "configure"' > conftest.$ac_ext
 -  if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
-+  echo '#line 7133 "configure"' > conftest.$ac_ext
++  echo '#line 7135 "configure"' > conftest.$ac_ext
 +  if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
    (eval $ac_compile) 2>&5
    ac_status=$?
@@ -6734,7 +6811,7 @@ Last-Update: <YYYY-MM-DD>
      if test "$lt_cv_prog_gnu_ld" = yes; then
        case `/usr/bin/file conftest.$ac_objext` in
  	*32-bit*)
-@@ -7704,11 +7169,11 @@ x86_64-*kfreebsd*-gnu|x86_64-*linux*|ppc
+@@ -7704,11 +7171,11 @@ x86_64-*kfreebsd*-gnu|x86_64-*linux*|ppc
  s390*-*linux*|s390*-*tpf*|sparc*-*linux*)
    # Find out which ABI we are using.
    echo 'int i;' > conftest.$ac_ext
@@ -6749,7 +6826,7 @@ Last-Update: <YYYY-MM-DD>
      case `/usr/bin/file conftest.o` in
        *32-bit*)
  	case $host in
-@@ -7757,9 +7222,9 @@ s390*-*linux*|s390*-*tpf*|sparc*-*linux*
+@@ -7757,9 +7224,9 @@ s390*-*linux*|s390*-*tpf*|sparc*-*linux*
    # On SCO OpenServer 5, we need -belf to get full-featured binaries.
    SAVE_CFLAGS="$CFLAGS"
    CFLAGS="$CFLAGS -belf"
@@ -6761,7 +6838,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    ac_ext=c
-@@ -7768,11 +7233,7 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS con
+@@ -7768,11 +7235,7 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS con
  ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
  ac_compiler_gnu=$ac_cv_c_compiler_gnu
  
@@ -6774,7 +6851,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  int
-@@ -7783,38 +7244,13 @@ main ()
+@@ -7783,38 +7246,13 @@ main ()
    return 0;
  }
  _ACEOF
@@ -6817,7 +6894,7 @@ Last-Update: <YYYY-MM-DD>
       ac_ext=c
  ac_cpp='$CPP $CPPFLAGS'
  ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-@@ -7822,7 +7258,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLA
+@@ -7822,7 +7260,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLA
  ac_compiler_gnu=$ac_cv_c_compiler_gnu
  
  fi
@@ -6826,7 +6903,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$lt_cv_cc_needs_belf" >&6; }
    if test x"$lt_cv_cc_needs_belf" != x"yes"; then
      # this is probably gcc 2.8.0, egcs 1.0 or newer; no need for -belf
-@@ -7832,11 +7268,11 @@ $as_echo "$lt_cv_cc_needs_belf" >&6; }
+@@ -7832,11 +7270,11 @@ $as_echo "$lt_cv_cc_needs_belf" >&6; }
  sparc*-*solaris*)
    # Find out which ABI we are using.
    echo 'int i;' > conftest.$ac_ext
@@ -6841,7 +6918,7 @@ Last-Update: <YYYY-MM-DD>
      case `/usr/bin/file conftest.o` in
      *64-bit*)
        case $lt_cv_prog_gnu_ld in
-@@ -7862,9 +7298,9 @@ need_locks="$enable_libtool_lock"
+@@ -7862,9 +7300,9 @@ need_locks="$enable_libtool_lock"
      if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}dsymutil", so it can be a program name with args.
  set dummy ${ac_tool_prefix}dsymutil; ac_word=$2
@@ -6853,7 +6930,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$DSYMUTIL"; then
-@@ -7875,24 +7311,24 @@ for as_dir in $PATH
+@@ -7875,24 +7313,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6883,7 +6960,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -7902,9 +7338,9 @@ if test -z "$ac_cv_prog_DSYMUTIL"; then
+@@ -7902,9 +7340,9 @@ if test -z "$ac_cv_prog_DSYMUTIL"; then
    ac_ct_DSYMUTIL=$DSYMUTIL
    # Extract the first word of "dsymutil", so it can be a program name with args.
  set dummy dsymutil; ac_word=$2
@@ -6895,7 +6972,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_DSYMUTIL"; then
-@@ -7915,24 +7351,24 @@ for as_dir in $PATH
+@@ -7915,24 +7353,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6925,7 +7002,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -7941,7 +7377,7 @@ fi
+@@ -7941,7 +7379,7 @@ fi
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -6934,7 +7011,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -7954,9 +7390,9 @@ fi
+@@ -7954,9 +7392,9 @@ fi
      if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}nmedit", so it can be a program name with args.
  set dummy ${ac_tool_prefix}nmedit; ac_word=$2
@@ -6946,7 +7023,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$NMEDIT"; then
-@@ -7967,24 +7403,24 @@ for as_dir in $PATH
+@@ -7967,24 +7405,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6976,7 +7053,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -7994,9 +7430,9 @@ if test -z "$ac_cv_prog_NMEDIT"; then
+@@ -7994,9 +7432,9 @@ if test -z "$ac_cv_prog_NMEDIT"; then
    ac_ct_NMEDIT=$NMEDIT
    # Extract the first word of "nmedit", so it can be a program name with args.
  set dummy nmedit; ac_word=$2
@@ -6988,7 +7065,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_NMEDIT"; then
-@@ -8007,24 +7443,24 @@ for as_dir in $PATH
+@@ -8007,24 +7445,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7018,7 +7095,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -8033,7 +7469,7 @@ fi
+@@ -8033,7 +7471,7 @@ fi
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -7027,7 +7104,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -8046,9 +7482,9 @@ fi
+@@ -8046,9 +7484,9 @@ fi
      if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}lipo", so it can be a program name with args.
  set dummy ${ac_tool_prefix}lipo; ac_word=$2
@@ -7039,7 +7116,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$LIPO"; then
-@@ -8059,24 +7495,24 @@ for as_dir in $PATH
+@@ -8059,24 +7497,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7069,7 +7146,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -8086,9 +7522,9 @@ if test -z "$ac_cv_prog_LIPO"; then
+@@ -8086,9 +7524,9 @@ if test -z "$ac_cv_prog_LIPO"; then
    ac_ct_LIPO=$LIPO
    # Extract the first word of "lipo", so it can be a program name with args.
  set dummy lipo; ac_word=$2
@@ -7081,7 +7158,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_LIPO"; then
-@@ -8099,24 +7535,24 @@ for as_dir in $PATH
+@@ -8099,24 +7537,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7111,7 +7188,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -8125,7 +7561,7 @@ fi
+@@ -8125,7 +7563,7 @@ fi
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -7120,7 +7197,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -8138,9 +7574,9 @@ fi
+@@ -8138,9 +7576,9 @@ fi
      if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}otool", so it can be a program name with args.
  set dummy ${ac_tool_prefix}otool; ac_word=$2
@@ -7132,7 +7209,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$OTOOL"; then
-@@ -8151,24 +7587,24 @@ for as_dir in $PATH
+@@ -8151,24 +7589,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7162,7 +7239,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -8178,9 +7614,9 @@ if test -z "$ac_cv_prog_OTOOL"; then
+@@ -8178,9 +7616,9 @@ if test -z "$ac_cv_prog_OTOOL"; then
    ac_ct_OTOOL=$OTOOL
    # Extract the first word of "otool", so it can be a program name with args.
  set dummy otool; ac_word=$2
@@ -7174,7 +7251,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_OTOOL"; then
-@@ -8191,24 +7627,24 @@ for as_dir in $PATH
+@@ -8191,24 +7629,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7204,7 +7281,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -8217,7 +7653,7 @@ fi
+@@ -8217,7 +7655,7 @@ fi
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -7213,7 +7290,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -8230,9 +7666,9 @@ fi
+@@ -8230,9 +7668,9 @@ fi
      if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}otool64", so it can be a program name with args.
  set dummy ${ac_tool_prefix}otool64; ac_word=$2
@@ -7225,7 +7302,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$OTOOL64"; then
-@@ -8243,24 +7679,24 @@ for as_dir in $PATH
+@@ -8243,24 +7681,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7255,7 +7332,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -8270,9 +7706,9 @@ if test -z "$ac_cv_prog_OTOOL64"; then
+@@ -8270,9 +7708,9 @@ if test -z "$ac_cv_prog_OTOOL64"; then
    ac_ct_OTOOL64=$OTOOL64
    # Extract the first word of "otool64", so it can be a program name with args.
  set dummy otool64; ac_word=$2
@@ -7267,7 +7344,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_OTOOL64"; then
-@@ -8283,24 +7719,24 @@ for as_dir in $PATH
+@@ -8283,24 +7721,24 @@ for as_dir in $PATH
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7297,7 +7374,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -8309,7 +7745,7 @@ fi
+@@ -8309,7 +7747,7 @@ fi
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -7306,7 +7383,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -8345,9 +7781,9 @@ fi
+@@ -8345,9 +7783,9 @@ fi
  
  
  
@@ -7318,7 +7395,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    lt_cv_apple_cc_single_mod=no
-@@ -8372,22 +7808,18 @@ else
+@@ -8372,22 +7810,18 @@ else
  	rm -f conftest.*
        fi
  fi
@@ -7345,7 +7422,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  int
-@@ -8398,42 +7830,17 @@ main ()
+@@ -8398,42 +7832,17 @@ main ()
    return 0;
  }
  _ACEOF
@@ -7393,7 +7470,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$lt_cv_ld_exported_symbols_list" >&6; }
      case $host_os in
      rhapsody* | darwin1.[012])
-@@ -8470,62 +7877,13 @@ $as_echo "$lt_cv_ld_exported_symbols_lis
+@@ -8470,62 +7879,13 @@ $as_echo "$lt_cv_ld_exported_symbols_lis
      ;;
    esac
  
@@ -7461,7 +7538,7 @@ Last-Update: <YYYY-MM-DD>
  _ACEOF
  
  fi
-@@ -8545,7 +7903,7 @@ done
+@@ -8545,7 +7905,7 @@ done
  
  
              # Check whether --enable-shared was given.
@@ -7470,7 +7547,7 @@ Last-Update: <YYYY-MM-DD>
    enableval=$enable_shared; p=${PACKAGE-default}
      case $enableval in
      yes) enable_shared=yes ;;
-@@ -8576,7 +7934,7 @@ fi
+@@ -8576,7 +7936,7 @@ fi
  
  
    # Check whether --enable-static was given.
@@ -7479,7 +7556,7 @@ Last-Update: <YYYY-MM-DD>
    enableval=$enable_static; p=${PACKAGE-default}
      case $enableval in
      yes) enable_static=yes ;;
-@@ -8608,7 +7966,7 @@ fi
+@@ -8608,7 +7968,7 @@ fi
  
  
  # Check whether --with-pic was given.
@@ -7488,7 +7565,7 @@ Last-Update: <YYYY-MM-DD>
    withval=$with_pic; pic_mode="$withval"
  else
    pic_mode=default
-@@ -8624,7 +7982,7 @@ test -z "$pic_mode" && pic_mode=default
+@@ -8624,7 +7984,7 @@ test -z "$pic_mode" && pic_mode=default
  
  
    # Check whether --enable-fast-install was given.
@@ -7497,7 +7574,7 @@ Last-Update: <YYYY-MM-DD>
    enableval=$enable_fast_install; p=${PACKAGE-default}
      case $enableval in
      yes) enable_fast_install=yes ;;
-@@ -8705,9 +8063,9 @@ if test -n "${ZSH_VERSION+set}" ; then
+@@ -8705,9 +8065,9 @@ if test -n "${ZSH_VERSION+set}" ; then
     setopt NO_GLOB_SUBST
  fi
  
@@ -7509,7 +7586,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    rm -f .libs 2>/dev/null
-@@ -8720,7 +8078,7 @@ else
+@@ -8720,7 +8080,7 @@ else
  fi
  rmdir .libs 2>/dev/null
  fi
@@ -7518,7 +7595,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$lt_cv_objdir" >&6; }
  objdir=$lt_cv_objdir
  
-@@ -8813,9 +8171,9 @@ test -z "$MAGIC_CMD" && MAGIC_CMD=file
+@@ -8813,9 +8173,9 @@ test -z "$MAGIC_CMD" && MAGIC_CMD=file
  case $deplibs_check_method in
  file_magic*)
    if test "$file_magic_cmd" = '$MAGIC_CMD'; then
@@ -7530,7 +7607,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    case $MAGIC_CMD in
-@@ -8866,10 +8224,10 @@ fi
+@@ -8866,10 +8226,10 @@ fi
  
  MAGIC_CMD="$lt_cv_path_MAGIC_CMD"
  if test -n "$MAGIC_CMD"; then
@@ -7543,7 +7620,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -8879,9 +8237,9 @@ fi
+@@ -8879,9 +8239,9 @@ fi
  
  if test -z "$lt_cv_path_MAGIC_CMD"; then
    if test -n "$ac_tool_prefix"; then
@@ -7555,7 +7632,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    case $MAGIC_CMD in
-@@ -8932,10 +8290,10 @@ fi
+@@ -8932,10 +8292,10 @@ fi
  
  MAGIC_CMD="$lt_cv_path_MAGIC_CMD"
  if test -n "$MAGIC_CMD"; then
@@ -7568,7 +7645,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -9012,9 +8370,9 @@ lt_prog_compiler_no_builtin_flag=
+@@ -9012,9 +8372,9 @@ lt_prog_compiler_no_builtin_flag=
  if test "$GCC" = yes; then
    lt_prog_compiler_no_builtin_flag=' -fno-builtin'
  
@@ -7580,21 +7657,21 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    lt_cv_prog_compiler_rtti_exceptions=no
-@@ -9030,11 +8388,11 @@ else
+@@ -9030,11 +8390,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:9033: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:8391: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8393: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:9037: \$? = $ac_status" >&5
-+   echo "$as_me:8395: \$? = $ac_status" >&5
++   echo "$as_me:8397: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -9047,7 +8405,7 @@ else
+@@ -9047,7 +8407,7 @@ else
     $RM conftest*
  
  fi
@@ -7603,7 +7680,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$lt_cv_prog_compiler_rtti_exceptions" >&6; }
  
  if test x"$lt_cv_prog_compiler_rtti_exceptions" = xyes; then
-@@ -9067,7 +8425,7 @@ fi
+@@ -9067,7 +8427,7 @@ fi
  lt_prog_compiler_pic=
  lt_prog_compiler_static=
  
@@ -7612,7 +7689,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo_n "checking for $compiler option to produce PIC... " >&6; }
  
    if test "$GCC" = yes; then
-@@ -9199,7 +8557,7 @@ $as_echo_n "checking for $compiler optio
+@@ -9199,7 +8559,7 @@ $as_echo_n "checking for $compiler optio
        lt_prog_compiler_static='-non_shared'
        ;;
  
@@ -7621,7 +7698,7 @@ Last-Update: <YYYY-MM-DD>
        case $cc_basename in
        # old Intel for x86_64 which still supported -KPIC.
        ecc*)
-@@ -9339,7 +8697,7 @@ case $host_os in
+@@ -9339,7 +8699,7 @@ case $host_os in
      lt_prog_compiler_pic="$lt_prog_compiler_pic -DPIC"
      ;;
  esac
@@ -7630,7 +7707,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$lt_prog_compiler_pic" >&6; }
  
  
-@@ -9351,9 +8709,9 @@ $as_echo "$lt_prog_compiler_pic" >&6; }
+@@ -9351,9 +8711,9 @@ $as_echo "$lt_prog_compiler_pic" >&6; }
  # Check to make sure the PIC flag actually works.
  #
  if test -n "$lt_prog_compiler_pic"; then
@@ -7642,21 +7719,21 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    lt_cv_prog_compiler_pic_works=no
-@@ -9369,11 +8727,11 @@ else
+@@ -9369,11 +8729,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:9372: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:8730: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8732: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:9376: \$? = $ac_status" >&5
-+   echo "$as_me:8734: \$? = $ac_status" >&5
++   echo "$as_me:8736: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -9386,7 +8744,7 @@ else
+@@ -9386,7 +8746,7 @@ else
     $RM conftest*
  
  fi
@@ -7665,7 +7742,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$lt_cv_prog_compiler_pic_works" >&6; }
  
  if test x"$lt_cv_prog_compiler_pic_works" = xyes; then
-@@ -9410,9 +8768,9 @@ fi
+@@ -9410,9 +8770,9 @@ fi
  # Check to make sure the static flag actually works.
  #
  wl=$lt_prog_compiler_wl eval lt_tmp_static_flag=\"$lt_prog_compiler_static\"
@@ -7677,7 +7754,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    lt_cv_prog_compiler_static_works=no
-@@ -9438,7 +8796,7 @@ else
+@@ -9438,7 +8798,7 @@ else
     LDFLAGS="$save_LDFLAGS"
  
  fi
@@ -7686,7 +7763,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$lt_cv_prog_compiler_static_works" >&6; }
  
  if test x"$lt_cv_prog_compiler_static_works" = xyes; then
-@@ -9453,9 +8811,9 @@ fi
+@@ -9453,9 +8813,9 @@ fi
  
  
  
@@ -7698,21 +7775,21 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    lt_cv_prog_compiler_c_o=no
-@@ -9474,11 +8832,11 @@ else
+@@ -9474,11 +8834,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:9477: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:8835: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8837: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:9481: \$? = $ac_status" >&5
-+   echo "$as_me:8839: \$? = $ac_status" >&5
++   echo "$as_me:8841: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -9500,7 +8858,7 @@ else
+@@ -9500,7 +8860,7 @@ else
     $RM conftest*
  
  fi
@@ -7721,7 +7798,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$lt_cv_prog_compiler_c_o" >&6; }
  
  
-@@ -9508,9 +8866,9 @@ $as_echo "$lt_cv_prog_compiler_c_o" >&6;
+@@ -9508,9 +8868,9 @@ $as_echo "$lt_cv_prog_compiler_c_o" >&6;
  
  
  
@@ -7733,21 +7810,21 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    lt_cv_prog_compiler_c_o=no
-@@ -9529,11 +8887,11 @@ else
+@@ -9529,11 +8889,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:9532: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:8890: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8892: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:9536: \$? = $ac_status" >&5
-+   echo "$as_me:8894: \$? = $ac_status" >&5
++   echo "$as_me:8896: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -9555,7 +8913,7 @@ else
+@@ -9555,7 +8915,7 @@ else
     $RM conftest*
  
  fi
@@ -7756,7 +7833,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$lt_cv_prog_compiler_c_o" >&6; }
  
  
-@@ -9564,7 +8922,7 @@ $as_echo "$lt_cv_prog_compiler_c_o" >&6;
+@@ -9564,7 +8924,7 @@ $as_echo "$lt_cv_prog_compiler_c_o" >&6;
  hard_links="nottested"
  if test "$lt_cv_prog_compiler_c_o" = no && test "$need_locks" != no; then
    # do not overwrite the value of need_locks provided by the user
@@ -7765,7 +7842,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo_n "checking if we can lock with hard links... " >&6; }
    hard_links=yes
    $RM conftest*
-@@ -9572,10 +8930,10 @@ $as_echo_n "checking if we can lock with
+@@ -9572,10 +8932,10 @@ $as_echo_n "checking if we can lock with
    touch conftest.a
    ln conftest.a conftest.b 2>&5 || hard_links=no
    ln conftest.a conftest.b 2>/dev/null && hard_links=no
@@ -7778,7 +7855,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: \`$CC' does not support \`-c -o', so \`make -j' may be unsafe" >&2;}
      need_locks=warn
    fi
-@@ -9588,7 +8946,7 @@ fi
+@@ -9588,7 +8948,7 @@ fi
  
  
  
@@ -7787,7 +7864,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo_n "checking whether the $compiler linker ($LD) supports shared libraries... " >&6; }
  
    runpath_var=
-@@ -9648,6 +9006,9 @@ $as_echo_n "checking whether the $compil
+@@ -9648,6 +9008,9 @@ $as_echo_n "checking whether the $compil
    openbsd*)
      with_gnu_ld=no
      ;;
@@ -7797,7 +7874,7 @@ Last-Update: <YYYY-MM-DD>
    esac
  
    ld_shlibs=yes
-@@ -9669,6 +9030,7 @@ $as_echo_n "checking whether the $compil
+@@ -9669,6 +9032,7 @@ $as_echo_n "checking whether the $compil
      fi
      supports_anon_versioning=no
      case `$LD -v 2>&1` in
@@ -7805,7 +7882,7 @@ Last-Update: <YYYY-MM-DD>
        *\ [01].* | *\ 2.[0-9].* | *\ 2.10.*) ;; # catch versions < 2.11
        *\ 2.11.93.0.2\ *) supports_anon_versioning=yes ;; # RH7.3 ...
        *\ 2.11.92.0.12\ *) supports_anon_versioning=yes ;; # Mandrake 8.2 ...
-@@ -9760,7 +9122,7 @@ _LT_EOF
+@@ -9760,7 +9124,7 @@ _LT_EOF
        archive_expsym_cmds='sed "s,^,_," $export_symbols >$output_objdir/$soname.expsym~$CC -shared $pic_flag $libobjs $deplibs $compiler_flags ${wl}-h,$soname ${wl}--retain-symbols-file,$output_objdir/$soname.expsym ${wl}--image-base,`expr ${RANDOM-$$} % 4096 / 2 \* 262144 + 1342177280` -o $lib'
        ;;
  
@@ -7814,7 +7891,7 @@ Last-Update: <YYYY-MM-DD>
        tmp_diet=no
        if test "$host_os" = linux-dietlibc; then
  	case $cc_basename in
-@@ -9830,7 +9192,7 @@ _LT_EOF
+@@ -9830,7 +9194,7 @@ _LT_EOF
        fi
        ;;
  
@@ -7823,7 +7900,7 @@ Last-Update: <YYYY-MM-DD>
        if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -10005,6 +9367,7 @@ _LT_EOF
+@@ -10005,6 +9369,7 @@ _LT_EOF
  	if test "$aix_use_runtimelinking" = yes; then
  	  shared_flag="$shared_flag "'${wl}-G'
  	fi
@@ -7831,7 +7908,7 @@ Last-Update: <YYYY-MM-DD>
        else
  	# not using gcc
  	if test "$host_cpu" = ia64; then
-@@ -10030,11 +9393,7 @@ _LT_EOF
+@@ -10030,11 +9395,7 @@ _LT_EOF
  	allow_undefined_flag='-berok'
          # Determine the default libpath from the value encoded in an
          # empty executable.
@@ -7844,7 +7921,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  int
-@@ -10045,27 +9404,7 @@ main ()
+@@ -10045,27 +9406,7 @@ main ()
    return 0;
  }
  _ACEOF
@@ -7873,7 +7950,7 @@ Last-Update: <YYYY-MM-DD>
  
  lt_aix_libpath_sed='
      /Import File Strings/,/^$/ {
-@@ -10079,16 +9418,9 @@ aix_libpath=`dump -H conftest$ac_exeext 
+@@ -10079,16 +9420,9 @@ aix_libpath=`dump -H conftest$ac_exeext 
  if test -z "$aix_libpath"; then
    aix_libpath=`dump -HX64 conftest$ac_exeext 2>/dev/null | $SED -n -e "$lt_aix_libpath_sed"`
  fi
@@ -7892,7 +7969,7 @@ Last-Update: <YYYY-MM-DD>
  if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
  
          hardcode_libdir_flag_spec='${wl}-blibpath:$libdir:'"$aix_libpath"
-@@ -10101,11 +9433,7 @@ if test -z "$aix_libpath"; then aix_libp
+@@ -10101,11 +9435,7 @@ if test -z "$aix_libpath"; then aix_libp
  	else
  	 # Determine the default libpath from the value encoded in an
  	 # empty executable.
@@ -7905,7 +7982,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  int
-@@ -10116,27 +9444,7 @@ main ()
+@@ -10116,27 +9446,7 @@ main ()
    return 0;
  }
  _ACEOF
@@ -7934,7 +8011,7 @@ Last-Update: <YYYY-MM-DD>
  
  lt_aix_libpath_sed='
      /Import File Strings/,/^$/ {
-@@ -10150,16 +9458,9 @@ aix_libpath=`dump -H conftest$ac_exeext 
+@@ -10150,16 +9460,9 @@ aix_libpath=`dump -H conftest$ac_exeext 
  if test -z "$aix_libpath"; then
    aix_libpath=`dump -HX64 conftest$ac_exeext 2>/dev/null | $SED -n -e "$lt_aix_libpath_sed"`
  fi
@@ -7953,7 +8030,7 @@ Last-Update: <YYYY-MM-DD>
  if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
  
  	 hardcode_libdir_flag_spec='${wl}-blibpath:$libdir:'"$aix_libpath"
-@@ -10371,42 +9672,16 @@ if test -z "$aix_libpath"; then aix_libp
+@@ -10371,42 +9674,16 @@ if test -z "$aix_libpath"; then aix_libp
  	# implicitly export all symbols.
          save_LDFLAGS="$LDFLAGS"
          LDFLAGS="$LDFLAGS -shared ${wl}-exported_symbol ${wl}foo ${wl}-update_registry ${wl}/dev/null"
@@ -8001,7 +8078,7 @@ Last-Update: <YYYY-MM-DD>
          LDFLAGS="$save_LDFLAGS"
        else
  	archive_cmds='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && $ECHO "X-set_version $verstring" | $Xsed` -update_registry ${output_objdir}/so_locations -o $lib'
-@@ -10419,7 +9694,7 @@ rm -f core conftest.err conftest.$ac_obj
+@@ -10419,7 +9696,7 @@ rm -f core conftest.err conftest.$ac_obj
        link_all_deplibs=yes
        ;;
  
@@ -8010,7 +8087,7 @@ Last-Update: <YYYY-MM-DD>
        if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -10662,7 +9937,7 @@ rm -f core conftest.err conftest.$ac_obj
+@@ -10662,7 +9939,7 @@ rm -f core conftest.err conftest.$ac_obj
      fi
    fi
  
@@ -8019,7 +8096,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$ld_shlibs" >&6; }
  test "$ld_shlibs" = no && can_build_shared=no
  
-@@ -10699,16 +9974,16 @@ x|xyes)
+@@ -10699,16 +9976,16 @@ x|xyes)
        # Test whether the compiler implicitly links with -lc since on some
        # systems, -lgcc has to come before -lc. If gcc already passes -lc
        # to ld, don't add -lc before -lgcc.
@@ -8040,7 +8117,7 @@ Last-Update: <YYYY-MM-DD>
          soname=conftest
          lib=conftest
          libobjs=conftest.$ac_objext
-@@ -10722,11 +9997,11 @@ $as_echo_n "checking whether -lc should 
+@@ -10722,11 +9999,11 @@ $as_echo_n "checking whether -lc should 
          libname=conftest
          lt_save_allow_undefined_flag=$allow_undefined_flag
          allow_undefined_flag=
@@ -8055,7 +8132,7 @@ Last-Update: <YYYY-MM-DD>
          then
  	  archive_cmds_need_lc=no
          else
-@@ -10737,7 +10012,7 @@ $as_echo_n "checking whether -lc should 
+@@ -10737,7 +10014,7 @@ $as_echo_n "checking whether -lc should 
          cat conftest.err 1>&5
        fi
        $RM conftest*
@@ -8064,7 +8141,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$archive_cmds_need_lc" >&6; }
        ;;
      esac
-@@ -10901,7 +10176,7 @@ esac
+@@ -10901,7 +10178,7 @@ esac
  
  
  
@@ -8073,7 +8150,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo_n "checking dynamic linker characteristics... " >&6; }
  
  if test "$GCC" = yes; then
-@@ -11309,7 +10584,7 @@ linux*oldld* | linux*aout* | linux*coff*
+@@ -11309,7 +10586,7 @@ linux*oldld* | linux*aout* | linux*coff*
    ;;
  
  # This must be Linux ELF.
@@ -8082,7 +8159,7 @@ Last-Update: <YYYY-MM-DD>
    version_type=linux
    need_lib_prefix=no
    need_version=no
-@@ -11323,11 +10598,7 @@ linux* | k*bsd*-gnu)
+@@ -11323,11 +10600,7 @@ linux* | k*bsd*-gnu)
    save_libdir=$libdir
    eval "libdir=/foo; wl=\"$lt_prog_compiler_wl\"; \
         LDFLAGS=\"\$LDFLAGS $hardcode_libdir_flag_spec\""
@@ -8095,7 +8172,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  int
-@@ -11338,41 +10609,13 @@ main ()
+@@ -11338,41 +10611,13 @@ main ()
    return 0;
  }
  _ACEOF
@@ -8141,7 +8218,7 @@ Last-Update: <YYYY-MM-DD>
    LDFLAGS=$save_LDFLAGS
    libdir=$save_libdir
  
-@@ -11381,13 +10624,10 @@ rm -f core conftest.err conftest.$ac_obj
+@@ -11381,13 +10626,10 @@ rm -f core conftest.err conftest.$ac_obj
    # before this can be enabled.
    hardcode_into_libs=yes
  
@@ -8156,7 +8233,7 @@ Last-Update: <YYYY-MM-DD>
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -11399,6 +10639,18 @@ rm -f core conftest.err conftest.$ac_obj
+@@ -11399,6 +10641,18 @@ rm -f core conftest.err conftest.$ac_obj
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -8175,7 +8252,7 @@ Last-Update: <YYYY-MM-DD>
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -11587,7 +10839,7 @@ uts4*)
+@@ -11587,7 +10841,7 @@ uts4*)
    dynamic_linker=no
    ;;
  esac
@@ -8184,7 +8261,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$dynamic_linker" >&6; }
  test "$dynamic_linker" = no && can_build_shared=no
  
-@@ -11689,7 +10941,7 @@ fi
+@@ -11689,7 +10943,7 @@ fi
  
  
  
@@ -8193,7 +8270,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo_n "checking how to hardcode library paths into programs... " >&6; }
  hardcode_action=
  if test -n "$hardcode_libdir_flag_spec" ||
-@@ -11714,7 +10966,7 @@ else
+@@ -11714,7 +10968,7 @@ else
    # directories.
    hardcode_action=unsupported
  fi
@@ -8202,17 +8279,10 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$hardcode_action" >&6; }
  
  if test "$hardcode_action" = relink ||
-@@ -11752,118 +11004,22 @@ else
-     lt_cv_dlopen_libs=
-     ;;
+@@ -11759,111 +11013,15 @@ else
  
--  cygwin*)
--    lt_cv_dlopen="dlopen"
--    lt_cv_dlopen_libs=
--    ;;
--
--  darwin*)
--  # if libdl is installed we need to link against it
+   darwin*)
+   # if libdl is installed we need to link against it
 -    { $as_echo "$as_me:$LINENO: checking for dlopen in -ldl" >&5
 -$as_echo_n "checking for dlopen in -ldl... " >&6; }
 -if test "${ac_cv_lib_dl_dlopen+set}" = set; then
@@ -8288,17 +8358,12 @@ Last-Update: <YYYY-MM-DD>
 -
 -fi
 -
-+  cygwin*)
-+    lt_cv_dlopen="dlopen"
-+    lt_cv_dlopen_libs=
-     ;;
- 
+-    ;;
+-
 -  *)
 -    { $as_echo "$as_me:$LINENO: checking for shl_load" >&5
 -$as_echo_n "checking for shl_load... " >&6; }
 -if test "${ac_cv_func_shl_load+set}" = set; then
-+  darwin*)
-+  # if libdl is installed we need to link against it
 +    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dlopen in -ldl" >&5
 +$as_echo_n "checking for dlopen in -ldl... " >&6; }
 +if test "${ac_cv_lib_dl_dlopen+set}" = set; then :
@@ -8332,7 +8397,7 @@ Last-Update: <YYYY-MM-DD>
  
  /* Override any GCC internal prototype to avoid an error.
     Use char because int might match the return type of a GCC
-@@ -11871,72 +11027,51 @@ cat >>conftest.$ac_ext <<_ACEOF
+@@ -11871,72 +11029,51 @@ cat >>conftest.$ac_ext <<_ACEOF
  #ifdef __cplusplus
  extern "C"
  #endif
@@ -8432,7 +8497,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -11954,145 +11089,32 @@ return shl_load ();
+@@ -11954,145 +11091,32 @@ return shl_load ();
    return 0;
  }
  _ACEOF
@@ -8589,7 +8654,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -12110,57 +11132,28 @@ return dlopen ();
+@@ -12110,57 +11134,28 @@ return dlopen ();
    return 0;
  }
  _ACEOF
@@ -8656,7 +8721,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -12178,57 +11171,28 @@ return dlopen ();
+@@ -12178,57 +11173,28 @@ return dlopen ();
    return 0;
  }
  _ACEOF
@@ -8723,7 +8788,7 @@ Last-Update: <YYYY-MM-DD>
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -12246,43 +11210,18 @@ return dld_link ();
+@@ -12246,43 +11212,18 @@ return dld_link ();
    return 0;
  }
  _ACEOF
@@ -8773,7 +8838,7 @@ Last-Update: <YYYY-MM-DD>
    lt_cv_dlopen="dld_link" lt_cv_dlopen_libs="-ldld"
  fi
  
-@@ -12321,9 +11260,9 @@ fi
+@@ -12321,9 +11262,9 @@ fi
      save_LIBS="$LIBS"
      LIBS="$lt_cv_dlopen_libs $LIBS"
  
@@ -8785,16 +8850,16 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    	  if test "$cross_compiling" = yes; then :
-@@ -12332,7 +11271,7 @@ else
+@@ -12332,7 +11273,7 @@ else
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<_LT_EOF
 -#line 12335 "configure"
-+#line 11274 "configure"
++#line 11276 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -12391,11 +11330,11 @@ int main ()
+@@ -12391,11 +11332,11 @@ int main ()
    return status;
  }
  _LT_EOF
@@ -8809,7 +8874,7 @@ Last-Update: <YYYY-MM-DD>
      (./conftest; exit; ) >&5 2>/dev/null
      lt_status=$?
      case x$lt_status in
-@@ -12412,14 +11351,14 @@ rm -fr conftest*
+@@ -12412,14 +11353,14 @@ rm -fr conftest*
  
  
  fi
@@ -8827,16 +8892,16 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
    	  if test "$cross_compiling" = yes; then :
-@@ -12428,7 +11367,7 @@ else
+@@ -12428,7 +11369,7 @@ else
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<_LT_EOF
 -#line 12431 "configure"
-+#line 11370 "configure"
++#line 11372 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -12487,11 +11426,11 @@ int main ()
+@@ -12487,11 +11428,11 @@ int main ()
    return status;
  }
  _LT_EOF
@@ -8851,7 +8916,7 @@ Last-Update: <YYYY-MM-DD>
      (./conftest; exit; ) >&5 2>/dev/null
      lt_status=$?
      case x$lt_status in
-@@ -12508,7 +11447,7 @@ rm -fr conftest*
+@@ -12508,7 +11449,7 @@ rm -fr conftest*
  
  
  fi
@@ -8860,7 +8925,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$lt_cv_dlopen_self_static" >&6; }
      fi
  
-@@ -12547,12 +11486,12 @@ fi
+@@ -12547,12 +11488,12 @@ fi
  
  striplib=
  old_striplib=
@@ -8875,7 +8940,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "yes" >&6; }
  else
  # FIXME - insert some real tests, host_os isn't really good enough
-@@ -12561,15 +11500,15 @@ else
+@@ -12561,15 +11502,15 @@ else
      if test -n "$STRIP" ; then
        striplib="$STRIP -x"
        old_striplib="$STRIP -S"
@@ -8894,7 +8959,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
      ;;
    esac
-@@ -12587,12 +11526,12 @@ fi
+@@ -12587,12 +11528,12 @@ fi
  
  
    # Report which library types will actually be built
@@ -8910,7 +8975,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo_n "checking whether to build shared libraries... " >&6; }
    test "$can_build_shared" = "no" && enable_shared=no
  
-@@ -12613,14 +11552,14 @@ $as_echo_n "checking whether to build sh
+@@ -12613,14 +11554,14 @@ $as_echo_n "checking whether to build sh
      fi
      ;;
    esac
@@ -8928,7 +8993,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$enable_static" >&6; }
  
  
-@@ -12674,40 +11613,44 @@ LT_AGE=0
+@@ -12674,40 +11615,44 @@ LT_AGE=0
  
  
  pkg_failed=no
@@ -8992,7 +9057,7 @@ Last-Update: <YYYY-MM-DD>
  fi
  
  
-@@ -12720,25 +11663,14 @@ else
+@@ -12720,25 +11665,14 @@ else
          _pkg_short_errors_supported=no
  fi
          if test $_pkg_short_errors_supported = yes; then
@@ -9021,7 +9086,7 @@ Last-Update: <YYYY-MM-DD>
  
  $IMAGE_PKG_ERRORS
  
-@@ -12748,22 +11680,11 @@ installed software in a non-standard pre
+@@ -12748,22 +11682,11 @@ installed software in a non-standard pre
  Alternatively, you may set the environment variables IMAGE_CFLAGS
  and IMAGE_LIBS to avoid the need to call pkg-config.
  See the pkg-config man page for more details.
@@ -9047,7 +9112,7 @@ Last-Update: <YYYY-MM-DD>
  is in your PATH or set the PKG_CONFIG environment variable to the full
  path to pkg-config.
  
-@@ -12772,12 +11693,11 @@ and IMAGE_LIBS to avoid the need to call
+@@ -12772,12 +11695,11 @@ and IMAGE_LIBS to avoid the need to call
  See the pkg-config man page for more details.
  
  To get pkg-config, see <http://pkg-config.freedesktop.org/>.
@@ -9062,7 +9127,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "yes" >&6; }
  	:
  fi
-@@ -12791,7 +11711,7 @@ PLYMOUTH_LIBS="-lm -lrt -ldl"
+@@ -12791,7 +11713,7 @@ PLYMOUTH_LIBS="-lm -lrt -ldl"
  
  
  # Check whether --enable-pango was given.
@@ -9071,7 +9136,7 @@ Last-Update: <YYYY-MM-DD>
    enableval=$enable_pango; enable_pango=$enableval
  else
    enable_pango=yes
-@@ -12809,40 +11729,44 @@ fi
+@@ -12809,40 +11731,44 @@ fi
  if test x$enable_pango = xyes; then
  
  pkg_failed=no
@@ -9135,7 +9200,7 @@ Last-Update: <YYYY-MM-DD>
  fi
  
  
-@@ -12855,25 +11779,14 @@ else
+@@ -12855,25 +11781,14 @@ else
          _pkg_short_errors_supported=no
  fi
          if test $_pkg_short_errors_supported = yes; then
@@ -9164,7 +9229,7 @@ Last-Update: <YYYY-MM-DD>
  
  $PANGO_PKG_ERRORS
  
-@@ -12883,22 +11796,11 @@ installed software in a non-standard pre
+@@ -12883,22 +11798,11 @@ installed software in a non-standard pre
  Alternatively, you may set the environment variables PANGO_CFLAGS
  and PANGO_LIBS to avoid the need to call pkg-config.
  See the pkg-config man page for more details.
@@ -9190,7 +9255,7 @@ Last-Update: <YYYY-MM-DD>
  is in your PATH or set the PKG_CONFIG environment variable to the full
  path to pkg-config.
  
-@@ -12907,12 +11809,11 @@ and PANGO_LIBS to avoid the need to call
+@@ -12907,12 +11811,11 @@ and PANGO_LIBS to avoid the need to call
  See the pkg-config man page for more details.
  
  To get pkg-config, see <http://pkg-config.freedesktop.org/>.
@@ -9205,7 +9270,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "yes" >&6; }
  	:
  fi
-@@ -12922,40 +11823,44 @@ fi
+@@ -12922,40 +11825,44 @@ fi
  
  
  pkg_failed=no
@@ -9269,7 +9334,7 @@ Last-Update: <YYYY-MM-DD>
  fi
  
  
-@@ -12968,50 +11873,28 @@ else
+@@ -12968,25 +11875,14 @@ else
          _pkg_short_errors_supported=no
  fi
          if test $_pkg_short_errors_supported = yes; then
@@ -9298,38 +9363,33 @@ Last-Update: <YYYY-MM-DD>
  
  $GTK_PKG_ERRORS
  
- Consider adjusting the PKG_CONFIG_PATH environment variable if you
--installed software in a non-standard prefix.
+@@ -12996,22 +11892,11 @@ installed software in a non-standard pre
+ Alternatively, you may set the environment variables GTK_CFLAGS
+ and GTK_LIBS to avoid the need to call pkg-config.
+ See the pkg-config man page for more details.
+-" >&2;}
+-   { (exit 1); exit 1; }; }
++" "$LINENO" 5
+ elif test $pkg_failed = untried; then
+-	{ { $as_echo "$as_me:$LINENO: error: in \`$ac_pwd':" >&5
++	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+ $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+-{ { $as_echo "$as_me:$LINENO: error: The pkg-config script could not be found or is too old.  Make sure it
+-is in your PATH or set the PKG_CONFIG environment variable to the full
+-path to pkg-config.
 -
 -Alternatively, you may set the environment variables GTK_CFLAGS
 -and GTK_LIBS to avoid the need to call pkg-config.
 -See the pkg-config man page for more details.
--" >&2;}
--   { (exit 1); exit 1; }; }
--elif test $pkg_failed = untried; then
--	{ { $as_echo "$as_me:$LINENO: error: in \`$ac_pwd':" >&5
--$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
--{ { $as_echo "$as_me:$LINENO: error: The pkg-config script could not be found or is too old.  Make sure it
--is in your PATH or set the PKG_CONFIG environment variable to the full
--path to pkg-config.
-+installed software in a non-standard prefix.
- 
- Alternatively, you may set the environment variables GTK_CFLAGS
- and GTK_LIBS to avoid the need to call pkg-config.
- See the pkg-config man page for more details.
 -
 -To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 -See \`config.log' for more details." >&5
 -$as_echo "$as_me: error: The pkg-config script could not be found or is too old.  Make sure it
-+" "$LINENO" 5
-+elif test $pkg_failed = untried; then
-+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 +as_fn_error "The pkg-config script could not be found or is too old.  Make sure it
  is in your PATH or set the PKG_CONFIG environment variable to the full
  path to pkg-config.
  
-@@ -13020,12 +11903,11 @@ and GTK_LIBS to avoid the need to call p
+@@ -13020,12 +11905,11 @@ and GTK_LIBS to avoid the need to call p
  See the pkg-config man page for more details.
  
  To get pkg-config, see <http://pkg-config.freedesktop.org/>.
@@ -9344,7 +9404,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "yes" >&6; }
  	:
  fi
-@@ -13034,40 +11916,44 @@ fi
+@@ -13034,40 +11918,44 @@ fi
  
  
  pkg_failed=no
@@ -9408,7 +9468,7 @@ Last-Update: <YYYY-MM-DD>
  fi
  
  
-@@ -13080,25 +11966,14 @@ else
+@@ -13080,25 +11968,14 @@ else
          _pkg_short_errors_supported=no
  fi
          if test $_pkg_short_errors_supported = yes; then
@@ -9437,7 +9497,7 @@ Last-Update: <YYYY-MM-DD>
  
  $DRM_PKG_ERRORS
  
-@@ -13108,22 +11983,11 @@ installed software in a non-standard pre
+@@ -13108,22 +11985,11 @@ installed software in a non-standard pre
  Alternatively, you may set the environment variables DRM_CFLAGS
  and DRM_LIBS to avoid the need to call pkg-config.
  See the pkg-config man page for more details.
@@ -9463,7 +9523,7 @@ Last-Update: <YYYY-MM-DD>
  is in your PATH or set the PKG_CONFIG environment variable to the full
  path to pkg-config.
  
-@@ -13132,12 +11996,11 @@ and DRM_LIBS to avoid the need to call p
+@@ -13132,12 +11998,11 @@ and DRM_LIBS to avoid the need to call p
  See the pkg-config man page for more details.
  
  To get pkg-config, see <http://pkg-config.freedesktop.org/>.
@@ -9478,7 +9538,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "yes" >&6; }
  	:
  fi
-@@ -13145,7 +12008,7 @@ fi
+@@ -13145,7 +12010,7 @@ fi
  
  
  # Check whether --enable-tracing was given.
@@ -9487,7 +9547,7 @@ Last-Update: <YYYY-MM-DD>
    enableval=$enable_tracing; enable_tracing=$enableval
  else
    enable_tracing=yes
-@@ -13154,14 +12017,12 @@ fi
+@@ -13154,14 +12019,12 @@ fi
  
  if test x$enable_tracing = xyes; then
  
@@ -9504,7 +9564,7 @@ Last-Update: <YYYY-MM-DD>
    enableval=$enable_tests; enable_tests=$enableval
  else
    enable_tests=yes
-@@ -13178,7 +12039,7 @@ fi
+@@ -13178,7 +12041,7 @@ fi
  
  
  # Check whether --enable-gdm-transition was given.
@@ -9513,7 +9573,7 @@ Last-Update: <YYYY-MM-DD>
    enableval=$enable_gdm_transition; enable_gdm_transition=$enableval
  else
    enable_gdm_transition=no
-@@ -13187,15 +12048,13 @@ fi
+@@ -13187,15 +12050,13 @@ fi
  
  if test x$enable_gdm_transition = xyes; then
  
@@ -9531,7 +9591,7 @@ Last-Update: <YYYY-MM-DD>
    withval=$with_system_root_install; with_system_root_install=${withval}
  else
    with_system_root_install=yes
-@@ -13222,7 +12081,7 @@ fi
+@@ -13222,7 +12083,7 @@ fi
  
  
  # Check whether --with-rhgb-compat-link was given.
@@ -9540,7 +9600,7 @@ Last-Update: <YYYY-MM-DD>
    withval=$with_rhgb_compat_link; with_rhgb_compat_link=${withval}
  else
    with_rhgb_compat_link=yes
-@@ -13239,7 +12098,7 @@ fi
+@@ -13239,7 +12100,7 @@ fi
  
  
  # Check whether --with-gdm-autostart-file was given.
@@ -9549,7 +9609,7 @@ Last-Update: <YYYY-MM-DD>
    withval=$with_gdm_autostart_file; with_gdm_autostart_file=$withval
  else
    with_gdm_autostart_file=yes
-@@ -13257,7 +12116,7 @@ fi
+@@ -13257,7 +12118,7 @@ fi
  
  
  # Check whether --with-logo was given.
@@ -9558,7 +9618,7 @@ Last-Update: <YYYY-MM-DD>
    withval=$with_logo; logofile=${withval}
  else
    logofile=$datadir/plymouth/bizcom.png
-@@ -13276,7 +12135,7 @@ fi
+@@ -13276,7 +12137,7 @@ fi
  
  
  # Check whether --with-background-color was given.
@@ -9567,7 +9627,7 @@ Last-Update: <YYYY-MM-DD>
    withval=$with_background_color; background_color=${withval}
  else
    background_color=0x5d5950
-@@ -13286,7 +12145,7 @@ fi
+@@ -13286,7 +12147,7 @@ fi
  
  
  # Check whether --with-background-start-color-stop was given.
@@ -9576,7 +9636,7 @@ Last-Update: <YYYY-MM-DD>
    withval=$with_background_start_color_stop; background_start_color=${withval}
  else
    background_start_color=0x807c71
-@@ -13296,7 +12155,7 @@ fi
+@@ -13296,7 +12157,7 @@ fi
  
  
  # Check whether --with-background-end-color-stop was given.
@@ -9585,7 +9645,7 @@ Last-Update: <YYYY-MM-DD>
    withval=$with_background_end_color_stop; background_end_color=${withval}
  else
    background_end_color=0x3a362f
-@@ -13306,7 +12165,7 @@ fi
+@@ -13306,7 +12167,7 @@ fi
  
  
  # Check whether --with-release-file was given.
@@ -9594,7 +9654,7 @@ Last-Update: <YYYY-MM-DD>
    withval=$with_release_file; RELEASE_FILE=${withval}
  else
    RELEASE_FILE=/etc/system-release
-@@ -13322,7 +12181,7 @@ _ACEOF
+@@ -13322,7 +12183,7 @@ _ACEOF
  
  
  # Check whether --with-boot-tty was given.
@@ -9603,7 +9663,7 @@ Last-Update: <YYYY-MM-DD>
    withval=$with_boot_tty; BOOT_TTY=${withval}
  else
    BOOT_TTY=/dev/tty1
-@@ -13336,7 +12195,7 @@ _ACEOF
+@@ -13336,7 +12197,7 @@ _ACEOF
  
  
  # Check whether --with-shutdown-tty was given.
@@ -9612,7 +9672,33 @@ Last-Update: <YYYY-MM-DD>
    withval=$with_shutdown_tty; SHUTDOWN_TTY=${withval}
  else
    SHUTDOWN_TTY=/dev/tty63
-@@ -13353,7 +12212,7 @@ _ACEOF
+@@ -13348,12 +12209,33 @@ cat >>confdefs.h <<_ACEOF
+ _ACEOF
+ 
+ 
++for ac_header in sys/io.h
++do :
++  ac_fn_c_check_header_mongrel "$LINENO" "sys/io.h" "ac_cv_header_sys_io_h" "$ac_includes_default"
++if test "x$ac_cv_header_sys_io_h" = x""yes; then :
++  cat >>confdefs.h <<_ACEOF
++#define HAVE_SYS_IO_H 1
++_ACEOF
++
++fi
++
++done
++
++ if test "x$ac_cv_header_sys_io_h" = xyes; then
++  BUILD_VGA16FB_TRUE=
++  BUILD_VGA16FB_FALSE='#'
++else
++  BUILD_VGA16FB_TRUE='#'
++  BUILD_VGA16FB_FALSE=
++fi
++
++
+ # Turn on the additional warnings last, so -Werror doesn't affect other tests.
+ 
  
  
  # Check whether --enable-more-warnings was given.
@@ -9621,7 +9707,7 @@ Last-Update: <YYYY-MM-DD>
    enableval=$enable_more_warnings; set_more_warnings="$enableval"
  else
  
-@@ -13365,10 +12224,10 @@ else
+@@ -13365,10 +12247,10 @@ else
  fi
  
  
@@ -9634,7 +9720,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "yes" >&6; }
    MAYBE_WARN="\
     -Wall -Wextra  \
-@@ -13378,11 +12237,11 @@ $as_echo "yes" >&6; }
+@@ -13378,11 +12260,11 @@ $as_echo "yes" >&6; }
     -Wno-missing-field-initializers -Wno-unused-parameter \
     -Wcast-align -Wsign-compare -Wp,-D_FORTIFY_SOURCE=2"
  elif test "$GCC" = "yes"; then
@@ -9648,7 +9734,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "no" >&6; }
  fi
  
-@@ -13390,9 +12249,9 @@ fi
+@@ -13390,9 +12272,9 @@ fi
  if test "x$plymouth_cv_warn_maybe" != "x$MAYBE_WARN"; then
  	unset plymouth_cv_warn_cflags
  fi
@@ -9660,7 +9746,7 @@ Last-Update: <YYYY-MM-DD>
    $as_echo_n "(cached) " >&6
  else
  
-@@ -13412,41 +12271,21 @@ else
+@@ -13412,41 +12294,21 @@ else
  
  	for W in $MAYBE_WARN; do
  
@@ -9707,7 +9793,7 @@ Last-Update: <YYYY-MM-DD>
  rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
    CFLAGS="$plymouth_save_CFLAGS"
  
-@@ -13455,7 +12294,7 @@ rm -f core conftest.err conftest.$ac_obj
+@@ -13455,7 +12317,7 @@ rm -f core conftest.err conftest.$ac_obj
    else
      :
    fi
@@ -9716,7 +9802,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$plymouth_cc_flag" >&6; }
  
  	done
-@@ -13463,10 +12302,10 @@ $as_echo "$plymouth_cc_flag" >&6; }
+@@ -13463,10 +12325,10 @@ $as_echo "$plymouth_cc_flag" >&6; }
  	plymouth_cv_warn_cflags=$WARN_CFLAGS
  	plymouth_cv_warn_maybe=$MAYBE_WARN
  
@@ -9729,7 +9815,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$plymouth_cv_warn_cflags" >&6; }
  
  WARN_CFLAGS="$plymouth_cv_warn_cflags"
-@@ -13677,7 +12516,7 @@ plymouthconfdir=$sysconfdir/plymouth/
+@@ -13677,7 +12539,7 @@ plymouthconfdir=$sysconfdir/plymouth/
    exec_prefix=$exec_prefix_save
  
  
@@ -9738,7 +9824,7 @@ Last-Update: <YYYY-MM-DD>
  
  cat >confcache <<\_ACEOF
  # This file is a shell script that caches the results of configure
-@@ -13706,13 +12545,13 @@ _ACEOF
+@@ -13706,13 +12568,13 @@ _ACEOF
      case $ac_val in #(
      *${as_nl}*)
        case $ac_var in #(
@@ -9754,7 +9840,7 @@ Last-Update: <YYYY-MM-DD>
        esac ;;
      esac
    done
-@@ -13720,8 +12559,8 @@ $as_echo "$as_me: WARNING: cache variabl
+@@ -13720,8 +12582,8 @@ $as_echo "$as_me: WARNING: cache variabl
    (set) 2>&1 |
      case $as_nl`(ac_space=' '; set) 2>&1` in #(
      *${as_nl}ac_space=\ *)
@@ -9765,7 +9851,7 @@ Last-Update: <YYYY-MM-DD>
        sed -n \
  	"s/'/'\\\\''/g;
  	  s/^\\([_$as_cr_alnum]*_cv_[_$as_cr_alnum]*\\)=\\(.*\\)/\\1='\\2'/p"
-@@ -13744,11 +12583,11 @@ $as_echo "$as_me: WARNING: cache variabl
+@@ -13744,11 +12606,11 @@ $as_echo "$as_me: WARNING: cache variabl
  if diff "$cache_file" confcache >/dev/null 2>&1; then :; else
    if test -w "$cache_file"; then
      test "x$cache_file" != "x/dev/null" &&
@@ -9779,7 +9865,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: not updating unwritable cache $cache_file" >&6;}
    fi
  fi
-@@ -13768,8 +12607,8 @@ for ac_i in : $LIBOBJS; do test "x$ac_i"
+@@ -13768,8 +12630,8 @@ for ac_i in : $LIBOBJS; do test "x$ac_i"
    ac_i=`$as_echo "$ac_i" | sed "$ac_script"`
    # 2. Prepend LIBOBJDIR.  When used with automake>=1.10 LIBOBJDIR
    #    will be set to the directory where LIBOBJS objects are built.
@@ -9790,7 +9876,7 @@ Last-Update: <YYYY-MM-DD>
  done
  LIBOBJS=$ac_libobjs
  
-@@ -13777,18 +12616,12 @@ LTLIBOBJS=$ac_ltlibobjs
+@@ -13777,18 +12639,12 @@ LTLIBOBJS=$ac_ltlibobjs
  
  
  if test -z "${AMDEP_TRUE}" && test -z "${AMDEP_FALSE}"; then
@@ -9813,7 +9899,7 @@ Last-Update: <YYYY-MM-DD>
  fi
   if test -n "$EXEEXT"; then
    am__EXEEXT_TRUE=
-@@ -13799,62 +12632,42 @@ else
+@@ -13799,62 +12655,46 @@ else
  fi
  
  if test -z "${MAINTAINER_MODE_TRUE}" && test -z "${MAINTAINER_MODE_FALSE}"; then
@@ -9878,6 +9964,10 @@ Last-Update: <YYYY-MM-DD>
 -   { (exit 1); exit 1; }; }
 +  as_fn_error "conditional \"INSTALL_FALLBACK_LOGO\" was never defined.
 +Usually this means the macro was only invoked conditionally." "$LINENO" 5
++fi
++if test -z "${BUILD_VGA16FB_TRUE}" && test -z "${BUILD_VGA16FB_FALSE}"; then
++  as_fn_error "conditional \"BUILD_VGA16FB\" was never defined.
++Usually this means the macro was only invoked conditionally." "$LINENO" 5
  fi
  
  : ${CONFIG_STATUS=./config.status}
@@ -9893,7 +9983,7 @@ Last-Update: <YYYY-MM-DD>
  #! $SHELL
  # Generated by $as_me.
  # Run this file to recreate the current configuration.
-@@ -13864,17 +12677,18 @@ cat >$CONFIG_STATUS <<_ACEOF || ac_write
+@@ -13864,17 +12704,18 @@ cat >$CONFIG_STATUS <<_ACEOF || ac_write
  debug=false
  ac_cs_recheck=false
  ac_cs_silent=false
@@ -9919,7 +10009,7 @@ Last-Update: <YYYY-MM-DD>
    emulate sh
    NULLCMD=:
    # Pre-4.2 versions of Zsh do word splitting on ${1+"$@"}, which
-@@ -13882,23 +12696,15 @@ if test -n "${ZSH_VERSION+set}" && (emul
+@@ -13882,23 +12723,15 @@ if test -n "${ZSH_VERSION+set}" && (emul
    alias -g '${1+"$@"}'='"$@"'
    setopt NO_GLOB_SUBST
  else
@@ -9948,7 +10038,7 @@ Last-Update: <YYYY-MM-DD>
  as_nl='
  '
  export as_nl
-@@ -13906,7 +12712,13 @@ export as_nl
+@@ -13906,7 +12739,13 @@ export as_nl
  as_echo='\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
  as_echo=$as_echo$as_echo$as_echo$as_echo$as_echo
  as_echo=$as_echo$as_echo$as_echo$as_echo$as_echo$as_echo
@@ -9963,7 +10053,7 @@ Last-Update: <YYYY-MM-DD>
    as_echo='printf %s\n'
    as_echo_n='printf %s'
  else
-@@ -13917,7 +12729,7 @@ else
+@@ -13917,7 +12756,7 @@ else
      as_echo_body='eval expr "X$1" : "X\\(.*\\)"'
      as_echo_n_body='eval
        arg=$1;
@@ -9972,7 +10062,7 @@ Last-Update: <YYYY-MM-DD>
        *"$as_nl"*)
  	expr "X$arg" : "X\\(.*\\)$as_nl";
  	arg=`expr "X$arg" : ".*$as_nl\\(.*\\)"`;;
-@@ -13940,13 +12752,6 @@ if test "${PATH_SEPARATOR+set}" != set; 
+@@ -13940,13 +12779,6 @@ if test "${PATH_SEPARATOR+set}" != set; 
    }
  fi
  
@@ -9986,7 +10076,7 @@ Last-Update: <YYYY-MM-DD>
  
  # IFS
  # We need space, tab and new line, in precisely that order.  Quoting is
-@@ -13956,15 +12761,15 @@ fi
+@@ -13956,15 +12788,15 @@ fi
  IFS=" ""	$as_nl"
  
  # Find who we are.  Look in the path if we contain no directory separator.
@@ -10005,7 +10095,7 @@ Last-Update: <YYYY-MM-DD>
  IFS=$as_save_IFS
  
       ;;
-@@ -13976,12 +12781,16 @@ if test "x$as_myself" = x; then
+@@ -13976,12 +12808,16 @@ if test "x$as_myself" = x; then
  fi
  if test ! -f "$as_myself"; then
    $as_echo "$as_myself: error: cannot find myself; rerun with an absolute file name" >&2
@@ -10026,7 +10116,7 @@ Last-Update: <YYYY-MM-DD>
  done
  PS1='$ '
  PS2='> '
-@@ -13993,7 +12802,89 @@ export LC_ALL
+@@ -13993,7 +12829,89 @@ export LC_ALL
  LANGUAGE=C
  export LANGUAGE
  
@@ -10117,7 +10207,7 @@ Last-Update: <YYYY-MM-DD>
  if expr a : '\(a\)' >/dev/null 2>&1 &&
     test "X`expr 00001 : '.*\(...\)'`" = X001; then
    as_expr=expr
-@@ -14007,8 +12898,12 @@ else
+@@ -14007,8 +12925,12 @@ else
    as_basename=false
  fi
  
@@ -10131,7 +10221,7 @@ Last-Update: <YYYY-MM-DD>
  as_me=`$as_basename -- "$0" ||
  $as_expr X/"$0" : '.*/\([^/][^/]*\)/*$' \| \
  	 X"$0" : 'X\(//\)$' \| \
-@@ -14028,76 +12923,25 @@ $as_echo X/"$0" |
+@@ -14028,76 +12950,25 @@ $as_echo X/"$0" |
  	  }
  	  s/.*/./; q'`
  
@@ -10219,7 +10309,7 @@ Last-Update: <YYYY-MM-DD>
  
  rm -f conf$$ conf$$.exe conf$$.file
  if test -d conf$$.dir; then
-@@ -14126,8 +12970,56 @@ fi
+@@ -14126,8 +12997,56 @@ fi
  rm -f conf$$ conf$$.exe conf$$.dir/conf$$.file conf$$.file
  rmdir conf$$.dir 2>/dev/null
  
@@ -10277,7 +10367,7 @@ Last-Update: <YYYY-MM-DD>
  else
    test -d ./-p && rmdir ./-p
    as_mkdir_p=false
-@@ -14146,10 +13038,10 @@ else
+@@ -14146,10 +13065,10 @@ else
        if test -d "$1"; then
  	test -d "$1/.";
        else
@@ -10290,7 +10380,7 @@ Last-Update: <YYYY-MM-DD>
  	???[sx]*):;;*)false;;esac;fi
      '\'' sh
    '
-@@ -14164,13 +13056,19 @@ as_tr_sh="eval sed 'y%*+%pp%;s%[^_$as_cr
+@@ -14164,13 +13083,19 @@ as_tr_sh="eval sed 'y%*+%pp%;s%[^_$as_cr
  
  
  exec 6>&1
@@ -10312,7 +10402,7 @@ Last-Update: <YYYY-MM-DD>
  
    CONFIG_FILES    = $CONFIG_FILES
    CONFIG_HEADERS  = $CONFIG_HEADERS
-@@ -14202,13 +13100,15 @@ _ACEOF
+@@ -14202,13 +13127,15 @@ _ACEOF
  
  cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
  ac_cs_usage="\
@@ -10331,7 +10421,7 @@ Last-Update: <YYYY-MM-DD>
    -q, --quiet, --silent
                     do not print progress messages
    -d, --debug      don't remove temporary files
-@@ -14227,16 +13127,17 @@ $config_headers
+@@ -14227,16 +13154,17 @@ $config_headers
  Configuration commands:
  $config_commands
  
@@ -10353,7 +10443,7 @@ Last-Update: <YYYY-MM-DD>
  This config.status script is free software; the Free Software Foundation
  gives unlimited permission to copy, distribute and modify it."
  
-@@ -14272,6 +13173,8 @@ do
+@@ -14272,6 +13200,8 @@ do
      ac_cs_recheck=: ;;
    --version | --versio | --versi | --vers | --ver | --ve | --v | -V )
      $as_echo "$ac_cs_version"; exit ;;
@@ -10362,7 +10452,7 @@ Last-Update: <YYYY-MM-DD>
    --debug | --debu | --deb | --de | --d | -d )
      debug=: ;;
    --file | --fil | --fi | --f )
-@@ -14279,20 +13182,19 @@ do
+@@ -14279,20 +13209,19 @@ do
      case $ac_optarg in
      *\'*) ac_optarg=`$as_echo "$ac_optarg" | sed "s/'/'\\\\\\\\''/g"` ;;
      esac
@@ -10387,7 +10477,7 @@ Last-Update: <YYYY-MM-DD>
    --help | --hel | -h )
      $as_echo "$ac_cs_usage"; exit ;;
    -q | -quiet | --quiet | --quie | --qui | --qu | --q \
-@@ -14300,11 +13202,10 @@ Try \`$0 --help' for more information." 
+@@ -14300,11 +13229,10 @@ Try \`$0 --help' for more information." 
      ac_cs_silent=: ;;
  
    # This is an error.
@@ -10402,7 +10492,7 @@ Last-Update: <YYYY-MM-DD>
       ac_need_defaults=false ;;
  
    esac
-@@ -14624,9 +13525,11 @@ do
+@@ -14624,9 +13552,11 @@ do
      "src/plugins/renderers/frame-buffer/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/renderers/frame-buffer/Makefile" ;;
      "src/plugins/renderers/drm/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/renderers/drm/Makefile" ;;
      "src/plugins/renderers/x11/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/renderers/x11/Makefile" ;;
@@ -10414,7 +10504,7 @@ Last-Update: <YYYY-MM-DD>
      "src/plugins/splash/text/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/splash/text/Makefile" ;;
      "src/plugins/splash/details/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/splash/details/Makefile" ;;
      "src/plugins/splash/space-flares/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/splash/space-flares/Makefile" ;;
-@@ -14649,6 +13552,8 @@ do
+@@ -14649,6 +13579,8 @@ do
      "themes/solar/Makefile") CONFIG_FILES="$CONFIG_FILES themes/solar/Makefile" ;;
      "themes/glow/Makefile") CONFIG_FILES="$CONFIG_FILES themes/glow/Makefile" ;;
      "themes/script/Makefile") CONFIG_FILES="$CONFIG_FILES themes/script/Makefile" ;;
@@ -10423,7 +10513,7 @@ Last-Update: <YYYY-MM-DD>
      "images/Makefile") CONFIG_FILES="$CONFIG_FILES images/Makefile" ;;
      "scripts/plymouth-generate-initrd") CONFIG_FILES="$CONFIG_FILES scripts/plymouth-generate-initrd" ;;
      "scripts/plymouth-populate-initrd") CONFIG_FILES="$CONFIG_FILES scripts/plymouth-populate-initrd" ;;
-@@ -14656,9 +13561,7 @@ do
+@@ -14656,9 +13588,7 @@ do
      "scripts/Makefile") CONFIG_FILES="$CONFIG_FILES scripts/Makefile" ;;
      "docs/Makefile") CONFIG_FILES="$CONFIG_FILES docs/Makefile" ;;
  
@@ -10434,7 +10524,7 @@ Last-Update: <YYYY-MM-DD>
    esac
  done
  
-@@ -14685,7 +13588,7 @@ $debug ||
+@@ -14685,7 +13615,7 @@ $debug ||
    trap 'exit_status=$?
    { test -z "$tmp" || test ! -d "$tmp" || rm -fr "$tmp"; } && exit $exit_status
  ' 0
@@ -10443,7 +10533,7 @@ Last-Update: <YYYY-MM-DD>
  }
  # Create a (secure) tmp directory for tmp files.
  
-@@ -14696,11 +13599,7 @@ $debug ||
+@@ -14696,11 +13626,7 @@ $debug ||
  {
    tmp=./conf$$-$RANDOM
    (umask 077 && mkdir "$tmp")
@@ -10456,7 +10546,7 @@ Last-Update: <YYYY-MM-DD>
  
  # Set up the scripts for CONFIG_FILES section.
  # No need to generate them if there are no CONFIG_FILES.
-@@ -14708,10 +13607,16 @@ $debug ||
+@@ -14708,10 +13634,16 @@ $debug ||
  if test -n "$CONFIG_FILES"; then
  
  
@@ -10475,7 +10565,7 @@ Last-Update: <YYYY-MM-DD>
  else
    ac_cs_awk_cr=$ac_cr
  fi
-@@ -14725,24 +13630,18 @@ _ACEOF
+@@ -14725,24 +13657,18 @@ _ACEOF
    echo "$ac_subst_vars" | sed 's/.*/&!$&$ac_delim/' &&
    echo "_ACEOF"
  } >conf$$subs.sh ||
@@ -10503,7 +10593,7 @@ Last-Update: <YYYY-MM-DD>
    else
      ac_delim="$ac_delim!$ac_delim _$ac_delim!! "
    fi
-@@ -14764,7 +13663,7 @@ s/'"$ac_delim"'$//
+@@ -14764,7 +13690,7 @@ s/'"$ac_delim"'$//
  t delim
  :nl
  h
@@ -10512,7 +10602,7 @@ Last-Update: <YYYY-MM-DD>
  t more1
  s/["\\]/\\&/g; s/^/"/; s/$/\\n"\\/
  p
-@@ -14778,7 +13677,7 @@ s/.\{148\}//
+@@ -14778,7 +13704,7 @@ s/.\{148\}//
  t nl
  :delim
  h
@@ -10521,7 +10611,7 @@ Last-Update: <YYYY-MM-DD>
  t more2
  s/["\\]/\\&/g; s/^/"/; s/$/"/
  p
-@@ -14831,9 +13730,7 @@ if sed "s/$ac_cr//" < /dev/null > /dev/n
+@@ -14831,9 +13757,7 @@ if sed "s/$ac_cr//" < /dev/null > /dev/n
  else
    cat
  fi < "$tmp/subs1.awk" > "$tmp/subs.awk" \
@@ -10532,7 +10622,7 @@ Last-Update: <YYYY-MM-DD>
  _ACEOF
  
  # VPATH may cause trouble with some makes, so we remove $(srcdir),
-@@ -14874,9 +13771,7 @@ for ac_last_try in false false :; do
+@@ -14874,9 +13798,7 @@ for ac_last_try in false false :; do
    if test -z "$ac_t"; then
      break
    elif $ac_last_try; then
@@ -10543,7 +10633,7 @@ Last-Update: <YYYY-MM-DD>
    else
      ac_delim="$ac_delim!$ac_delim _$ac_delim!! "
    fi
-@@ -14961,9 +13856,7 @@ cat >>$CONFIG_STATUS <<_ACEOF || ac_writ
+@@ -14961,9 +13883,7 @@ cat >>$CONFIG_STATUS <<_ACEOF || ac_writ
  _ACAWK
  _ACEOF
  cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
@@ -10554,7 +10644,7 @@ Last-Update: <YYYY-MM-DD>
  fi # test -n "$CONFIG_HEADERS"
  
  
-@@ -14976,9 +13869,7 @@ do
+@@ -14976,9 +13896,7 @@ do
    esac
    case $ac_mode$ac_tag in
    :[FHL]*:*);;
@@ -10565,7 +10655,7 @@ Last-Update: <YYYY-MM-DD>
    :[FH]-) ac_tag=-:-;;
    :[FH]*) ac_tag=$ac_tag:$ac_tag.in;;
    esac
-@@ -15006,12 +13897,10 @@ $as_echo "$as_me: error: invalid tag $ac
+@@ -15006,12 +13924,10 @@ $as_echo "$as_me: error: invalid tag $ac
  	   [\\/$]*) false;;
  	   *) test -f "$srcdir/$ac_f" && ac_f="$srcdir/$ac_f";;
  	   esac ||
@@ -10580,7 +10670,7 @@ Last-Update: <YYYY-MM-DD>
      done
  
      # Let's still pretend it is `configure' which instantiates (i.e., don't
-@@ -15022,7 +13911,7 @@ $as_echo "$as_me: error: cannot find inp
+@@ -15022,7 +13938,7 @@ $as_echo "$as_me: error: cannot find inp
  	`' by configure.'
      if test x"$ac_file" != x-; then
        configure_input="$ac_file.  $configure_input"
@@ -10589,7 +10679,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: creating $ac_file" >&6;}
      fi
      # Neutralize special characters interpreted by sed in replacement strings.
-@@ -15035,9 +13924,7 @@ $as_echo "$as_me: creating $ac_file" >&6
+@@ -15035,9 +13951,7 @@ $as_echo "$as_me: creating $ac_file" >&6
  
      case $ac_tag in
      *:-:* | *:-) cat >"$tmp/stdin" \
@@ -10600,7 +10690,7 @@ Last-Update: <YYYY-MM-DD>
      esac
      ;;
    esac
-@@ -15065,47 +13952,7 @@ $as_echo X"$ac_file" |
+@@ -15065,47 +13979,7 @@ $as_echo X"$ac_file" |
  	    q
  	  }
  	  s/.*/./; q'`
@@ -10649,7 +10739,7 @@ Last-Update: <YYYY-MM-DD>
    ac_builddir=.
  
  case "$ac_dir" in
-@@ -15162,7 +14009,6 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_wri
+@@ -15162,7 +14036,6 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_wri
  # If the template does not know about datarootdir, expand it.
  # FIXME: This hack should be removed a few years after 2.60.
  ac_datarootdir_hack=; ac_datarootdir_seen=
@@ -10657,7 +10747,7 @@ Last-Update: <YYYY-MM-DD>
  ac_sed_dataroot='
  /datarootdir/ {
    p
-@@ -15172,12 +14018,11 @@ ac_sed_dataroot='
+@@ -15172,12 +14045,11 @@ ac_sed_dataroot='
  /@docdir@/p
  /@infodir@/p
  /@localedir@/p
@@ -10672,7 +10762,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: WARNING: $ac_file_inputs seems to ignore the --datarootdir setting" >&2;}
  _ACEOF
  cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
-@@ -15187,7 +14032,7 @@ cat >>$CONFIG_STATUS <<_ACEOF || ac_writ
+@@ -15187,7 +14059,7 @@ cat >>$CONFIG_STATUS <<_ACEOF || ac_writ
    s&@infodir@&$infodir&g
    s&@localedir@&$localedir&g
    s&@mandir@&$mandir&g
@@ -10681,7 +10771,7 @@ Last-Update: <YYYY-MM-DD>
  esac
  _ACEOF
  
-@@ -15216,14 +14061,12 @@ s&@MKDIR_P@&$ac_MKDIR_P&;t t
+@@ -15216,14 +14088,12 @@ s&@MKDIR_P@&$ac_MKDIR_P&;t t
  $ac_datarootdir_hack
  "
  eval sed \"\$ac_sed_extra\" "$ac_file_inputs" | $AWK -f "$tmp/subs.awk" >$tmp/out \
@@ -10698,7 +10788,7 @@ Last-Update: <YYYY-MM-DD>
  which seems to be undefined.  Please make sure it is defined." >&5
  $as_echo "$as_me: WARNING: $ac_file contains a reference to the variable \`datarootdir'
  which seems to be undefined.  Please make sure it is defined." >&2;}
-@@ -15233,9 +14076,7 @@ which seems to be undefined.  Please mak
+@@ -15233,9 +14103,7 @@ which seems to be undefined.  Please mak
    -) cat "$tmp/out" && rm -f "$tmp/out";;
    *) rm -f "$ac_file" && mv "$tmp/out" "$ac_file";;
    esac \
@@ -10709,7 +10799,7 @@ Last-Update: <YYYY-MM-DD>
   ;;
    :H)
    #
-@@ -15246,25 +14087,19 @@ $as_echo "$as_me: error: could not creat
+@@ -15246,25 +14114,19 @@ $as_echo "$as_me: error: could not creat
        $as_echo "/* $configure_input  */" \
        && eval '$AWK -f "$tmp/defines.awk"' "$ac_file_inputs"
      } >"$tmp/config.h" \
@@ -10739,7 +10829,7 @@ Last-Update: <YYYY-MM-DD>
    fi
  # Compute "$ac_file"'s index in $config_headers.
  _am_arg="$ac_file"
-@@ -15302,7 +14137,7 @@ $as_echo X"$_am_arg" |
+@@ -15302,7 +14164,7 @@ $as_echo X"$_am_arg" |
  	  s/.*/./; q'`/stamp-h$_am_stamp_count
   ;;
  
@@ -10748,7 +10838,7 @@ Last-Update: <YYYY-MM-DD>
  $as_echo "$as_me: executing $ac_file commands" >&6;}
   ;;
    esac
-@@ -15397,47 +14232,7 @@ $as_echo X"$file" |
+@@ -15397,47 +14259,7 @@ $as_echo X"$file" |
  	    q
  	  }
  	  s/.*/./; q'`
@@ -10797,7 +10887,7 @@ Last-Update: <YYYY-MM-DD>
        # echo "creating $dirpart/$file"
        echo '# dummy' > "$dirpart/$file"
      done
-@@ -16084,15 +14879,12 @@ _LT_EOF
+@@ -16084,15 +14906,12 @@ _LT_EOF
  done # for ac_tag
  
  
@@ -10815,7 +10905,7 @@ Last-Update: <YYYY-MM-DD>
  
  
  # configure is writing to config.log, and then calls config.status.
-@@ -16113,10 +14905,10 @@ if test "$no_create" != yes; then
+@@ -16113,10 +14932,10 @@ if test "$no_create" != yes; then
    exec 5>>config.log
    # Use ||, not &&, to avoid exiting from the if with $? = 1, which
    # would make configure fail if this is the last instruction.
@@ -14622,7 +14712,24 @@ Last-Update: <YYYY-MM-DD>
  PANGO_LIBS = @PANGO_LIBS@
 --- plymouth-0.8.1.orig/src/plugins/renderers/Makefile.in
 +++ plymouth-0.8.1/src/plugins/renderers/Makefile.in
-@@ -154,6 +154,7 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
+@@ -33,6 +33,7 @@ PRE_UNINSTALL = :
+ POST_UNINSTALL = :
+ build_triplet = @build@
+ host_triplet = @host@
++@BUILD_VGA16FB_TRUE@am__append_1 = vga16fb
+ subdir = src/plugins/renderers
+ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
+@@ -66,7 +67,7 @@ AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGE
+ 	distdir
+ ETAGS = etags
+ CTAGS = ctags
+-DIST_SUBDIRS = $(SUBDIRS)
++DIST_SUBDIRS = frame-buffer drm x11 vga16fb
+ DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
+ am__relativize = \
+   dir0=`pwd`; \
+@@ -154,6 +155,7 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
  PACKAGE_NAME = @PACKAGE_NAME@
  PACKAGE_STRING = @PACKAGE_STRING@
  PACKAGE_TARNAME = @PACKAGE_TARNAME@
@@ -14630,20 +14737,22 @@ Last-Update: <YYYY-MM-DD>
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_CFLAGS = @PANGO_CFLAGS@
  PANGO_LIBS = @PANGO_LIBS@
-@@ -233,7 +234,7 @@ target_alias = @target_alias@
+@@ -233,7 +235,7 @@ target_alias = @target_alias@
  top_build_prefix = @top_build_prefix@
  top_builddir = @top_builddir@
  top_srcdir = @top_srcdir@
 -SUBDIRS = frame-buffer drm x11
-+SUBDIRS = frame-buffer drm x11 vga16fb
++SUBDIRS = frame-buffer drm x11 $(am__append_1)
  MAINTAINERCLEANFILES = Makefile.in
  all: all-recursive
  
 --- plymouth-0.8.1.orig/src/plugins/renderers/Makefile.am
 +++ plymouth-0.8.1/src/plugins/renderers/Makefile.am
-@@ -1,2 +1,2 @@
--SUBDIRS = frame-buffer drm x11
-+SUBDIRS = frame-buffer drm x11 vga16fb
+@@ -1,2 +1,5 @@
+ SUBDIRS = frame-buffer drm x11
++if BUILD_VGA16FB
++SUBDIRS += vga16fb
++endif
  MAINTAINERCLEANFILES = Makefile.in
 --- plymouth-0.8.1.orig/src/plugins/renderers/frame-buffer/Makefile.in
 +++ plymouth-0.8.1/src/plugins/renderers/frame-buffer/Makefile.in
