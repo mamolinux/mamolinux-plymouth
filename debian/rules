@@ -67,6 +67,7 @@ override_dh_fixperms:
 	chmod 755 debian/plymouth/usr/share/initramfs-tools/hooks/plymouth
 	chmod 755 debian/plymouth/usr/share/initramfs-tools/scripts/init-top/plymouth
 	chmod 755 debian/plymouth/usr/share/initramfs-tools/scripts/init-bottom/plymouth
+	chmod 755 debian/plymouth/usr/share/initramfs-tools/scripts/panic/plymouth
 
 # Don't generate shlibs for plugins (ideally these wouldn't have a SONAME)
 override_dh_makeshlibs:
