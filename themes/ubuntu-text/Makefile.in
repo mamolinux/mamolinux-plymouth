@@ -34,7 +34,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = themes/text
+subdir = themes/ubuntu-text
 DIST_COMMON = $(dist_theme_DATA) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -219,8 +219,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-themedir = $(datadir)/plymouth/themes/text
-dist_theme_DATA = text.plymouth
+themedir = $(datadir)/plymouth/themes/ubuntu-text
+dist_theme_DATA = ubuntu-text.plymouth
 MAINTAINERCLEANFILES = Makefile.in
 all: all-am
 
@@ -234,9 +234,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu themes/text/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu themes/ubuntu-text/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu themes/text/Makefile
+	  $(AUTOMAKE) --gnu themes/ubuntu-text/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
