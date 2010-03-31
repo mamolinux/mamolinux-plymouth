@@ -171,6 +171,7 @@ libply-boot-client.so.2 libplymouth2 #MINVER#
  ply_boot_client_attach_to_event_loop@Base 0.8.0~-13~ppa1
  ply_boot_client_connect@Base 0.8.0~-13~ppa1
  ply_boot_client_disconnect@Base 0.8.0~-13~ppa1
+ ply_boot_client_flush@Base 0.8.1-3
  ply_boot_client_free@Base 0.8.0~-13~ppa1
  ply_boot_client_new@Base 0.8.0~-13~ppa1
  ply_boot_client_ping_daemon@Base 0.8.0~-13~ppa1
