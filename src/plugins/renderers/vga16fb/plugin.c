@@ -128,6 +128,7 @@ create_backend (const char *device_name,
       strdup (PLY_FRAME_BUFFER_DEFAULT_FB_DEVICE_NAME);
 
   backend->loop = ply_event_loop_get_default ();
+  backend->head.map_address = MAP_FAILED;
   backend->heads = ply_list_new ();
   backend->input_source.key_buffer = ply_buffer_new ();
   backend->terminal = terminal;
@@ -203,16 +204,6 @@ static void
 activate (ply_renderer_backend_t *backend)
 {
   backend->is_active = true;
-
-  /* Reset to basic values; enable use of the Set/Reset register for all
-   * planes.
-   */
-  vga_enable_set_reset (0xf);
-  vga_mode (0);
-  vga_data_rotate (0);
-  vga_map_mask (0xff);
-
-  set_palette (backend, &backend->head);
 
   if (backend->head.map_address != MAP_FAILED)
     ply_renderer_head_redraw (backend, &backend->head);
@@ -493,6 +484,17 @@ flush_head (ply_renderer_backend_t *backend,
 
   ply_terminal_set_mode (backend->terminal, PLY_TERMINAL_MODE_GRAPHICS);
   ply_terminal_set_unbuffered_input (backend->terminal);
+
+  /* Reset to basic values; enable use of the Set/Reset register for all
+   * planes.
+   */
+  vga_enable_set_reset (0xf);
+  vga_mode (0);
+  vga_data_rotate (0);
+  vga_map_mask (0xff);
+
+  set_palette (backend, &backend->head);
+
   pixel_buffer = head->pixel_buffer;
   updated_region = ply_pixel_buffer_get_updated_areas (pixel_buffer);
   areas_to_flush = ply_region_get_sorted_rectangle_list (updated_region);
