@@ -1,3 +1,13 @@
+plymouth (0.8.1-4ubuntu1) lucid; urgency=low
+
+  * Don't fail if --attach-to-session is passed and /dev/pts isn't mounted
+    yet, as this breaks booting without an initramfs.
+  * debian/initramfs-tools/hooks/plymouth: if we don't have a default.plymouth
+    link, don't try to copy the graphics support since the libs aren't needed
+    and may not even be installed.  LP: #554566.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Sat, 03 Apr 2010 17:25:50 -0700
+
 plymouth (0.8.1-4) lucid; urgency=low
 
   [ Steve Langasek ]
