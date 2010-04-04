@@ -1882,12 +1882,7 @@ main (int    argc,
     {
       state.should_be_attached = attach_to_session;
       if (!attach_to_running_session (&state))
-        {
-          ply_error ("could not create session: %m");
-          if (! no_daemon)
-            ply_detach_daemon (daemon_handle, EX_UNAVAILABLE);
-          return EX_UNAVAILABLE;
-        }
+          ply_trace ("could not create session: %m");
     }
 
   state.boot_server = start_boot_server (&state);
