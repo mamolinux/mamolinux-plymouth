@@ -1,6 +1,7 @@
-/* plugin.c - frame-backend renderer plugin
+/* plugin.c - vga16fb renderer plugin
  *
- * Copyright (C) 2006-2009 Red Hat, Inc.
+ * Copyright (C) 2010 Canonical Ltd.
+ *               2006-2009 Red Hat, Inc.
  *               2008 Charlie Brej <cbrej@cs.man.ac.uk>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,7 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
  * 02111-1307, USA.
  *
- * Written by: Charlie Brej <cbrej@cs.man.ac.uk>
+ * Written by: Scott James Remnant <scott@ubuntu.com>
+ *             Charlie Brej <cbrej@cs.man.ac.uk>
  *             Kristian Høgsberg <krh@redhat.com>
  *             Peter Jones <pjones@redhat.com>
  *             Ray Strode <rstrode@redhat.com>
@@ -41,6 +43,7 @@
 #include <sys/types.h>
 #include <values.h>
 #include <unistd.h>
+#include <sys/io.h>
 
 #include <linux/fb.h>
 
@@ -55,6 +58,8 @@
 #include "ply-renderer.h"
 #include "ply-renderer-plugin.h"
 
+#include "vga.h"
+
 #ifndef PLY_FRAME_BUFFER_DEFAULT_FB_DEVICE_NAME
 #define PLY_FRAME_BUFFER_DEFAULT_FB_DEVICE_NAME "/dev/fb0"
 #endif
@@ -66,6 +71,10 @@ struct _ply_renderer_head
   char *map_address;
   size_t size;
 
+  uint16_t red[16];
+  uint16_t green[16];
+  uint16_t blue[16];
+  uint32_t palette_size;
 };
 
 struct _ply_renderer_input_source
@@ -91,28 +100,9 @@ struct _ply_renderer_backend
   ply_renderer_head_t head;
   ply_list_t *heads;
 
-  uint32_t red_bit_position;
-  uint32_t green_bit_position;
-  uint32_t blue_bit_position;
-  uint32_t alpha_bit_position;
-
-  uint32_t bits_for_red;
-  uint32_t bits_for_green;
-  uint32_t bits_for_blue;
-  uint32_t bits_for_alpha;
-
-  int32_t dither_red;
-  int32_t dither_green;
-  int32_t dither_blue;
-
-  unsigned int bytes_per_pixel;
   unsigned int row_stride;
 
   uint32_t is_active : 1;
-
-  void (* flush_area) (ply_renderer_backend_t *backend,
-                       ply_renderer_head_t    *head,
-                       ply_rectangle_t        *area_to_flush);
 };
 
 ply_renderer_plugin_interface_t *ply_renderer_backend_get_interface (void);
@@ -120,127 +110,6 @@ static void ply_renderer_head_redraw (ply_renderer_backend_t *backend,
                                       ply_renderer_head_t    *head);
 static bool open_input_source (ply_renderer_backend_t      *backend,
                                ply_renderer_input_source_t *input_source);
-
-static inline uint_fast32_t
-argb32_pixel_value_to_device_pixel_value (ply_renderer_backend_t *backend,
-                                          uint32_t                pixel_value)
-{
-  uint8_t r, g, b, a;
-  int orig_r, orig_g, orig_b, orig_a;
-  uint8_t new_r, new_g, new_b;
-  int i;
-
-  orig_a = pixel_value >> 24;
-  a = orig_a >> (8 - backend->bits_for_alpha);
-
-  orig_r = ((pixel_value >> 16) & 0xff) - backend->dither_red;
-  r = CLAMP (orig_r, 0, 255) >> (8 - backend->bits_for_red);
-
-  orig_g = ((pixel_value >> 8) & 0xff) - backend->dither_green;
-  g = CLAMP (orig_g, 0, 255) >> (8 - backend->bits_for_green);
-
-  orig_b = (pixel_value & 0xff) - backend->dither_blue;
-  b = CLAMP (orig_b, 0, 255) >> (8 - backend->bits_for_blue);
-
-  new_r = r << (8 - backend->bits_for_red);
-  new_g = g << (8 - backend->bits_for_green);
-  new_b = b << (8 - backend->bits_for_blue);
-
-  for (i = backend->bits_for_red; i < 8; i <<= 1)
-    new_r |= new_r >> i;
-
-  for (i = backend->bits_for_green; i < 8; i <<= 1)
-    new_g |= new_g >> i;
-
-  for (i = backend->bits_for_blue; i < 8; i <<= 1)
-    new_b |= new_b >> i;
-
-  backend->dither_red = new_r - orig_r;
-  backend->dither_green = new_g - orig_g;
-  backend->dither_blue = new_b - orig_b;
-
-  return ((a << backend->alpha_bit_position)
-          | (r << backend->red_bit_position)
-          | (g << backend->green_bit_position)
-          | (b << backend->blue_bit_position));
-}
-
-static void
-flush_area_to_any_device (ply_renderer_backend_t *backend,
-                          ply_renderer_head_t    *head,
-                          ply_rectangle_t        *area_to_flush)
-{
-  unsigned long row, column;
-  uint32_t *shadow_buffer;
-  char *row_backend;
-  size_t bytes_per_row;
-  unsigned long x1, y1, x2, y2;
-
-  x1 = area_to_flush->x;
-  y1 = area_to_flush->y;
-  x2 = x1 + area_to_flush->width;
-  y2 = y1 + area_to_flush->height;
-
-  bytes_per_row = area_to_flush->width * backend->bytes_per_pixel;
-  row_backend = malloc (backend->row_stride);
-  shadow_buffer = ply_pixel_buffer_get_argb32_data (backend->head.pixel_buffer);
-  for (row = y1; row < y2; row++)
-    {
-      unsigned long offset;
-
-      for (column = x1; column < x2; column++)
-        {
-          uint32_t pixel_value;
-          uint_fast32_t device_pixel_value;
-
-          pixel_value = shadow_buffer[row * head->area.width + column];
-
-          device_pixel_value = argb32_pixel_value_to_device_pixel_value (backend,
-                                                                         pixel_value);
-
-          memcpy (row_backend + column * backend->bytes_per_pixel,
-                  &device_pixel_value, backend->bytes_per_pixel);
-        }
-
-      offset = row * backend->row_stride + x1 * backend->bytes_per_pixel;
-      memcpy (head->map_address + offset, row_backend + x1 * backend->bytes_per_pixel,
-              area_to_flush->width * backend->bytes_per_pixel);
-    }
-  free (row_backend);
-}
-
-static void
-flush_area_to_xrgb32_device (ply_renderer_backend_t *backend,
-                             ply_renderer_head_t    *head,
-                             ply_rectangle_t        *area_to_flush)
-{
-  unsigned long x1, y1, x2, y2, y;
-  uint32_t *shadow_buffer;
-  char *dst, *src;
-
-  x1 = area_to_flush->x;
-  y1 = area_to_flush->y;
-  x2 = x1 + area_to_flush->width;
-  y2 = y1 + area_to_flush->height;
-
-  shadow_buffer = ply_pixel_buffer_get_argb32_data (backend->head.pixel_buffer);
-
-  dst = &head->map_address[y1 * backend->row_stride + x1 * backend->bytes_per_pixel];
-  src = (char *) &shadow_buffer[y1 * head->area.width + x1];
-
-  if (area_to_flush->width == backend->row_stride)
-    {
-      memcpy (dst, src, area_to_flush->width * area_to_flush->height * 4);
-      return;
-    }
-
-  for (y = y1; y < y2; y++)
-    {
-      memcpy (dst, src, area_to_flush->width * 4);
-      dst += backend->row_stride;
-      src += head->area.width * 4;
-    }
-}
 
 static ply_renderer_backend_t *
 create_backend (const char *device_name,
@@ -258,8 +127,6 @@ create_backend (const char *device_name,
     backend->device_name =
       strdup (PLY_FRAME_BUFFER_DEFAULT_FB_DEVICE_NAME);
 
-  ply_trace ("creating renderer backend for device %s", backend->device_name);
-
   backend->loop = ply_event_loop_get_default ();
   backend->head.map_address = MAP_FAILED;
   backend->heads = ply_list_new ();
@@ -273,12 +140,17 @@ static void
 initialize_head (ply_renderer_backend_t *backend,
                  ply_renderer_head_t    *head)
 {
-  ply_trace ("initializing %lux%lu head",
-             head->area.width, head->area.height);
   head->pixel_buffer = ply_pixel_buffer_new (head->area.width,
                                              head->area.height);
   ply_pixel_buffer_fill_with_color (backend->head.pixel_buffer, NULL,
                                     0.0, 0.0, 0.0, 1.0);
+
+  memset (head->red, 0, sizeof head->red);
+  memset (head->green, 0, sizeof head->green);
+  memset (head->blue, 0, sizeof head->blue);
+
+  head->palette_size = 0;
+
   ply_list_append_data (backend->heads, head);
 }
 
@@ -286,8 +158,6 @@ static void
 uninitialize_head (ply_renderer_backend_t *backend,
                    ply_renderer_head_t    *head)
 {
-  ply_trace ("uninitializing %lux%lu head",
-             head->area.width, head->area.height);
   if (head->pixel_buffer != NULL)
     {
       ply_pixel_buffer_free (head->pixel_buffer);
@@ -301,8 +171,6 @@ static void
 destroy_backend (ply_renderer_backend_t *backend)
 {
 
-  ply_trace ("destroying renderer backend for device %s",
-             backend->device_name);
   free (backend->device_name);
   uninitialize_head (backend, &backend->head);
 
@@ -312,9 +180,29 @@ destroy_backend (ply_renderer_backend_t *backend)
 }
 
 static void
+set_palette (ply_renderer_backend_t *backend,
+             ply_renderer_head_t    *head)
+{
+  struct fb_cmap cmap;
+
+  if (backend->device_fd < 0)
+    return;
+  if (!head->palette_size)
+    return;
+
+  cmap.start = 0;
+  cmap.len = head->palette_size;;
+  cmap.red = head->red;
+  cmap.green = head->green;
+  cmap.blue = head->blue;
+  cmap.transp = NULL;
+
+  ioctl (backend->device_fd, FBIOPUTCMAP, &cmap);
+}
+
+static void
 activate (ply_renderer_backend_t *backend)
 {
-  ply_trace ("Redrawing screen");
   backend->is_active = true;
 
   if (backend->head.map_address != MAP_FAILED)
@@ -332,12 +220,10 @@ on_active_vt_changed (ply_renderer_backend_t *backend)
 {
   if (ply_terminal_is_active (backend->terminal))
     {
-      ply_trace ("activating on vt change");
       activate (backend);
     }
   else
     {
-      ply_trace ("deactivating on vt change");
       deactivate (backend);
     }
 }
@@ -387,34 +273,10 @@ close_device (ply_renderer_backend_t *backend)
   close (backend->device_fd);
   backend->device_fd = -1;
 
-  backend->bytes_per_pixel = 0;
   backend->head.area.x = 0;
   backend->head.area.y = 0;
   backend->head.area.width = 0;
   backend->head.area.height = 0;
-}
-
-static const char const *get_visual_name (int visual)
-{
-  static const char const *visuals[] =
-    {
-      [FB_VISUAL_MONO01] = "FB_VISUAL_MONO01",
-      [FB_VISUAL_MONO10] = "FB_VISUAL_MONO10",
-      [FB_VISUAL_TRUECOLOR] = "FB_VISUAL_TRUECOLOR",
-      [FB_VISUAL_PSEUDOCOLOR] = "FB_VISUAL_PSEUDOCOLOR",
-      [FB_VISUAL_DIRECTCOLOR] = "FB_VISUAL_DIRECTCOLOR",
-      [FB_VISUAL_STATIC_PSEUDOCOLOR] = "FB_VISUAL_STATIC_PSEUDOCOLOR",
-      NULL
-    };
-  static char unknown[] = "invalid visual: -4294967295";
-
-  if (visual < FB_VISUAL_MONO01 || visual > FB_VISUAL_STATIC_PSEUDOCOLOR)
-    {
-      sprintf (unknown, "invalid visual: %d", visual);
-      return unknown;
-    }
-
-  return visuals[visual];
 }
 
 static bool
@@ -432,52 +294,13 @@ query_device (ply_renderer_backend_t *backend)
   if (ioctl (backend->device_fd, FBIOGET_FSCREENINFO, &fixed_screen_info) < 0)
     return false;
 
-  /* Normally the pixel is divided into channels between the color components.
-   * Each channel directly maps to a color channel on the hardware.
-   *
-   * There are some odd ball modes that use an indexed palette instead.  In
-   * those cases (pseudocolor, direct color, etc), the pixel value is just an
-   * index into a lookup table of the real color values.
-   *
-   * We don't support that.
-   */
-  if (fixed_screen_info.visual != FB_VISUAL_TRUECOLOR)
+  /* We only support the vga16fb with its own kooky planar colour mode. */
+  if ((fixed_screen_info.type != FB_TYPE_VGA_PLANES)
+      || (fixed_screen_info.type_aux != FB_AUX_VGA_PLANES_VGA4)
+      || (fixed_screen_info.visual != FB_VISUAL_PSEUDOCOLOR)
+      || (variable_screen_info.bits_per_pixel != 4))
     {
-      int rc = -1;
-      int i;
-      static const int depths[] = {32, 24, 16, 0};
-
-      ply_trace ("Visual was %s, trying to find usable mode.\n",
-                 get_visual_name (fixed_screen_info.visual));
-
-      for (i = 0; depths[i] != 0; i++)
-        {
-          variable_screen_info.bits_per_pixel = depths[i];
-          variable_screen_info.activate |= FB_ACTIVATE_NOW | FB_ACTIVATE_FORCE;
-
-          rc = ioctl (backend->device_fd, FBIOPUT_VSCREENINFO, &variable_screen_info);
-          if (rc >= 0)
-            {
-              if (ioctl (backend->device_fd, FBIOGET_FSCREENINFO, &fixed_screen_info) < 0)
-                return false;
-
-              if (fixed_screen_info.visual == FB_VISUAL_TRUECOLOR)
-                break;
-            }
-        }
-
-      if (ioctl (backend->device_fd, FBIOGET_VSCREENINFO, &variable_screen_info) < 0)
-        return false;
-
-      if (ioctl (backend->device_fd, FBIOGET_FSCREENINFO, &fixed_screen_info) < 0)
-        return false;
-    }
-
-  if (fixed_screen_info.visual != FB_VISUAL_TRUECOLOR ||
-      variable_screen_info.bits_per_pixel < 16)
-    {
-      ply_trace ("Visual is %s; not using graphics\n",
-                 get_visual_name (fixed_screen_info.visual));
+      ply_trace ("Doesn't look like vga16fb\n");
       return false;
     }
 
@@ -486,41 +309,8 @@ query_device (ply_renderer_backend_t *backend)
   backend->head.area.width = variable_screen_info.xres;
   backend->head.area.height = variable_screen_info.yres;
 
-  backend->red_bit_position = variable_screen_info.red.offset;
-  backend->bits_for_red = variable_screen_info.red.length;
-
-  backend->green_bit_position = variable_screen_info.green.offset;
-  backend->bits_for_green = variable_screen_info.green.length;
-
-  backend->blue_bit_position = variable_screen_info.blue.offset;
-  backend->bits_for_blue = variable_screen_info.blue.length;
-
-  backend->alpha_bit_position = variable_screen_info.transp.offset;
-  backend->bits_for_alpha = variable_screen_info.transp.length;
-
-  backend->bytes_per_pixel = variable_screen_info.bits_per_pixel >> 3;
   backend->row_stride = fixed_screen_info.line_length;
-  backend->dither_red = 0;
-  backend->dither_green = 0;
-  backend->dither_blue = 0;
-
-  ply_trace ("%d bpp (%d, %d, %d, %d) with rowstride %d",
-             (int) backend->bytes_per_pixel * 8, 
-             backend->bits_for_red,
-             backend->bits_for_green,
-             backend->bits_for_blue,
-             backend->bits_for_alpha,
-             (int) backend->row_stride);
-
   backend->head.size = backend->head.area.height * backend->row_stride;
-
-  if (backend->bytes_per_pixel == 4 &&
-      backend->red_bit_position == 16 && backend->bits_for_red == 8 &&
-      backend->green_bit_position == 8 && backend->bits_for_green == 8 &&
-      backend->blue_bit_position == 0 && backend->bits_for_blue == 8)
-    backend->flush_area = flush_area_to_xrgb32_device;
-  else
-    backend->flush_area = flush_area_to_any_device;
 
   initialize_head (backend, &backend->head);
 
@@ -539,25 +329,23 @@ map_to_device (ply_renderer_backend_t *backend)
   head = &backend->head;
   assert (head->size > 0);
 
+  if (ioperm (VGA_REGS_BASE, VGA_REGS_LEN, 1) < 0) {
+    ply_trace ("could not obtain permission to write to VGA regs: %m");
+    return false;
+  }
+
   head->map_address = mmap (NULL, head->size, PROT_WRITE,
                             MAP_SHARED, backend->device_fd, 0);
 
-  if (head->map_address == MAP_FAILED)
-    {
-      ply_trace ("could not map fb device: %m");
-      return false;
-    }
+  if (head->map_address == MAP_FAILED) {
+    ply_trace ("could not map VGA memory: %m");
+    return false;
+  }
 
   if (ply_terminal_is_active (backend->terminal))
-    {
-      ply_trace ("already on right vt, activating");
       activate (backend);
-    }
   else
-    {
-      ply_trace ("on wrong vt, changing vts");
       ply_terminal_activate_vt (backend->terminal);
-    }
 
   return true;
 }
@@ -569,12 +357,114 @@ unmap_from_device (ply_renderer_backend_t *backend)
 
   head = &backend->head;
 
-  ply_trace ("unmapping device");
   if (head->map_address != MAP_FAILED)
     {
       munmap (head->map_address, head->size);
       head->map_address = MAP_FAILED;
     }
+}
+
+static unsigned int
+argb32_pixel_value_to_color_index (ply_renderer_backend_t *backend,
+                                   ply_renderer_head_t    *head,
+                                   uint32_t                pixel_value)
+{
+  uint16_t red, green, blue;
+  unsigned int shift, index;
+
+  red = (pixel_value >> 16) & 0xff;
+  green = (pixel_value >> 8) & 0xff;
+  blue = pixel_value & 0xff;
+
+  /* The 6 here is entirely arbitrary; that means we keep the top two bits
+   * of each colour when comparing against existing colors in the palette;
+   * in theory meaning a maximum of 64 -- that's still too many, so we
+   * then try again with 7 bits and a maximum of 8 -- in between those two
+   * is the 16 we actually have room for.
+   */
+  for (shift = 6; shift < 8; shift++)
+    {
+      for (index = 0; index < head->palette_size; index++)
+        if (   ((head->red[index] >> (8 + shift)) == (red >> shift))
+            && ((head->green[index] >> (8 + shift)) == (green >> shift))
+            && ((head->blue[index] >> (8 + shift)) == (blue >> shift)))
+          return index;
+
+      if (head->palette_size < 16)
+        {
+          index = head->palette_size++;
+
+          head->red[index] = red << 8;
+          head->green[index] = green << 8;
+          head->blue[index] = blue << 8;
+
+          set_palette (backend, head);
+          ply_trace ("palette now has %d colours (added %06x)\n",
+                     head->palette_size, pixel_value & 0xffffff);
+
+          return index;
+        }
+    }
+
+  /* Didn't find a colour, so just return the last
+   * (first is probably background colour so a bad choice)
+   */
+  return head->palette_size - 1;;
+}
+
+static void
+flush_area (ply_renderer_backend_t *backend,
+            ply_renderer_head_t    *head,
+            ply_rectangle_t        *area_to_flush)
+{
+  unsigned char *mask;
+  uint32_t *shadow_buffer;
+  unsigned long x1, x2, y1, y2, x, y;
+  unsigned int c, b;
+
+  mask = malloc (backend->row_stride * 16);
+
+  shadow_buffer = ply_pixel_buffer_get_argb32_data (backend->head.pixel_buffer);
+
+  x1 = area_to_flush->x;
+  y1 = area_to_flush->y;
+  x2 = x1 + area_to_flush->width;
+  y2 = y1 + area_to_flush->height;
+
+  for (y = y1; y < y2; y++)
+    {
+      memset (mask, 0, backend->row_stride * 16);
+
+      for (x = x1; x < x2; x++)
+        {
+          unsigned int index;
+          uint32_t pixel;
+
+          pixel = shadow_buffer[x + y * head->area.width];
+          index = argb32_pixel_value_to_color_index (backend, head, pixel);
+
+          mask[index * backend->row_stride + x / 8] |= (0x80 >> (x % 8));
+        }
+
+      for (c = 0; c < 16; c++)
+        {
+          for (b = x1 / 8; b < x2 / 8 + 1; b++)
+            {
+              char *p;
+
+              if (!mask[c * backend->row_stride + b])
+                continue;
+
+              vga_set_reset (c);
+              vga_bit_mask (mask[c * backend->row_stride + b]);
+
+              p = head->map_address + y * backend->row_stride + b;
+              *p |= 1;
+            }
+        }
+    }
+
+  free (mask);
 }
 
 static void
@@ -594,6 +484,17 @@ flush_head (ply_renderer_backend_t *backend,
 
   ply_terminal_set_mode (backend->terminal, PLY_TERMINAL_MODE_GRAPHICS);
   ply_terminal_set_unbuffered_input (backend->terminal);
+
+  /* Reset to basic values; enable use of the Set/Reset register for all
+   * planes.
+   */
+  vga_enable_set_reset (0xf);
+  vga_mode (0);
+  vga_data_rotate (0);
+  vga_map_mask (0xff);
+
+  set_palette (backend, &backend->head);
+
   pixel_buffer = head->pixel_buffer;
   updated_region = ply_pixel_buffer_get_updated_areas (pixel_buffer);
   areas_to_flush = ply_region_get_sorted_rectangle_list (updated_region);
@@ -608,7 +509,7 @@ flush_head (ply_renderer_backend_t *backend,
 
       next_node = ply_list_get_next_node (areas_to_flush, node);
 
-      backend->flush_area (backend, head, area_to_flush);
+      flush_area (backend, head, area_to_flush);
 
       node = next_node;
     }
@@ -662,7 +563,7 @@ get_input_source (ply_renderer_backend_t *backend)
 static void
 on_key_event (ply_renderer_input_source_t *input_source,
               int                          terminal_fd)
-{ 
+{
   ply_buffer_append_from_fd (input_source->key_buffer,
                              terminal_fd);
 
