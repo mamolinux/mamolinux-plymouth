@@ -75,6 +75,7 @@ struct _ply_renderer_head
   uint16_t green[16];
   uint16_t blue[16];
   uint32_t palette_size;
+  bool     palette_overflow;
 };
 
 struct _ply_renderer_input_source
@@ -101,6 +102,7 @@ struct _ply_renderer_backend
   ply_list_t *heads;
 
   unsigned int row_stride;
+  unsigned int bits_per_pixel;
 
   uint32_t is_active : 1;
 };
@@ -150,6 +152,7 @@ initialize_head (ply_renderer_backend_t *backend,
   memset (head->blue, 0, sizeof head->blue);
 
   head->palette_size = 0;
+  head->palette_overflow = false;
 
   ply_list_append_data (backend->heads, head);
 }
@@ -310,6 +313,7 @@ query_device (ply_renderer_backend_t *backend)
   backend->head.area.height = variable_screen_info.yres;
 
   backend->row_stride = fixed_screen_info.line_length;
+  backend->bits_per_pixel = variable_screen_info.bits_per_pixel;
   backend->head.size = backend->head.area.height * backend->row_stride;
 
   initialize_head (backend, &backend->head);
@@ -370,7 +374,7 @@ argb32_pixel_value_to_color_index (ply_renderer_backend_t *backend,
                                    uint32_t                pixel_value)
 {
   uint16_t red, green, blue;
-  unsigned int shift, index;
+  unsigned int min_shift, max_shift, shift, index;
 
   red = (pixel_value >> 16) & 0xff;
   green = (pixel_value >> 8) & 0xff;
@@ -382,7 +386,18 @@ argb32_pixel_value_to_color_index (ply_renderer_backend_t *backend,
    * then try again with 7 bits and a maximum of 8 -- in between those two
    * is the 16 we actually have room for.
    */
-  for (shift = 6; shift < 8; shift++)
+  if (head->palette_overflow)
+    {
+      min_shift = 6;
+      max_shift = 8;
+    }
+  else
+    {
+      min_shift = 0;
+      max_shift = 1;
+    }
+
+  for (shift = min_shift; shift < max_shift; shift++)
     {
       for (index = 0; index < head->palette_size; index++)
         if (   ((head->red[index] >> (8 + shift)) == (red >> shift))
@@ -404,6 +419,14 @@ argb32_pixel_value_to_color_index (ply_renderer_backend_t *backend,
 
           return index;
         }
+    }
+
+  ply_trace ("could not find colour in palette for %06x\n",
+             pixel_value & 0xffffff);
+
+  if (!head->palette_overflow)
+    {
+      head->palette_overflow = true;
     }
 
   /* Didn't find a colour, so just return the last
@@ -475,6 +498,7 @@ flush_head (ply_renderer_backend_t *backend,
   ply_list_t *areas_to_flush;
   ply_list_node_t *node;
   ply_pixel_buffer_t *pixel_buffer;
+  bool was_overflowed;
 
   assert (backend != NULL);
   assert (&backend->head == head);
@@ -493,6 +517,7 @@ flush_head (ply_renderer_backend_t *backend,
   vga_data_rotate (0);
   vga_map_mask (0xff);
 
+  was_overflowed = backend->head.palette_overflow;
   set_palette (backend, &backend->head);
 
   pixel_buffer = head->pixel_buffer;
@@ -515,6 +540,15 @@ flush_head (ply_renderer_backend_t *backend,
     }
 
   ply_region_clear (updated_region);
+
+  /* If the palette overflowed, render the screen again with a new palette */
+  if ((!was_overflowed) && head->palette_overflow)
+    {
+      ply_trace ("palette overflowed, redrawing entire screen with new palette");
+
+      head->palette_size = 0;
+      ply_renderer_head_redraw (backend, head);
+    }
 }
 
 static void
@@ -545,6 +579,16 @@ get_buffer_for_head (ply_renderer_backend_t *backend,
     return NULL;
 
   return backend->head.pixel_buffer;
+}
+
+static unsigned int
+get_bits_per_pixel_for_head (ply_renderer_backend_t *backend,
+                             ply_renderer_head_t    *head)
+{
+  if (head != &backend->head)
+    return 0;
+
+  return backend->bits_per_pixel;
 }
 
 static bool
@@ -640,6 +684,7 @@ ply_renderer_backend_get_interface (void)
       .flush_head = flush_head,
       .get_heads = get_heads,
       .get_buffer_for_head = get_buffer_for_head,
+      .get_bits_per_pixel_for_head = get_bits_per_pixel_for_head,
       .get_input_source = get_input_source,
       .open_input_source = open_input_source,
       .set_handler_for_input_source = set_handler_for_input_source,

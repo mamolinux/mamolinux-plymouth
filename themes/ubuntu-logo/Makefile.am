@@ -2,9 +2,13 @@ themedir = $(datadir)/plymouth/themes/ubuntu-logo
 nodist_theme_DATA = ubuntu-logo.plymouth
 dist_theme_DATA =   ubuntu-logo.script                                \
                     ubuntu_logo.png                                   \
+                    ubuntu_logo16.png                                 \
                     password_field.png                                \
+                    password_field16.png                              \
                     progress_dot_off.png                              \
-                    progress_dot_on.png
+                    progress_dot_off16.png                            \
+                    progress_dot_on.png                               \
+                    progress_dot_on16.png
 
 
 

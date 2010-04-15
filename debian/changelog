@@ -1,3 +1,41 @@
+plymouth (0.8.2-1) lucid; urgency=low
+
+  [ Steve Langasek ]
+  * New upstream release.
+  * debian/plymouth.plymouth-stop.upstart: trust the new kdm to stop plymouth
+    for us, too.  LP: #540177.
+  * plymouth needs to depend on initramfs-tools to avoid calling
+    update-initramfs when the stack isn't configured yet and rendering the
+    system unbootable with a broken initramfs.  LP: #358654.
+  * src/client/ply-boot-client.c: ply_boot_client_flush() needs to process
+    the incoming queue before the outgoing, otherwise we get a deadlock.
+    LP: #554737.
+  * src/plugins/splash/script/script-lib-image.c: call script_obj_is_null()
+    to check for the presence of the alpha argument, otherwise all our labels
+    are rendered invisibly...
+  * src/plugins/renderers/drm/plugin.c: temporarily disable the drm backend
+    for nouveau, until we can get to the bottom of the DRM lockup in bug
+    #539655.  This is not as pretty, but it boots to the desktop without
+    hanging regardless of how many displays are used, and that takes
+    precedence.  LP: #533135.
+
+  [ Scott James Remnant ]
+  * Implement a Window.GetBitsPerPixel() function in the script library,
+    and the necessary support in ply_pixel_display, ply_renderer and in
+    the vga16fb and frame-buffer renderers to make that information
+    available.  This will return "0" on drm and x11 where the answer is
+    "lots".  LP: #558352.
+  * Modify vga16fb to only fallback to reducing colors if it's overflowed
+    the 16-color palette already, so if you stick to the same 16 colors,
+    you can get exact matches.
+  * Use alternate 16-color images when we have only 4bpp.  LP: #551013.
+
+  [ Alberto Milone ]
+  * ubuntu-logo: accept a format string from mountall for the disk check
+    progress, so that localization is possible.  LP: #553954.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Thu, 15 Apr 2010 00:55:46 +0000
+
 plymouth (0.8.1-4ubuntu1) lucid; urgency=low
 
   * Don't fail if --attach-to-session is passed and /dev/pts isn't mounted

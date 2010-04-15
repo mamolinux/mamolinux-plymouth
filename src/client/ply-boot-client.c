@@ -749,6 +749,8 @@ ply_boot_client_flush (ply_boot_client_t *client)
 
   while (ply_list_get_length (client->requests_to_send) > 0)
     {
+      if (ply_list_get_length (client->requests_waiting_for_replies) > 0)
+        ply_boot_client_process_incoming_replies (client);
       ply_boot_client_process_pending_requests (client);
     }
 }
