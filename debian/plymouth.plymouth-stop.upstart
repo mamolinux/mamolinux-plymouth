@@ -18,7 +18,7 @@ stop on stopped plymouth
 
 pre-start script
     case "$JOB" in
-    gdm|ubiquity|oem-config)
+    gdm|kdm|ubiquity|oem-config)
 	exit 0
 	;;
     *)
