@@ -32,14 +32,14 @@ copy_exec /lib/plymouth/details.so /lib/plymouth/
 # copy the default themes
 cp -a /lib/plymouth/themes/details ${DESTDIR}/lib/plymouth/themes/
 TEXT_THEME=$(readlink -f /lib/plymouth/themes/text.plymouth)
-if [ -n "$TEXT_THEME" ]; then
+if [ -e "$TEXT_THEME" ]; then
 	ln -s $TEXT_THEME ${DESTDIR}/lib/plymouth/themes/text.plymouth
 	cp -a $(dirname $TEXT_THEME) ${DESTDIR}/lib/plymouth/themes/
 	MODULE=$(grep "ModuleName *= *" ${TEXT_THEME} | sed 's/ModuleName *= *//')
 	copy_exec /lib/plymouth/$MODULE.so /lib/plymouth/
 fi
 THEME=$(readlink -f /lib/plymouth/themes/default.plymouth)
-if [ -n "$THEME" ]; then
+if [ -e "$THEME" ]; then
 	ln -s $THEME ${DESTDIR}/lib/plymouth/themes/default.plymouth
 	cp -a $(dirname $THEME) ${DESTDIR}/lib/plymouth/themes/
 	MODULE=$(grep "ModuleName *= *" ${THEME} | sed 's/ModuleName *= *//')
