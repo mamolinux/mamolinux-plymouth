@@ -257,14 +257,31 @@ ply_boot_client_process_incoming_replies (ply_boot_client_t *client)
       return;
     }
 
-  request_node = ply_list_get_first_node (client->requests_waiting_for_replies);
-  assert (request_node != NULL);
-
-  request = (ply_boot_client_request_t *) ply_list_node_get_data (request_node);
-  assert (request != NULL);
-
   if (!ply_read (client->socket_fd, byte, sizeof (uint8_t)))
     goto out;
+
+  for (request_node = ply_list_get_first_node (client->requests_waiting_for_replies);
+       request_node; request_node = ply_list_get_next_node (client->requests_waiting_for_replies, request_node))
+    {
+      assert (request_node != NULL);
+      request = (ply_boot_client_request_t *) ply_list_node_get_data (request_node);
+      assert (request != NULL);
+
+      if (! strcmp (request->command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_PASSWORD)
+          || ! strcmp (request->command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_QUESTION)
+          || ! strcmp (request->command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_KEYSTROKE))
+        {
+          if (! memcmp (byte, PLY_BOOT_PROTOCOL_RESPONSE_TYPE_ANSWER, sizeof (uint8_t))
+              || ! memcmp (byte, PLY_BOOT_PROTOCOL_RESPONSE_TYPE_NO_ANSWER, sizeof (uint8_t)))
+            break;
+        }
+      else
+        {
+          if (memcmp (byte, PLY_BOOT_PROTOCOL_RESPONSE_TYPE_ANSWER, sizeof (uint8_t))
+              && memcmp (byte, PLY_BOOT_PROTOCOL_RESPONSE_TYPE_NO_ANSWER, sizeof (uint8_t)))
+            break;
+        }
+    }
 
   if (memcmp (byte, PLY_BOOT_PROTOCOL_RESPONSE_TYPE_ACK, sizeof (uint8_t)) == 0)
       request->handler (request->user_data, client);
@@ -749,8 +766,7 @@ ply_boot_client_flush (ply_boot_client_t *client)
 
   while (ply_list_get_length (client->requests_to_send) > 0)
     {
-      if (ply_list_get_length (client->requests_waiting_for_replies) > 0)
-        ply_boot_client_process_incoming_replies (client);
+      ply_event_loop_process_pending_events (client->loop);
       ply_boot_client_process_pending_requests (client);
     }
 }

@@ -1,3 +1,22 @@
+plymouth (0.8.2-2ubuntu1) lucid; urgency=low
+
+  * src/main.c: if the splash screen isn't up yet, queue message requests
+    instead of discarding them.  LP: #507881.
+  * src/client/ply-boot-client.c: some replies may be sent out of order
+    because they depend on user input, so pay attention to the message type
+    when picking the handler instead of handing the response to the first
+    handler in the list; without this, cancelling fsck in mountall will
+    never work.  LP: #562811.
+  * src/client/ply-boot-client.c: instead of trying to read from the server
+    pipe if there are any outstanding requests, call
+    ply_event_loop_process_pending_events() which already knows whether we
+    can read from the pipe.  LP: #559761.
+  * add the pixel display bpp symbols to libplymouth2.symbols with a correct
+    version, so that packages using them don't wind up with overly-strict
+    dependencies on libplymouth2.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Sun, 25 Apr 2010 16:15:37 +0100
+
 plymouth (0.8.2-2) lucid; urgency=low
 
   * debian/initramfs-tools/hooks/plymouth: 'readlink -f' returns the

@@ -242,6 +242,7 @@ libply-splash-core.so.2 libplymouth2 #MINVER#
  ply_pixel_buffer_rotate@Base 0.8.0~-13~ppa1
  ply_pixel_display_draw_area@Base 0.8.0~-13~ppa1
  ply_pixel_display_free@Base 0.8.0~-13~ppa1
+ ply_pixel_display_get_bits_per_pixel@Base 0.8.2-1
  ply_pixel_display_get_height@Base 0.8.0~-13~ppa1
  ply_pixel_display_get_width@Base 0.8.0~-13~ppa1
  ply_pixel_display_new@Base 0.8.0~-13~ppa1
@@ -254,6 +255,7 @@ libply-splash-core.so.2 libplymouth2 #MINVER#
  ply_renderer_deactivate@Base 0.8.0~-13~ppa1
  ply_renderer_flush_head@Base 0.8.0~-13~ppa1
  ply_renderer_free@Base 0.8.0~-13~ppa1
+ ply_renderer_get_bits_per_pixel_for_head@Base 0.8.2-1
  ply_renderer_get_buffer_for_head@Base 0.8.0~-13~ppa1
  ply_renderer_get_heads@Base 0.8.0~-13~ppa1
  ply_renderer_get_input_source@Base 0.8.0~-13~ppa1
