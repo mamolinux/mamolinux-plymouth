@@ -767,7 +767,6 @@ ply_boot_client_flush (ply_boot_client_t *client)
   while (ply_list_get_length (client->requests_to_send) > 0)
     {
       ply_event_loop_process_pending_events (client->loop);
-      ply_boot_client_process_pending_requests (client);
     }
 }
 

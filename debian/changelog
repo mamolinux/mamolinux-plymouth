@@ -1,3 +1,13 @@
+plymouth (0.8.2-2ubuntu2) lucid; urgency=low
+
+  * Don't call ply_boot_client_process_pending_requests on flush, because
+    ply_event_loop_process_pending_events already calls this for us when the
+    fd is writable - so calling it again causes a race condition and an
+    assertion failure if _process_pending_events has already cleared the
+    event queue for us.  LP: #570289.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Tue, 27 Apr 2010 09:35:00 +0100
+
 plymouth (0.8.2-2ubuntu1) lucid; urgency=low
 
   * src/main.c: if the splash screen isn't up yet, queue message requests
