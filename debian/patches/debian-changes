@@ -14969,7 +14969,7 @@ Description: Undocumented upstream changes
    if (memcmp (byte, PLY_BOOT_PROTOCOL_RESPONSE_TYPE_ACK, sizeof (uint8_t)) == 0)
        request->handler (request->user_data, client);
    else if (memcmp (byte, PLY_BOOT_PROTOCOL_RESPONSE_TYPE_ANSWER, sizeof (uint8_t)) == 0)
-@@ -743,6 +760,18 @@ ply_boot_client_tell_daemon_about_error 
+@@ -743,6 +760,17 @@ ply_boot_client_tell_daemon_about_error 
  }
  
  void
@@ -14980,7 +14980,6 @@ Description: Undocumented upstream changes
 +  while (ply_list_get_length (client->requests_to_send) > 0)
 +    {
 +      ply_event_loop_process_pending_events (client->loop);
-+      ply_boot_client_process_pending_requests (client);
 +    }
 +}
 +
