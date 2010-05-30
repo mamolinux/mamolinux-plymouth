@@ -1,4 +1,4 @@
-AC_INIT([plymouth],[0.8.2],[https://bugs.freedesktop.org/enter_bug.cgi?product=plymouth])
+AC_INIT([plymouth],[0.8.3],[https://bugs.freedesktop.org/enter_bug.cgi?product=plymouth])
 AC_CONFIG_SRCDIR(src/main.c)
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_AUX_DIR(build-tools)
@@ -160,9 +160,6 @@ AC_DEFINE_UNQUOTED(BOOT_TTY, "$BOOT_TTY", [TTY to use in boot mode])
 AC_ARG_WITH(shutdown-tty, AS_HELP_STRING([--with-shutdown-tty=<tty>],[Default TTY to use in shutdown mode (by default tty63)]),SHUTDOWN_TTY=${withval},SHUTDOWN_TTY=/dev/tty63)
 AC_DEFINE_UNQUOTED(SHUTDOWN_TTY, "$SHUTDOWN_TTY", [TTY to use in shutdown mode])
 
-AC_CHECK_HEADERS([sys/io.h])
-AM_CONDITIONAL([BUILD_VGA16FB], [test "x$ac_cv_header_sys_io_h" = xyes])
-
 # Turn on the additional warnings last, so -Werror doesn't affect other tests.
 
 AC_DEFUN([PLYMOUTH_CC_TRY_FLAG], [
@@ -267,11 +264,9 @@ AC_CONFIG_FILES([Makefile
            src/plugins/renderers/frame-buffer/Makefile
            src/plugins/renderers/drm/Makefile
            src/plugins/renderers/x11/Makefile
-           src/plugins/renderers/vga16fb/Makefile
            src/plugins/splash/Makefile
            src/plugins/splash/throbgress/Makefile
            src/plugins/splash/fade-throbber/Makefile
-           src/plugins/splash/ubuntu-text/Makefile
            src/plugins/splash/text/Makefile
            src/plugins/splash/details/Makefile
            src/plugins/splash/space-flares/Makefile
@@ -294,8 +289,6 @@ AC_CONFIG_FILES([Makefile
            themes/solar/Makefile
            themes/glow/Makefile
            themes/script/Makefile
-           themes/ubuntu-logo/Makefile
-           themes/ubuntu-text/Makefile
            images/Makefile
 	   scripts/plymouth-generate-initrd
 	   scripts/plymouth-populate-initrd

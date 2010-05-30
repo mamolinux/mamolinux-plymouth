@@ -203,10 +203,7 @@ add_text_display (ply_boot_splash_plugin_t *plugin,
 
   terminal = ply_text_display_get_terminal (view->display);
   if (ply_terminal_open (terminal))
-    {
-      ply_terminal_set_mode (terminal, PLY_TERMINAL_MODE_TEXT);
-      ply_terminal_activate_vt (terminal);
-    }
+    ply_terminal_activate_vt (terminal);
 
   ply_list_append_data (plugin->views, view);
 }
@@ -253,9 +250,12 @@ show_splash_screen (ply_boot_splash_plugin_t *plugin,
                                  detach_from_event_loop,
                                  plugin);
 
-  size = ply_buffer_get_size (boot_buffer);
+  if (boot_buffer)
+    {
+      size = ply_buffer_get_size (boot_buffer);
 
-  write_on_views (plugin, ply_buffer_get_bytes (boot_buffer), size);
+      write_on_views (plugin, ply_buffer_get_bytes (boot_buffer), size);
+    }
 
   return true;
 }

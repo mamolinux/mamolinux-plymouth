@@ -1,0 +1,20 @@
+plymouth for Debian
+-------------------
+
+The following steps are required in order to enable the plymouth bootsplash:
+
+  * plymouth 0.7 works only with KMS (kernel mode setting). Make sure to have
+    it enabled in your initrd with the following lines in
+    /etc/initramfs-tools/modules and don't forget to update your initrd by
+    running 'update-initramfs -u' as root afterwards.
+
+    # KMS
+    intel_agp
+    drm
+    i915 modeset=1
+
+  * Install plymouth and one or more of the themes packages.
+  * Add 'splash' as boot parameter in your bootloader configuration.
+  * Configure the default theme by running plymouth-set-default-theme.
+
+ -- Daniel Baumann <daniel@debian.org>  Sun, 14 Mar 2010 18:52:25 +0100
