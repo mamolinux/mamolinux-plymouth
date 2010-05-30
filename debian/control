@@ -1,186 +1,130 @@
 Source: plymouth
-Section: x11
+Section: misc
 Priority: optional
-Maintainer: Ubuntu Core Developers <ubuntu-devel-discuss@lists.ubuntu.com>
-Build-Depends: debhelper (>= 7.3.15ubuntu3), libpng12-dev, libcairo2-dev, libgtk2.0-dev, libpango1.0-dev, autotools-dev, libdrm-dev
-Standards-Version: 3.8.3.0
+Maintainer: Daniel Baumann <daniel@lists.debian-maintainers.org>
+Uploaders: Daniel Baumann <daniel@debian.org>
+Build-Depends:
+ debhelper (>= 7.0.50~), autotools-dev, libdrm-dev, libgtk2.0-dev,
+ libpango1.0-dev (>= 1.21), libpng-dev, pkg-config, sharutils, quilt (>= 0.46-7)
+Standards-Version: 3.8.4
+Homepage: http://www.freedesktop.org/wiki/Software/Plymouth
+Vcs-Browser: http://git.debian-maintainers.org/?p=daniel/plymouth.git
+Vcs-Git: git://git.debian-maintainers.org/git/daniel/plymouth.git
 
 Package: plymouth
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libplymouth2 (= ${binary:Version}), libdrm-intel1 | libdrm-radeon1 | libdrm-nouveau1, udev (>= 149-2), mountall (>= 2.0), initramfs-tools
-Recommends: plymouth-theme-ubuntu-text | plymouth-theme
-Conflicts: usplash
-Breaks: gdm (<< 2.29.1-0ubuntu4), kdm (<< 4:4.4.2-0ubuntu6), ubuntustudio-plymouth-theme (<= 0.38), xubuntu-plymouth-theme (<< 10.04.4), lubuntu-plymouth-theme (<= 0.4)
-Description: graphical boot animation and logger - main package
- Plymouth is an application that runs very early in the boot process
- (even before the root filesystem is mounted!) that provides a graphical
- boot animation while the boot process happens in the background.
+Depends: ${misc:Depends}, ${shlibs:Depends}, initramfs-tools
+Conflicts:
+ plymouth-plugins-fade-in, plymouth-plugins-glow, plymouth-plugins-label,
+ plymouth-plugins-script, plymouth-plugins-solar, plymouth-plugins-spinfinity
+Replaces:
+ plymouth-plugins-fade-in, plymouth-plugins-glow, plymouth-plugins-label,
+ plymouth-plugins-script, plymouth-plugins-solar, plymouth-plugins-spinfinity
+Recommends: plymouth-themes-all
+Suggests: gdm
+Description: Graphical Boot Animation and Logger
+ Plymouth provides an attractive graphical boot animation in place of the text
+ messages that normally get shown. Text messages are instead redirected to a log
+ file for viewing after boot.
 
 Package: plymouth-x11
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libplymouth2 (= ${binary:Version}), plymouth (= ${binary:Version})
-Replaces: plymouth (<< 0.8.0~-9)
-Description: graphical boot animation and logger - X11 interface
- Plymouth is an application that runs very early in the boot process
- (even before the root filesystem is mounted!) that provides a graphical
- boot animation while the boot process happens in the background.
+Depends: ${misc:Depends}, ${shlibs:Depends}, plymouth (= ${binary:Version})
+Suggests: gdm
+Description: Graphical Boot Animation and Logger
+ Plymouth provides an attractive graphical boot animation in place of the text
+ messages that normally get shown. Text messages are instead redirected to a log
+ file for viewing after boot.
  .
- This package contains the X11 renderer, which allows plymouth to interact
- with running X sessions.
+ This package contains the x11 renderer and the log viewer.
 
-Package: plymouth-label
+Package: plymouth-dev
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libplymouth2 (= ${binary:Version}), plymouth (= ${binary:Version})
-Replaces: plymouth (<< 0.8.1-4)
-Description: graphical boot animation and logger - label control
- Plymouth is an application that runs very early in the boot process
- (even before the root filesystem is mounted!) that provides a graphical
- boot animation while the boot process happens in the background.
+Depends: ${misc:Depends}, plymouth (= ${binary:Version})
+Description: Graphical Boot Animation and Logger (development)
+ Plymouth provides an attractive graphical boot animation in place of the text
+ messages that normally get shown. Text messages are instead redirected to a log
+ file for viewing after boot.
  .
- This package contains the label control, used by various graphical themes
- to render text.
+ This package contains the development files.
 
-Package: libplymouth2
-Architecture: any
-Section: libs
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Replaces: plymouth (<< 0.7.0+git20090207-0ubuntu0.1~ppa4)
-Breaks: mountall (<< 2.8), casper (= 1.227)
-Description: graphical boot animation and logger - shared libraries
- Plymouth is an application that runs very early in the boot process
- (even before the root filesystem is mounted!) that provides a graphical
- boot animation while the boot process happens in the background.
+Package: plymouth-themes-all
+Architecture: all
+Depends:
+ ${misc:Depends}, plymouth-themes-fade-in, plymouth-themes-glow,
+ plymouth-themes-script, plymouth-themes-solar, plymouth-themes-spinfinity
+Description: Graphical Boot Animation and Logger (themes metapackage)
+ Plymouth provides an attractive graphical boot animation in place of the text
+ messages that normally get shown. Text messages are instead redirected to a log
+ file for viewing after boot.
  .
- This package contains the shared libraries.
+ This package is a metapackage depending on all available themes.
 
-Package: libplymouth-dev
-Architecture: any
-Section: libdevel
-Depends: ${shlibs:Depends}, ${misc:Depends}, libplymouth2 (= ${binary:Version})
-Replaces: plymouth (<< 0.7.0+git20090207-0ubuntu0.1~ppa4)
-Description: graphical boot animation and logger - development files
- Plymouth is an application that runs very early in the boot process
- (even before the root filesystem is mounted!) that provides a graphical
- boot animation while the boot process happens in the background.
- .
- This package contains the development files to build Plymouth plugins.
-
-Package: plymouth-theme-fade-in
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, plymouth, plymouth-label
+Package: plymouth-themes-fade-in
+Architecture: all
+Depends: ${misc:Depends}, plymouth (>= ${source:Version})
+Conflicts: plymouth-plugins-fade-in
+Replaces: plymouth-plugins-fade-in
 Provides: plymouth-theme
-Replaces: plymouth (<< 0.8.1-1~)
-Description: graphical boot animation and logger - fade-in theme
- Plymouth is an application that runs very early in the boot process
- (even before the root filesystem is mounted!) that provides a graphical
- boot animation while the boot process happens in the background.
+Description: Graphical Boot Animation and Logger (fad-in theme)
+ Plymouth provides an attractive graphical boot animation in place of the text
+ messages that normally get shown. Text messages are instead redirected to a log
+ file for viewing after boot.
  .
- This package contains the fade-in theme that features a centred logo
- which fades in and out while stars twinkle around it.
- .
- These theme may not correctly display messages from filesystem
- decryption, checking or error handling.
+ This package contains the fade-in theme. It features a centered logo that
+ fades in and out while stars twinkle around the logo during system boot up.
 
-Package: plymouth-theme-glow
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, plymouth, plymouth-label
+Package: plymouth-themes-glow
+Architecture: all
+Depends: ${misc:Depends}, plymouth (>= ${source:Version})
+Conflicts: plymouth-plugins-glow
+Replaces: plymouth-plugins-glow
 Provides: plymouth-theme
-Replaces: plymouth (<< 0.8.1-1~)
-Description: graphical boot animation and logger - glow theme
- Plymouth is an application that runs very early in the boot process
- (even before the root filesystem is mounted!) that provides a graphical
- boot animation while the boot process happens in the background.
+Description: Graphical Boot Animation and Logger (glow theme)
+ Plymouth provides an attractive graphical boot animation in place of the text
+ messages that normally get shown. Text messages are instead redirected to a log
+ file for viewing after boot.
  .
- This package contains the glow theme that features a corporate-looking
- pie chart for boot progress followed by a glowing logo once boot finishes.
- .
- These theme may not correctly display messages from filesystem
- decryption, checking or error handling.
+ This package contains the glow theme. It features a pie chart as progress
+ indicator.
 
-Package: plymouth-theme-script
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, plymouth, plymouth-label
+Package: plymouth-themes-script
+Architecture: all
+Depends: ${misc:Depends}, plymouth (>= ${source:Version})
+Conflicts: plymouth-plugins-script
+Replaces: plymouth-plugins-script
 Provides: plymouth-theme
-Replaces: plymouth (<< 0.8.1-1~)
-Description: graphical boot animation and logger - script theme
- Plymouth is an application that runs very early in the boot process
- (even before the root filesystem is mounted!) that provides a graphical
- boot animation while the boot process happens in the background.
+Description: Graphical Boot Animation and Logger (script theme)
+ Plymouth provides an attractive graphical boot animation in place of the text
+ messages that normally get shown. Text messages are instead redirected to a log
+ file for viewing after boot.
  .
- This package contains the example script theme, useful for theme developers.
- .
- These theme may not correctly display messages from filesystem
- decryption, checking or error handling.
+ This package contains the script theme. It features a simple base theme.
 
-Package: plymouth-theme-solar
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, plymouth, plymouth-label
+Package: plymouth-themes-solar
+Architecture: all
+Depends: ${misc:Depends}, plymouth (>= ${source:Version})
+Conflicts: plymouth-plugins-solar
+Replaces: plymouth-plugins-solar
 Provides: plymouth-theme
-Description: graphical boot animation and logger - solar theme
- Plymouth is an application that runs very early in the boot process
- (even before the root filesystem is mounted!) that provides a graphical
- boot animation while the boot process happens in the background.
+Description: Graphical Boot Animation and Logger (solar theme)
+ Plymouth provides an attractive graphical boot animation in place of the text
+ messages that normally get shown. Text messages are instead redirected to a log
+ file for viewing after boot.
  .
- This package contains the solar theme that features a violent blue
- flaring star, and other space-like animations.
- .
- These theme may not correctly display messages from filesystem
- decryption, checking or error handling.
+ This package contains the solar theme. It features a blue flamed sun with
+ animated solar flares.
 
-Package: plymouth-theme-spinfinity
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, plymouth, plymouth-label
+Package: plymouth-themes-spinfinity
+Architecture: all
+Depends: ${misc:Depends}, plymouth (>= ${source:Version})
+Conflicts: plymouth-plugins-spinfinity
+Replaces: plymouth-plugins-spinfinity
 Provides: plymouth-theme
-Replaces: plymouth (<< 0.8.1-1~)
-Description: graphical boot animation and logger - spinfinity theme
- Plymouth is an application that runs very early in the boot process
- (even before the root filesystem is mounted!) that provides a graphical
- boot animation while the boot process happens in the background.
+Description: Graphical Boot Animation and Logger (spinfinity theme)
+ Plymouth provides an attractive graphical boot animation in place of the text
+ messages that normally get shown. Text messages are instead redirected to a log
+ file for viewing after boot.
  .
- This package contains the spinfinity theme that features a rotating
- infinity sign beneath the logo.
- .
- These theme may not correctly display messages from filesystem
- decryption, checking or error handling.
-
-Package: plymouth-theme-ubuntu-logo
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, plymouth, plymouth-label
-Provides: plymouth-theme
-Replaces: plymouth (<< 0.8.1-1~)
-Description: graphical boot animation and logger - ubuntu-logo theme
- Plymouth is an application that runs very early in the boot process
- (even before the root filesystem is mounted!) that provides a graphical
- boot animation while the boot process happens in the background.
- .
- This package contains the default ubuntu-logo theme.
-
-Package: plymouth-theme-text
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, plymouth
-Provides: plymouth-theme
-Replaces: plymouth (<< 0.8.1-1~)
-Description: graphical boot animation and logger - text theme
- Plymouth is an application that runs very early in the boot process
- (even before the root filesystem is mounted!) that provides a graphical
- boot animation while the boot process happens in the background.
- .
- This package contains the text theme used when no support for a
- graphical theme is found on your system.
- .
- These theme may not correctly display messages from filesystem
- decryption, checking or error handling.
-
-Package: plymouth-theme-ubuntu-text
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, plymouth
-Provides: plymouth-theme
-Replaces: plymouth (<< 0.8.1-1~)
-Description: graphical boot animation and logger - ubuntu-logo theme
- Plymouth is an application that runs very early in the boot process
- (even before the root filesystem is mounted!) that provides a graphical
- boot animation while the boot process happens in the background.
- .
- This package contains the default ubuntu-text text theme used when no
- support for a graphical theme is found on your system.
-
+ This package contains the spinfinity theme. It features a centered logo and
+ animated spinner that spins in the shape of an infinity sign.
