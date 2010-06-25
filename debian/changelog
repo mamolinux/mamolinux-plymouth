@@ -1,3 +1,10 @@
+plymouth (0.8.2-2ubuntu3) maverick; urgency=low
+
+  * src/plugins/splash/ubuntu-text/plugin.c: Change Ubuntu version to 10.10
+    (LP: #588633).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Fri, 25 Jun 2010 15:56:04 +0100
+
 plymouth (0.8.2-2ubuntu2) lucid; urgency=low
 
   * Don't call ply_boot_client_process_pending_requests on flush, because
