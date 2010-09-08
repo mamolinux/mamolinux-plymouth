@@ -1,3 +1,11 @@
+plymouth (0.8.2-2ubuntu4) maverick; urgency=low
+
+  * src/plugins/splash/details/plugin.c: Implement display_message, either
+    by displaying it immediately or by queueing it for later display in the
+    event that we're already waiting for user input (LP: #563916).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Wed, 08 Sep 2010 01:20:35 +0100
+
 plymouth (0.8.2-2ubuntu3) maverick; urgency=low
 
   * src/plugins/splash/ubuntu-text/plugin.c: Change Ubuntu version to 10.10
