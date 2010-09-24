@@ -1,0 +1,4 @@
+[Plymouth Theme]
+Name=Kubuntu Text
+Description=Text mode theme based on kubuntu-logo theme
+ModuleName=kubuntu-text

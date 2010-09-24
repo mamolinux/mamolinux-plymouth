@@ -1,3 +1,9 @@
+plymouth (0.8.2-2ubuntu5) maverick; urgency=low
+
+  * Add kubuntu-text theme, closes LP: #613636
+
+ -- Jonathan Riddell <jriddell@ubuntu.com>  Fri, 24 Sep 2010 13:07:19 +0100
+
 plymouth (0.8.2-2ubuntu4) maverick; urgency=low
 
   * src/plugins/splash/details/plugin.c: Implement display_message, either
