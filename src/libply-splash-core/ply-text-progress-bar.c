@@ -109,15 +109,7 @@ get_os_string (void)
    read(fd, buf, sbuf.st_size);
    close(fd);
    
-   pos = strstr(buf, " release ");
-   if (!pos) goto out;
-   pos2 = strstr(pos, " (");
-   if (!pos2) goto out;
-   *pos = '\0';
-   pos+= 9;
-   *pos2 = '\0';
-   asprintf(&os_string," %s %s", buf, pos);
-out:
+   asprintf(&os_string," Debian %s", buf);
    free(buf);
 }
 
