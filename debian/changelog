@@ -1,3 +1,11 @@
+plymouth (0.8.2-2ubuntu2.2) lucid-proposed; urgency=low
+
+  * src/plugins/splash/details/plugin.c: Implement display_message, either
+    by displaying it immediately or by queueing it for later display in the
+    event that we're already waiting for user input (LP: #563916).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Tue, 23 Nov 2010 11:05:04 +0000
+
 plymouth (0.8.2-2ubuntu2.1) lucid-proposed; urgency=low
 
   * Generate a dummy NSS stack in the initrd to suppress a glib warning
