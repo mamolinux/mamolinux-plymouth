@@ -1,3 +1,11 @@
+plymouth (0.8.2-2ubuntu6) natty; urgency=low
+
+  * debian/plymouth.plymouth-stop.upstart:
+  * debian/plymouth.upstart:
+    - Add LightDM
+
+ -- Robert Ancell <robert.ancell@canonical.com>  Wed, 01 Dec 2010 14:52:57 +1100
+
 plymouth (0.8.2-2ubuntu5.1) maverick-proposed; urgency=low
 
   * Generate a dummy NSS stack in the initrd to suppress a glib warning
