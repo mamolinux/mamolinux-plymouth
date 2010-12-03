@@ -10,6 +10,7 @@ start on (starting gdm
           or starting xdm
           or starting lxdm
           or starting lightdm
+          or starting uxlaunch
           or starting ubiquity
           or starting oem-config
           or stopped rc RUNLEVEL=[2345]

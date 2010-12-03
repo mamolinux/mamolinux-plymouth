@@ -13,7 +13,8 @@ start on (starting mountall
                    or stopped kdm
                    or stopped xdm
                    or stopped lxdm
-                   or stopped lightdm)))
+                   or stopped lightdm
+                   or stopped uxlaunch)))
 
 expect fork
 kill timeout 60

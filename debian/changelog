@@ -1,3 +1,18 @@
+plymouth (0.8.2-2ubuntu7) natty; urgency=low
+
+  [ Steve Langasek ]
+  * Refactor ubuntu-text theme to allow setting colors and text via settings
+    in the plymouth theme file, and have plymouth-theme-kubuntu-text depend
+    on ubuntu-text instead of duplicating the code.
+  * Bump the version strings from 10.10 to 11.04.  LP: #683994.
+
+  [ Michael Terry ]
+  * debian/plymouth.plymouth-stop.upstart,
+    debian/plymouth.upstart:
+    - Recognize uxlaunch as a display manager. (LP: #609163)
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Fri, 03 Dec 2010 15:06:17 -0800
+
 plymouth (0.8.2-2ubuntu6) natty; urgency=low
 
   * debian/plymouth.plymouth-stop.upstart:
