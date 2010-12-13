@@ -1,3 +1,12 @@
+plymouth (0.8.2-2ubuntu8) natty; urgency=low
+
+  * Adjust ubuntu-logo background colour very slightly: the official "dark
+    aubergine" background colour value is #2c001e, whose red component is
+    closer to 17% than 16%.  The difference is noticeable when GRUB is set
+    up to show its own background colour.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Mon, 13 Dec 2010 13:57:26 +0000
+
 plymouth (0.8.2-2ubuntu7) natty; urgency=low
 
   [ Steve Langasek ]
