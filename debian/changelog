@@ -1,3 +1,15 @@
+plymouth (0.8.2-2ubuntu9) natty; urgency=low
+
+  [ Steve Langasek ]
+  * debian/control: set Vcs-Bzr to forestall future mis-uploads
+
+  [ Martin Pitt ]
+  * Add gcc45-arith-workaround.patch: Work around a gcc-4.5 behaviour
+    change/bug(?). Also, this change is actually correct, as the arithmethics
+    can easily overflow a 16 bit value. (LP: #685352)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Fri, 14 Jan 2011 12:09:05 -0600
+
 plymouth (0.8.2-2ubuntu8) natty; urgency=low
 
   * Adjust ubuntu-logo background colour very slightly: the official "dark
