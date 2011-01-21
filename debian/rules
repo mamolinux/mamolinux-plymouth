@@ -38,7 +38,8 @@ override_dh_auto_configure:
 		--with-background-start-color-stop=0x2c001e \
 		--with-background-end-color-stop=0x2c001e \
 		--with-boot-tty=/dev/tty7 \
-		--with-shutdown-tty=/dev/tty7
+		--with-shutdown-tty=/dev/tty7 \
+		--enable-upstart-monitoring
 
 override_dh_auto_install:
 	dh_auto_install
@@ -60,6 +61,7 @@ override_dh_installinit:
 	dh_installinit --name=plymouth-log --noscripts
 	dh_installinit --name=plymouth-splash --noscripts
 	dh_installinit --name=plymouth-stop --noscripts
+	dh_installinit --name=plymouth-upstart-bridge --noscripts
 
 # Make the initramfs scripts executable
 override_dh_fixperms:
