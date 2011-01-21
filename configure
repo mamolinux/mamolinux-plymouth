@@ -772,6 +772,11 @@ plymouthdaemondir
 plymouthclientdir
 WITH_SYSTEM_ROOT_INSTALL_FALSE
 WITH_SYSTEM_ROOT_INSTALL_TRUE
+ENABLE_UPSTART_MONITORING_FALSE
+ENABLE_UPSTART_MONITORING_TRUE
+CURSES_LIBS
+DBUS_LIBS
+DBUS_CFLAGS
 ENABLE_TESTS_FALSE
 ENABLE_TESTS_TRUE
 DRM_LIBS
@@ -814,6 +819,8 @@ build_vendor
 build_cpu
 build
 LIBTOOL
+PKG_CONFIG_LIBDIR
+PKG_CONFIG_PATH
 PKG_CONFIG
 MAINT
 MAINTAINER_MODE_FALSE
@@ -916,6 +923,7 @@ enable_pango
 enable_tracing
 enable_tests
 enable_gdm_transition
+enable_upstart_monitoring
 with_system_root_install
 with_rhgb_compat_link
 with_gdm_autostart_file
@@ -938,6 +946,8 @@ LIBS
 CPPFLAGS
 CPP
 PKG_CONFIG
+PKG_CONFIG_PATH
+PKG_CONFIG_LIBDIR
 IMAGE_CFLAGS
 IMAGE_LIBS
 PANGO_CFLAGS
@@ -945,7 +955,9 @@ PANGO_LIBS
 GTK_CFLAGS
 GTK_LIBS
 DRM_CFLAGS
-DRM_LIBS'
+DRM_LIBS
+DBUS_CFLAGS
+DBUS_LIBS'
 
 
 # Initialize some variables set by options.
@@ -1582,6 +1594,8 @@ Optional Features:
   --enable-tracing        enable verbose tracing code
   --enable-tests          build tests
   --enable-gdm-transition enable smooth transition to gdm
+  --enable-upstart-monitoring
+                          listen for messages on the Upstart D-Bus interface
   --enable-more-warnings  Maximum compiler warnings
 
 Optional Packages:
@@ -1621,6 +1635,10 @@ Some influential environment variables:
               you have headers in a nonstandard directory <include dir>
   CPP         C preprocessor
   PKG_CONFIG  path to pkg-config utility
+  PKG_CONFIG_PATH
+              directories to add to pkg-config's search path
+  PKG_CONFIG_LIBDIR
+              path overriding pkg-config's built-in search path
   IMAGE_CFLAGS
               C compiler flags for IMAGE, overriding pkg-config
   IMAGE_LIBS  linker flags for IMAGE, overriding pkg-config
@@ -1631,6 +1649,8 @@ Some influential environment variables:
   GTK_LIBS    linker flags for GTK, overriding pkg-config
   DRM_CFLAGS  C compiler flags for DRM, overriding pkg-config
   DRM_LIBS    linker flags for DRM, overriding pkg-config
+  DBUS_CFLAGS C compiler flags for DBUS, overriding pkg-config
+  DBUS_LIBS   linker flags for DBUS, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -5261,6 +5281,10 @@ fi
 
 
 
+
+
+
+
 if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
 	if test -n "$ac_tool_prefix"; then
   # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
@@ -5373,7 +5397,6 @@ $as_echo "yes" >&6; }
 $as_echo "no" >&6; }
 		PKG_CONFIG=""
 	fi
-
 fi
 case `pwd` in
   *\ * | *\	*)
@@ -5925,13 +5948,13 @@ if test "${lt_cv_nm_interface+set}" = set; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:5928: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:5951: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5931: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:5954: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:5934: output\"" >&5)
+  (eval echo "\"\$as_me:5957: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -7136,7 +7159,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 7139 "configure"' > conftest.$ac_ext
+  echo '#line 7162 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -8394,11 +8417,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8397: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8420: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8401: \$? = $ac_status" >&5
+   echo "$as_me:8424: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8733,11 +8756,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8736: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8759: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:8740: \$? = $ac_status" >&5
+   echo "$as_me:8763: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -8838,11 +8861,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8841: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8864: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8845: \$? = $ac_status" >&5
+   echo "$as_me:8868: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -8893,11 +8916,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:8896: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:8919: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:8900: \$? = $ac_status" >&5
+   echo "$as_me:8923: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -11277,7 +11300,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11280 "configure"
+#line 11303 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11373,7 +11396,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 11376 "configure"
+#line 11399 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -11622,11 +11645,10 @@ pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for IMAGE" >&5
 $as_echo_n "checking for IMAGE... " >&6; }
 
-if test -n "$PKG_CONFIG"; then
-    if test -n "$IMAGE_CFLAGS"; then
-        pkg_cv_IMAGE_CFLAGS="$IMAGE_CFLAGS"
-    else
-        if test -n "$PKG_CONFIG" && \
+if test -n "$IMAGE_CFLAGS"; then
+    pkg_cv_IMAGE_CFLAGS="$IMAGE_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libpng >= 1.2.16 \""; } >&5
   ($PKG_CONFIG --exists --print-errors "libpng >= 1.2.16 ") 2>&5
   ac_status=$?
@@ -11636,15 +11658,13 @@ if test -n "$PKG_CONFIG"; then
 else
   pkg_failed=yes
 fi
-    fi
-else
-	pkg_failed=untried
+ else
+    pkg_failed=untried
 fi
-if test -n "$PKG_CONFIG"; then
-    if test -n "$IMAGE_LIBS"; then
-        pkg_cv_IMAGE_LIBS="$IMAGE_LIBS"
-    else
-        if test -n "$PKG_CONFIG" && \
+if test -n "$IMAGE_LIBS"; then
+    pkg_cv_IMAGE_LIBS="$IMAGE_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libpng >= 1.2.16 \""; } >&5
   ($PKG_CONFIG --exists --print-errors "libpng >= 1.2.16 ") 2>&5
   ac_status=$?
@@ -11654,14 +11674,15 @@ if test -n "$PKG_CONFIG"; then
 else
   pkg_failed=yes
 fi
-    fi
-else
-	pkg_failed=untried
+ else
+    pkg_failed=untried
 fi
 
 
 
 if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
         _pkg_short_errors_supported=yes
@@ -11669,9 +11690,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        IMAGE_PKG_ERRORS=`$PKG_CONFIG --short-errors --errors-to-stdout --print-errors "libpng >= 1.2.16 "`
+	        IMAGE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "libpng >= 1.2.16 " 2>&1`
         else
-	        IMAGE_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "libpng >= 1.2.16 "`
+	        IMAGE_PKG_ERRORS=`$PKG_CONFIG --print-errors "libpng >= 1.2.16 " 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$IMAGE_PKG_ERRORS" >&5
@@ -11685,9 +11706,10 @@ installed software in a non-standard prefix.
 
 Alternatively, you may set the environment variables IMAGE_CFLAGS
 and IMAGE_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details.
-" "$LINENO" 5
+See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
@@ -11705,7 +11727,7 @@ else
 	IMAGE_LIBS=$pkg_cv_IMAGE_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	:
+
 fi
 
 
@@ -11738,11 +11760,10 @@ pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PANGO" >&5
 $as_echo_n "checking for PANGO... " >&6; }
 
-if test -n "$PKG_CONFIG"; then
-    if test -n "$PANGO_CFLAGS"; then
-        pkg_cv_PANGO_CFLAGS="$PANGO_CFLAGS"
-    else
-        if test -n "$PKG_CONFIG" && \
+if test -n "$PANGO_CFLAGS"; then
+    pkg_cv_PANGO_CFLAGS="$PANGO_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"pangocairo >= 1.21.0 \""; } >&5
   ($PKG_CONFIG --exists --print-errors "pangocairo >= 1.21.0 ") 2>&5
   ac_status=$?
@@ -11752,15 +11773,13 @@ if test -n "$PKG_CONFIG"; then
 else
   pkg_failed=yes
 fi
-    fi
-else
-	pkg_failed=untried
+ else
+    pkg_failed=untried
 fi
-if test -n "$PKG_CONFIG"; then
-    if test -n "$PANGO_LIBS"; then
-        pkg_cv_PANGO_LIBS="$PANGO_LIBS"
-    else
-        if test -n "$PKG_CONFIG" && \
+if test -n "$PANGO_LIBS"; then
+    pkg_cv_PANGO_LIBS="$PANGO_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"pangocairo >= 1.21.0 \""; } >&5
   ($PKG_CONFIG --exists --print-errors "pangocairo >= 1.21.0 ") 2>&5
   ac_status=$?
@@ -11770,14 +11789,15 @@ if test -n "$PKG_CONFIG"; then
 else
   pkg_failed=yes
 fi
-    fi
-else
-	pkg_failed=untried
+ else
+    pkg_failed=untried
 fi
 
 
 
 if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
         _pkg_short_errors_supported=yes
@@ -11785,9 +11805,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        PANGO_PKG_ERRORS=`$PKG_CONFIG --short-errors --errors-to-stdout --print-errors "pangocairo >= 1.21.0 "`
+	        PANGO_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "pangocairo >= 1.21.0 " 2>&1`
         else
-	        PANGO_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "pangocairo >= 1.21.0 "`
+	        PANGO_PKG_ERRORS=`$PKG_CONFIG --print-errors "pangocairo >= 1.21.0 " 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$PANGO_PKG_ERRORS" >&5
@@ -11801,9 +11821,10 @@ installed software in a non-standard prefix.
 
 Alternatively, you may set the environment variables PANGO_CFLAGS
 and PANGO_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details.
-" "$LINENO" 5
+See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
@@ -11821,7 +11842,7 @@ else
 	PANGO_LIBS=$pkg_cv_PANGO_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	:
+
 fi
 
 
@@ -11832,11 +11853,10 @@ pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for GTK" >&5
 $as_echo_n "checking for GTK... " >&6; }
 
-if test -n "$PKG_CONFIG"; then
-    if test -n "$GTK_CFLAGS"; then
-        pkg_cv_GTK_CFLAGS="$GTK_CFLAGS"
-    else
-        if test -n "$PKG_CONFIG" && \
+if test -n "$GTK_CFLAGS"; then
+    pkg_cv_GTK_CFLAGS="$GTK_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk+-2.0 >= 2.12.0 \""; } >&5
   ($PKG_CONFIG --exists --print-errors "gtk+-2.0 >= 2.12.0 ") 2>&5
   ac_status=$?
@@ -11846,15 +11866,13 @@ if test -n "$PKG_CONFIG"; then
 else
   pkg_failed=yes
 fi
-    fi
-else
-	pkg_failed=untried
+ else
+    pkg_failed=untried
 fi
-if test -n "$PKG_CONFIG"; then
-    if test -n "$GTK_LIBS"; then
-        pkg_cv_GTK_LIBS="$GTK_LIBS"
-    else
-        if test -n "$PKG_CONFIG" && \
+if test -n "$GTK_LIBS"; then
+    pkg_cv_GTK_LIBS="$GTK_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gtk+-2.0 >= 2.12.0 \""; } >&5
   ($PKG_CONFIG --exists --print-errors "gtk+-2.0 >= 2.12.0 ") 2>&5
   ac_status=$?
@@ -11864,14 +11882,15 @@ if test -n "$PKG_CONFIG"; then
 else
   pkg_failed=yes
 fi
-    fi
-else
-	pkg_failed=untried
+ else
+    pkg_failed=untried
 fi
 
 
 
 if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
         _pkg_short_errors_supported=yes
@@ -11879,9 +11898,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        GTK_PKG_ERRORS=`$PKG_CONFIG --short-errors --errors-to-stdout --print-errors "gtk+-2.0 >= 2.12.0 "`
+	        GTK_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "gtk+-2.0 >= 2.12.0 " 2>&1`
         else
-	        GTK_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gtk+-2.0 >= 2.12.0 "`
+	        GTK_PKG_ERRORS=`$PKG_CONFIG --print-errors "gtk+-2.0 >= 2.12.0 " 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$GTK_PKG_ERRORS" >&5
@@ -11895,9 +11914,10 @@ installed software in a non-standard prefix.
 
 Alternatively, you may set the environment variables GTK_CFLAGS
 and GTK_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details.
-" "$LINENO" 5
+See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
@@ -11915,7 +11935,7 @@ else
 	GTK_LIBS=$pkg_cv_GTK_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	:
+
 fi
 
 
@@ -11925,11 +11945,10 @@ pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for DRM" >&5
 $as_echo_n "checking for DRM... " >&6; }
 
-if test -n "$PKG_CONFIG"; then
-    if test -n "$DRM_CFLAGS"; then
-        pkg_cv_DRM_CFLAGS="$DRM_CFLAGS"
-    else
-        if test -n "$PKG_CONFIG" && \
+if test -n "$DRM_CFLAGS"; then
+    pkg_cv_DRM_CFLAGS="$DRM_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libdrm libdrm_intel libdrm_radeon libdrm_nouveau\""; } >&5
   ($PKG_CONFIG --exists --print-errors "libdrm libdrm_intel libdrm_radeon libdrm_nouveau") 2>&5
   ac_status=$?
@@ -11939,15 +11958,13 @@ if test -n "$PKG_CONFIG"; then
 else
   pkg_failed=yes
 fi
-    fi
-else
-	pkg_failed=untried
+ else
+    pkg_failed=untried
 fi
-if test -n "$PKG_CONFIG"; then
-    if test -n "$DRM_LIBS"; then
-        pkg_cv_DRM_LIBS="$DRM_LIBS"
-    else
-        if test -n "$PKG_CONFIG" && \
+if test -n "$DRM_LIBS"; then
+    pkg_cv_DRM_LIBS="$DRM_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libdrm libdrm_intel libdrm_radeon libdrm_nouveau\""; } >&5
   ($PKG_CONFIG --exists --print-errors "libdrm libdrm_intel libdrm_radeon libdrm_nouveau") 2>&5
   ac_status=$?
@@ -11957,14 +11974,15 @@ if test -n "$PKG_CONFIG"; then
 else
   pkg_failed=yes
 fi
-    fi
-else
-	pkg_failed=untried
+ else
+    pkg_failed=untried
 fi
 
 
 
 if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
         _pkg_short_errors_supported=yes
@@ -11972,9 +11990,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        DRM_PKG_ERRORS=`$PKG_CONFIG --short-errors --errors-to-stdout --print-errors "libdrm libdrm_intel libdrm_radeon libdrm_nouveau"`
+	        DRM_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "libdrm libdrm_intel libdrm_radeon libdrm_nouveau" 2>&1`
         else
-	        DRM_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "libdrm libdrm_intel libdrm_radeon libdrm_nouveau"`
+	        DRM_PKG_ERRORS=`$PKG_CONFIG --print-errors "libdrm libdrm_intel libdrm_radeon libdrm_nouveau" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$DRM_PKG_ERRORS" >&5
@@ -11988,9 +12006,10 @@ installed software in a non-standard prefix.
 
 Alternatively, you may set the environment variables DRM_CFLAGS
 and DRM_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details.
-" "$LINENO" 5
+See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
@@ -12008,7 +12027,7 @@ else
 	DRM_LIBS=$pkg_cv_DRM_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	:
+
 fi
 
 OLD_CFLAGS="$CFLAGS"
@@ -12132,6 +12151,253 @@ if test x$enable_gdm_transition = xyes; then
 $as_echo "#define PLY_ENABLE_GDM_TRANSITION 1" >>confdefs.h
 
 fi
+
+# Check whether --enable-upstart-monitoring was given.
+if test "${enable_upstart_monitoring+set}" = set; then :
+  enableval=$enable_upstart_monitoring; enable_upstart_monitoring=$enableval
+else
+  enable_upstart_monitoring=no
+fi
+
+if test x$enable_upstart_monitoring = xyes; then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for DBUS" >&5
+$as_echo_n "checking for DBUS... " >&6; }
+
+if test -n "$DBUS_CFLAGS"; then
+    pkg_cv_DBUS_CFLAGS="$DBUS_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"dbus-1\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "dbus-1") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_DBUS_CFLAGS=`$PKG_CONFIG --cflags "dbus-1" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$DBUS_LIBS"; then
+    pkg_cv_DBUS_LIBS="$DBUS_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"dbus-1\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "dbus-1") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_DBUS_LIBS=`$PKG_CONFIG --libs "dbus-1" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        DBUS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "dbus-1" 2>&1`
+        else
+	        DBUS_PKG_ERRORS=`$PKG_CONFIG --print-errors "dbus-1" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$DBUS_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (dbus-1) were not met:
+
+$DBUS_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables DBUS_CFLAGS
+and DBUS_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables DBUS_CFLAGS
+and DBUS_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5 ; }
+else
+	DBUS_CFLAGS=$pkg_cv_DBUS_CFLAGS
+	DBUS_LIBS=$pkg_cv_DBUS_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi
+
+
+  for ac_header in ncursesw/term.h ncurses/term.h term.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+ break
+fi
+
+done
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for initscr in -lncursesw" >&5
+$as_echo_n "checking for initscr in -lncursesw... " >&6; }
+if test "${ac_cv_lib_ncursesw_initscr+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lncursesw  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char initscr ();
+int
+main ()
+{
+return initscr ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_ncursesw_initscr=yes
+else
+  ac_cv_lib_ncursesw_initscr=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ncursesw_initscr" >&5
+$as_echo "$ac_cv_lib_ncursesw_initscr" >&6; }
+if test "x$ac_cv_lib_ncursesw_initscr" = x""yes; then :
+  CURSES_LIBS="$CURSES_LIBS -lncursesw"
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for initscr in -lncurses" >&5
+$as_echo_n "checking for initscr in -lncurses... " >&6; }
+if test "${ac_cv_lib_ncurses_initscr+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lncurses  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char initscr ();
+int
+main ()
+{
+return initscr ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_ncurses_initscr=yes
+else
+  ac_cv_lib_ncurses_initscr=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ncurses_initscr" >&5
+$as_echo "$ac_cv_lib_ncurses_initscr" >&6; }
+if test "x$ac_cv_lib_ncurses_initscr" = x""yes; then :
+  CURSES_LIBS="$CURSES_LIBS -lncurses"
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for initscr in -lcurses" >&5
+$as_echo_n "checking for initscr in -lcurses... " >&6; }
+if test "${ac_cv_lib_curses_initscr+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcurses  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char initscr ();
+int
+main ()
+{
+return initscr ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_curses_initscr=yes
+else
+  ac_cv_lib_curses_initscr=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_curses_initscr" >&5
+$as_echo "$ac_cv_lib_curses_initscr" >&6; }
+if test "x$ac_cv_lib_curses_initscr" = x""yes; then :
+  CURSES_LIBS="$CURSES_LIBS -lcurses"
+else
+  as_fn_error $? "no curses library found" "$LINENO" 5
+fi
+
+fi
+
+fi
+
+
+fi
+ if test "$enable_upstart_monitoring" = yes; then
+  ENABLE_UPSTART_MONITORING_TRUE=
+  ENABLE_UPSTART_MONITORING_FALSE='#'
+else
+  ENABLE_UPSTART_MONITORING_TRUE='#'
+  ENABLE_UPSTART_MONITORING_FALSE=
+fi
+
 
 
 # Check whether --with-system-root-install was given.
@@ -12618,7 +12884,7 @@ plymouthconfdir=$sysconfdir/plymouth/
   exec_prefix=$exec_prefix_save
 
 
-ac_config_files="$ac_config_files Makefile src/libply/Makefile src/libply-splash-core/Makefile src/libply-splash-graphics/Makefile src/ply-splash-core.pc src/ply-splash-graphics.pc src/plugins/Makefile src/plugins/renderers/Makefile src/plugins/renderers/frame-buffer/Makefile src/plugins/renderers/drm/Makefile src/plugins/renderers/x11/Makefile src/plugins/renderers/vga16fb/Makefile src/plugins/splash/Makefile src/plugins/splash/throbgress/Makefile src/plugins/splash/fade-throbber/Makefile src/plugins/splash/ubuntu-text/Makefile src/plugins/splash/text/Makefile src/plugins/splash/details/Makefile src/plugins/splash/space-flares/Makefile src/plugins/splash/two-step/Makefile src/plugins/splash/script/Makefile src/plugins/controls/Makefile src/plugins/controls/label/Makefile src/Makefile src/client/ply-boot-client.pc src/client/Makefile src/viewer/Makefile src/tests/Makefile src/libply/tests/Makefile src/client/tests/Makefile themes/Makefile themes/spinfinity/Makefile themes/fade-in/Makefile themes/text/Makefile themes/details/Makefile themes/solar/Makefile themes/glow/Makefile themes/script/Makefile themes/ubuntu-logo/Makefile themes/ubuntu-text/Makefile themes/kubuntu-text/Makefile images/Makefile scripts/plymouth-generate-initrd scripts/plymouth-populate-initrd scripts/plymouth-set-default-theme scripts/Makefile docs/Makefile"
+ac_config_files="$ac_config_files Makefile src/libply/Makefile src/libply-splash-core/Makefile src/libply-splash-graphics/Makefile src/ply-splash-core.pc src/ply-splash-graphics.pc src/plugins/Makefile src/plugins/renderers/Makefile src/plugins/renderers/frame-buffer/Makefile src/plugins/renderers/drm/Makefile src/plugins/renderers/x11/Makefile src/plugins/renderers/vga16fb/Makefile src/plugins/splash/Makefile src/plugins/splash/throbgress/Makefile src/plugins/splash/fade-throbber/Makefile src/plugins/splash/ubuntu-text/Makefile src/plugins/splash/text/Makefile src/plugins/splash/details/Makefile src/plugins/splash/space-flares/Makefile src/plugins/splash/two-step/Makefile src/plugins/splash/script/Makefile src/plugins/controls/Makefile src/plugins/controls/label/Makefile src/Makefile src/client/ply-boot-client.pc src/client/Makefile src/viewer/Makefile src/upstart-bridge/Makefile src/tests/Makefile src/libply/tests/Makefile src/client/tests/Makefile themes/Makefile themes/spinfinity/Makefile themes/fade-in/Makefile themes/text/Makefile themes/details/Makefile themes/solar/Makefile themes/glow/Makefile themes/script/Makefile themes/ubuntu-logo/Makefile themes/ubuntu-text/Makefile themes/kubuntu-text/Makefile images/Makefile scripts/plymouth-generate-initrd scripts/plymouth-populate-initrd scripts/plymouth-set-default-theme scripts/Makefile docs/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -12744,6 +13010,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${ENABLE_TESTS_TRUE}" && test -z "${ENABLE_TESTS_FALSE}"; then
   as_fn_error $? "conditional \"ENABLE_TESTS\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${ENABLE_UPSTART_MONITORING_TRUE}" && test -z "${ENABLE_UPSTART_MONITORING_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_UPSTART_MONITORING\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${WITH_SYSTEM_ROOT_INSTALL_TRUE}" && test -z "${WITH_SYSTEM_ROOT_INSTALL_FALSE}"; then
@@ -13654,6 +13924,7 @@ do
     "src/client/ply-boot-client.pc") CONFIG_FILES="$CONFIG_FILES src/client/ply-boot-client.pc" ;;
     "src/client/Makefile") CONFIG_FILES="$CONFIG_FILES src/client/Makefile" ;;
     "src/viewer/Makefile") CONFIG_FILES="$CONFIG_FILES src/viewer/Makefile" ;;
+    "src/upstart-bridge/Makefile") CONFIG_FILES="$CONFIG_FILES src/upstart-bridge/Makefile" ;;
     "src/tests/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/Makefile" ;;
     "src/libply/tests/Makefile") CONFIG_FILES="$CONFIG_FILES src/libply/tests/Makefile" ;;
     "src/client/tests/Makefile") CONFIG_FILES="$CONFIG_FILES src/client/tests/Makefile" ;;

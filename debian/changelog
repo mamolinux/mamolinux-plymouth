@@ -1,3 +1,9 @@
+plymouth (0.8.2-2ubuntu11) natty; urgency=low
+
+  * Print messages when Upstart jobs start or stop (LP: #616403).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Fri, 21 Jan 2011 18:10:46 +0000
+
 plymouth (0.8.2-2ubuntu10) natty; urgency=low
 
   [ Martin Pitt ]
