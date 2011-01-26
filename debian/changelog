@@ -1,3 +1,9 @@
+plymouth (0.8.2-2ubuntu13) natty; urgency=low
+
+  * Switch dependency from libdrm-nouveau1 to libdrm-nouveau1a.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Wed, 26 Jan 2011 02:30:16 +0000
+
 plymouth (0.8.2-2ubuntu12) natty; urgency=low
 
   * Build-depend on libdbus-1-dev and libncursesw5-dev for the Upstart
