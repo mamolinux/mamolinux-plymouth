@@ -50,7 +50,9 @@ if [ -e "$THEME" ]; then
 
 	# suppress a warning in glib (which the label control uses)
 	# about uid 0 by building a dummy NSS stack (LP #649917)
-	echo 'root:x:0:0:root:/root:/bin/bash' >${DESTDIR}/etc/passwd
+	if ! grep -q '^root:' ${DESTDIR}/etc/passwd 2>/dev/null; then
+	    echo 'root:x:0:0:root:/root:/bin/sh' >${DESTDIR}/etc/passwd
+	fi
 	echo 'passwd: files' >${DESTDIR}/etc/nsswitch.conf
 	for lib in /lib/libnss_files*; do
 	    copy_exec $lib /lib
