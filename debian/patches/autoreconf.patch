@@ -10,10 +10,10 @@ Description: autoreconf output
 Forwarded: not-needed
 Last-Update: 2011-01-21
 
-Index: b/INSTALL
+Index: plymouth/INSTALL
 ===================================================================
---- a/INSTALL
-+++ b/INSTALL
+--- plymouth.orig/INSTALL	2011-02-12 14:48:32.556556021 +0100
++++ plymouth/INSTALL	2011-02-12 14:48:49.856581397 +0100
 @@ -1,91 +1,365 @@
 -Plymouth isn't really designed to be built from source and get installed by end users.  For it to work correctly, it needs integration with the distribution.  Because it starts so early, it needs to be packed into the distribution's initial ram disk, and the distribution needs to poke plymouth to tell it how boot is progressing.
 +Installation Instructions
@@ -467,10 +467,10 @@ Index: b/INSTALL
 -That'd be great!
 -
 ---Ray
-Index: b/aclocal.m4
+Index: plymouth/aclocal.m4
 ===================================================================
---- a/aclocal.m4
-+++ b/aclocal.m4
+--- plymouth.orig/aclocal.m4	2011-02-12 14:48:32.546556012 +0100
++++ plymouth/aclocal.m4	2011-02-12 14:48:49.876581427 +0100
 @@ -13,8 +13,8 @@
  
  m4_ifndef([AC_AUTOCONF_VERSION],
@@ -764,11 +764,22 @@ Index: b/aclocal.m4
  fi[]dnl
  ])# PKG_CHECK_MODULES
  
-Index: b/config.h.in
+Index: plymouth/config.h.in
 ===================================================================
---- a/config.h.in
-+++ b/config.h.in
-@@ -12,6 +12,12 @@
+--- plymouth.orig/config.h.in	2011-02-12 14:48:32.566556039 +0100
++++ plymouth/config.h.in	2011-02-12 14:48:49.876581427 +0100
+@@ -3,6 +3,10 @@
+ /* TTY to use in boot mode */
+ #undef BOOT_TTY
+ 
++/* Define to 1 if you have the declaration of `MSG_NOSIGNAL', and to 0 if you
++   don't. */
++#undef HAVE_DECL_MSG_NOSIGNAL
++
+ /* Define to 1 if you have the <dlfcn.h> header file. */
+ #undef HAVE_DLFCN_H
+ 
+@@ -12,6 +16,12 @@
  /* Define to 1 if you have the <memory.h> header file. */
  #undef HAVE_MEMORY_H
  
@@ -781,7 +792,7 @@ Index: b/config.h.in
  /* Define to 1 if you have the <stdint.h> header file. */
  #undef HAVE_STDINT_H
  
-@@ -24,12 +30,18 @@
+@@ -24,12 +34,18 @@
  /* Define to 1 if you have the <string.h> header file. */
  #undef HAVE_STRING_H
  
@@ -800,7 +811,7 @@ Index: b/config.h.in
  /* Define to 1 if you have the <unistd.h> header file. */
  #undef HAVE_UNISTD_H
  
-@@ -55,6 +67,9 @@
+@@ -55,6 +71,9 @@
  /* Define to the one symbol short name of this package. */
  #undef PACKAGE_TARNAME
  
@@ -810,10 +821,10 @@ Index: b/config.h.in
  /* Define to the version of this package. */
  #undef PACKAGE_VERSION
  
-Index: b/configure
+Index: plymouth/configure
 ===================================================================
---- a/configure
-+++ b/configure
+--- plymouth.orig/configure	2011-02-12 14:48:32.536555993 +0100
++++ plymouth/configure	2011-02-12 14:48:49.906581471 +0100
 @@ -1,20 +1,24 @@
  #! /bin/sh
  # Guess values for system-dependent variables and create Makefiles.
@@ -1288,7 +1299,7 @@ Index: b/configure
 +# Unset more variables known to interfere with behavior of common tools.
 +CLICOLOR_FORCE= GREP_OPTIONS=
 +unset CLICOLOR_FORCE GREP_OPTIONS
- 
++
 +## --------------------- ##
 +## M4sh Shell Functions. ##
 +## --------------------- ##
@@ -1324,7 +1335,7 @@ Index: b/configure
 +# Create "$as_dir" as a directory, including parents if necessary.
 +as_fn_mkdir_p ()
 +{
-+
+ 
 +  case $as_dir in #(
 +  -*) as_dir=./$as_dir;;
 +  esac
@@ -1889,7 +1900,7 @@ Index: b/configure
  
  Use these variables to override the choices made by `configure' or to help
  it to find libraries and programs with nonstandard names/locations.
-@@ -1748,21 +1719,376 @@
+@@ -1748,21 +1719,422 @@
  if $ac_init_version; then
    cat <<\_ACEOF
  plymouth configure 0.8.2
@@ -2260,6 +2271,52 @@ Index: b/configure
 +  eval $as_lineno_stack; test "x$as_lineno_stack" = x && { as_lineno=; unset as_lineno;}
 +
 +} # ac_fn_c_check_func
++
++# ac_fn_c_check_decl LINENO SYMBOL VAR INCLUDES
++# ---------------------------------------------
++# Tests whether SYMBOL is declared in INCLUDES, setting cache variable VAR
++# accordingly.
++ac_fn_c_check_decl ()
++{
++  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
++  as_decl_name=`echo $2|sed 's/ *(.*//'`
++  as_decl_use=`echo $2|sed -e 's/(/((/' -e 's/)/) 0&/' -e 's/,/) 0& (/g'`
++  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $as_decl_name is declared" >&5
++$as_echo_n "checking whether $as_decl_name is declared... " >&6; }
++if eval "test \"\${$3+set}\"" = set; then :
++  $as_echo_n "(cached) " >&6
++else
++  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++$4
++int
++main ()
++{
++#ifndef $as_decl_name
++#ifdef __cplusplus
++  (void) $as_decl_use;
++#else
++  (void) $as_decl_name;
++#endif
++#endif
++
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_c_try_compile "$LINENO"; then :
++  eval "$3=yes"
++else
++  eval "$3=no"
++fi
++rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
++fi
++eval ac_res=\$$3
++	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
++$as_echo "$ac_res" >&6; }
++  eval $as_lineno_stack; test "x$as_lineno_stack" = x && { as_lineno=; unset as_lineno;}
++
++} # ac_fn_c_check_decl
  cat >config.log <<_ACEOF
  This file contains any messages produced by compilers while
  running configure, to aid debugging if configure makes a mistake.
@@ -2270,7 +2327,7 @@ Index: b/configure
  
    $ $0 $@
  
-@@ -1798,8 +2124,8 @@
+@@ -1798,8 +2170,8 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -2281,7 +2338,7 @@ Index: b/configure
  IFS=$as_save_IFS
  
  } >&5
-@@ -1836,9 +2162,9 @@
+@@ -1836,9 +2208,9 @@
        ac_arg=`$as_echo "$ac_arg" | sed "s/'/'\\\\\\\\''/g"` ;;
      esac
      case $ac_pass in
@@ -2293,7 +2350,7 @@ Index: b/configure
        if test $ac_must_keep_next = true; then
  	ac_must_keep_next=false # Got value, back to normal.
        else
-@@ -1854,13 +2180,13 @@
+@@ -1854,13 +2226,13 @@
  	  -* ) ac_must_keep_next=true ;;
  	esac
        fi
@@ -2310,7 +2367,7 @@ Index: b/configure
  
  # When interrupted or exit'd, cleanup temporary files, and complete
  # config.log.  We remove comments because anyway the quotes in there
-@@ -1872,11 +2198,9 @@
+@@ -1872,11 +2244,9 @@
    {
      echo
  
@@ -2324,7 +2381,7 @@ Index: b/configure
      echo
      # The following way of writing the cache mishandles newlines in values,
  (
-@@ -1885,13 +2209,13 @@
+@@ -1885,13 +2255,13 @@
      case $ac_val in #(
      *${as_nl}*)
        case $ac_var in #(
@@ -2340,7 +2397,7 @@ Index: b/configure
        esac ;;
      esac
    done
-@@ -1910,11 +2234,9 @@
+@@ -1910,11 +2280,9 @@
  )
      echo
  
@@ -2354,7 +2411,7 @@ Index: b/configure
      echo
      for ac_var in $ac_subst_vars
      do
-@@ -1927,11 +2249,9 @@
+@@ -1927,11 +2295,9 @@
      echo
  
      if test -n "$ac_subst_files"; then
@@ -2368,7 +2425,7 @@ Index: b/configure
        echo
        for ac_var in $ac_subst_files
        do
-@@ -1945,11 +2265,9 @@
+@@ -1945,11 +2311,9 @@
      fi
  
      if test -s confdefs.h; then
@@ -2382,7 +2439,7 @@ Index: b/configure
        echo
        cat confdefs.h
        echo
-@@ -1963,46 +2281,53 @@
+@@ -1963,46 +2327,53 @@
      exit $exit_status
  ' 0
  for ac_signal in 1 2 13 15; do
@@ -2442,7 +2499,7 @@ Index: b/configure
  elif test "x$prefix" != xNONE; then
    ac_site_file1=$prefix/share/config.site
    ac_site_file2=$prefix/etc/config.site
-@@ -2013,19 +2338,23 @@
+@@ -2013,19 +2384,23 @@
  for ac_site_file in "$ac_site_file1" "$ac_site_file2"
  do
    test "x$ac_site_file" = xNONE && continue
@@ -2473,7 +2530,7 @@ Index: b/configure
  $as_echo "$as_me: loading cache $cache_file" >&6;}
      case $cache_file in
        [\\/]* | ?:[\\/]* ) . "$cache_file";;
-@@ -2033,7 +2362,7 @@
+@@ -2033,7 +2408,7 @@
      esac
    fi
  else
@@ -2482,7 +2539,7 @@ Index: b/configure
  $as_echo "$as_me: creating cache $cache_file" >&6;}
    >$cache_file
  fi
-@@ -2048,11 +2377,11 @@
+@@ -2048,11 +2423,11 @@
    eval ac_new_val=\$ac_env_${ac_var}_value
    case $ac_old_set,$ac_new_set in
      set,)
@@ -2496,7 +2553,7 @@ Index: b/configure
  $as_echo "$as_me: error: \`$ac_var' was not set in the previous run" >&2;}
        ac_cache_corrupted=: ;;
      ,);;
-@@ -2062,17 +2391,17 @@
+@@ -2062,17 +2437,17 @@
  	ac_old_val_w=`echo x $ac_old_val`
  	ac_new_val_w=`echo x $ac_new_val`
  	if test "$ac_old_val_w" != "$ac_new_val_w"; then
@@ -2518,7 +2575,7 @@ Index: b/configure
  $as_echo "$as_me:   current value: \`$ac_new_val'" >&2;}
        fi;;
    esac
-@@ -2084,43 +2413,20 @@
+@@ -2084,43 +2459,20 @@
      esac
      case " $ac_configure_args " in
        *" '$ac_arg' "*) ;; # Avoid dups.  Use of quotes ensures accuracy.
@@ -2569,7 +2626,7 @@ Index: b/configure
  
  ac_ext=c
  ac_cpp='$CPP $CPPFLAGS'
-@@ -2149,9 +2455,7 @@
+@@ -2149,9 +2501,7 @@
    fi
  done
  if test -z "$ac_aux_dir"; then
@@ -2580,7 +2637,7 @@ Index: b/configure
  fi
  
  # These three variables are undocumented and unsupported,
-@@ -2172,9 +2476,9 @@
+@@ -2172,9 +2522,9 @@
  if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}gcc", so it can be a program name with args.
  set dummy ${ac_tool_prefix}gcc; ac_word=$2
@@ -2592,7 +2649,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -2185,24 +2489,24 @@
+@@ -2185,24 +2535,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -2622,7 +2679,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -2212,9 +2516,9 @@
+@@ -2212,9 +2562,9 @@
    ac_ct_CC=$CC
    # Extract the first word of "gcc", so it can be a program name with args.
  set dummy gcc; ac_word=$2
@@ -2634,7 +2691,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_CC"; then
-@@ -2225,24 +2529,24 @@
+@@ -2225,24 +2575,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -2664,7 +2721,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -2251,7 +2555,7 @@
+@@ -2251,7 +2601,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -2673,7 +2730,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -2265,9 +2569,9 @@
+@@ -2265,9 +2615,9 @@
            if test -n "$ac_tool_prefix"; then
      # Extract the first word of "${ac_tool_prefix}cc", so it can be a program name with args.
  set dummy ${ac_tool_prefix}cc; ac_word=$2
@@ -2685,7 +2742,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -2278,24 +2582,24 @@
+@@ -2278,24 +2628,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -2715,7 +2772,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -2305,9 +2609,9 @@
+@@ -2305,9 +2655,9 @@
  if test -z "$CC"; then
    # Extract the first word of "cc", so it can be a program name with args.
  set dummy cc; ac_word=$2
@@ -2727,7 +2784,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -2319,18 +2623,18 @@
+@@ -2319,18 +2669,18 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -2749,7 +2806,7 @@ Index: b/configure
  IFS=$as_save_IFS
  
  if test $ac_prog_rejected = yes; then
-@@ -2349,10 +2653,10 @@
+@@ -2349,10 +2699,10 @@
  fi
  CC=$ac_cv_prog_CC
  if test -n "$CC"; then
@@ -2762,7 +2819,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -2364,9 +2668,9 @@
+@@ -2364,9 +2714,9 @@
    do
      # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
  set dummy $ac_tool_prefix$ac_prog; ac_word=$2
@@ -2774,7 +2831,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -2377,24 +2681,24 @@
+@@ -2377,24 +2727,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -2804,7 +2861,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -2408,9 +2712,9 @@
+@@ -2408,9 +2758,9 @@
  do
    # Extract the first word of "$ac_prog", so it can be a program name with args.
  set dummy $ac_prog; ac_word=$2
@@ -2816,7 +2873,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_CC"; then
-@@ -2421,24 +2725,24 @@
+@@ -2421,24 +2771,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -2846,7 +2903,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -2451,7 +2755,7 @@
+@@ -2451,7 +2801,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -2855,7 +2912,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -2462,57 +2766,37 @@
+@@ -2462,57 +2812,37 @@
  fi
  
  
@@ -2933,7 +2990,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  int
-@@ -2528,8 +2812,8 @@
+@@ -2528,8 +2858,8 @@
  # Try to create an executable without -o first, disregard a.out.
  # It will help us diagnose broken compilers, and finding out an intuition
  # of exeext.
@@ -2944,7 +3001,7 @@ Index: b/configure
  ac_link_default=`$as_echo "$ac_link" | sed 's/ -o *conftest[^ ]*//'`
  
  # The possible output files:
-@@ -2545,17 +2829,17 @@
+@@ -2545,17 +2875,17 @@
  done
  rm -f $ac_rmfiles
  
@@ -2967,7 +3024,7 @@ Index: b/configure
    # Autoconf-2.13 could set the ac_cv_exeext variable to `no'.
  # So ignore a value of `no', otherwise this would lead to `EXEEXT = no'
  # in a Makefile.  We should not override ac_cv_exeext if it was cached,
-@@ -2572,7 +2856,7 @@
+@@ -2572,7 +2902,7 @@
  	# certainly right.
  	break;;
      *.* )
@@ -2976,7 +3033,7 @@ Index: b/configure
  	then :; else
  	   ac_cv_exeext=`expr "$ac_file" : '[^.]*\(\..*\)'`
  	fi
-@@ -2591,84 +2875,41 @@
+@@ -2591,84 +2921,41 @@
  else
    ac_file=''
  fi
@@ -3081,7 +3138,7 @@ Index: b/configure
    # If both `conftest.exe' and `conftest' are `present' (well, observable)
  # catch `conftest.exe'.  For instance with Cygwin, `ls conftest' will
  # work properly (i.e., refer to `conftest.exe'), while it won't with
-@@ -2683,32 +2924,83 @@
+@@ -2683,32 +2970,83 @@
    esac
  done
  else
@@ -3181,7 +3238,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  int
-@@ -2720,17 +3012,17 @@
+@@ -2720,17 +3058,17 @@
  }
  _ACEOF
  rm -f conftest.o conftest.obj
@@ -3204,7 +3261,7 @@ Index: b/configure
    for ac_file in conftest.o conftest.obj conftest.*; do
    test -f "$ac_file" || continue;
    case $ac_file in
-@@ -2743,31 +3035,23 @@
+@@ -2743,31 +3081,23 @@
    $as_echo "$as_me: failed program was:" >&5
  sed 's/^/| /' conftest.$ac_ext >&5
  
@@ -3243,7 +3300,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  int
-@@ -2781,37 +3065,16 @@
+@@ -2781,37 +3111,16 @@
    return 0;
  }
  _ACEOF
@@ -3284,7 +3341,7 @@ Index: b/configure
  $as_echo "$ac_cv_c_compiler_gnu" >&6; }
  if test $ac_compiler_gnu = yes; then
    GCC=yes
-@@ -2820,20 +3083,16 @@
+@@ -2820,20 +3129,16 @@
  fi
  ac_test_CFLAGS=${CFLAGS+set}
  ac_save_CFLAGS=$CFLAGS
@@ -3308,7 +3365,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  int
-@@ -2844,35 +3103,11 @@
+@@ -2844,35 +3149,11 @@
    return 0;
  }
  _ACEOF
@@ -3347,7 +3404,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  int
-@@ -2883,36 +3118,12 @@
+@@ -2883,36 +3164,12 @@
    return 0;
  }
  _ACEOF
@@ -3388,7 +3445,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  int
-@@ -2923,42 +3134,17 @@
+@@ -2923,42 +3180,17 @@
    return 0;
  }
  _ACEOF
@@ -3433,7 +3490,7 @@ Index: b/configure
  $as_echo "$ac_cv_prog_cc_g" >&6; }
  if test "$ac_test_CFLAGS" = set; then
    CFLAGS=$ac_save_CFLAGS
-@@ -2975,18 +3161,14 @@
+@@ -2975,18 +3207,14 @@
      CFLAGS=
    fi
  fi
@@ -3455,7 +3512,7 @@ Index: b/configure
  /* end confdefs.h.  */
  #include <stdarg.h>
  #include <stdio.h>
-@@ -3043,32 +3225,9 @@
+@@ -3043,32 +3271,9 @@
  	-Ae "-Aa -D_HPUX_SOURCE" "-Xc -D__EXTENSIONS__"
  do
    CC="$ac_save_CC $ac_arg"
@@ -3489,7 +3546,7 @@ Index: b/configure
  rm -f core conftest.err conftest.$ac_objext
    test "x$ac_cv_prog_cc_c89" != "xno" && break
  done
-@@ -3079,17 +3238,19 @@
+@@ -3079,17 +3284,19 @@
  # AC_CACHE_VAL
  case "x$ac_cv_prog_cc_c89" in
    x)
@@ -3512,7 +3569,7 @@ Index: b/configure
  
  ac_ext=c
  ac_cpp='$CPP $CPPFLAGS'
-@@ -3103,14 +3264,14 @@
+@@ -3103,14 +3310,14 @@
  ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
  ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
  ac_compiler_gnu=$ac_cv_c_compiler_gnu
@@ -3529,7 +3586,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
        # Double quotes because CPP needs to be expanded
-@@ -3125,11 +3286,7 @@
+@@ -3125,11 +3332,7 @@
    # <limits.h> exists even on freestanding compilers.
    # On the NeXT, cc -E runs the code through the compiler's parser,
    # not just through cpp. "Syntax error" is here to catch this case.
@@ -3542,7 +3599,7 @@ Index: b/configure
  /* end confdefs.h.  */
  #ifdef __STDC__
  # include <limits.h>
-@@ -3138,78 +3295,34 @@
+@@ -3138,78 +3341,34 @@
  #endif
  		     Syntax error
  _ACEOF
@@ -3629,7 +3686,7 @@ Index: b/configure
    break
  fi
  
-@@ -3221,7 +3334,7 @@
+@@ -3221,7 +3380,7 @@
  else
    ac_cv_prog_CPP=$CPP
  fi
@@ -3638,7 +3695,7 @@ Index: b/configure
  $as_echo "$CPP" >&6; }
  ac_preproc_ok=false
  for ac_c_preproc_warn_flag in '' yes
-@@ -3232,11 +3345,7 @@
+@@ -3232,11 +3391,7 @@
    # <limits.h> exists even on freestanding compilers.
    # On the NeXT, cc -E runs the code through the compiler's parser,
    # not just through cpp. "Syntax error" is here to catch this case.
@@ -3651,7 +3708,7 @@ Index: b/configure
  /* end confdefs.h.  */
  #ifdef __STDC__
  # include <limits.h>
-@@ -3245,87 +3354,40 @@
+@@ -3245,87 +3400,40 @@
  #endif
  		     Syntax error
  _ACEOF
@@ -3751,7 +3808,7 @@ Index: b/configure
  fi
  
  ac_ext=c
-@@ -3335,9 +3397,9 @@
+@@ -3335,9 +3443,9 @@
  ac_compiler_gnu=$ac_cv_c_compiler_gnu
  
  
@@ -3763,7 +3820,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -z "$GREP"; then
-@@ -3348,7 +3410,7 @@
+@@ -3348,7 +3456,7 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -3772,7 +3829,7 @@ Index: b/configure
      for ac_exec_ext in '' $ac_executable_extensions; do
        ac_path_GREP="$as_dir/$ac_prog$ac_exec_ext"
        { test -f "$ac_path_GREP" && $as_test_x "$ac_path_GREP"; } || continue
-@@ -3368,7 +3430,7 @@
+@@ -3368,7 +3476,7 @@
      $as_echo 'GREP' >> "conftest.nl"
      "$ac_path_GREP" -e 'GREP$' -e '-(cannot match)-' < "conftest.nl" >"conftest.out" 2>/dev/null || break
      diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
@@ -3781,7 +3838,7 @@ Index: b/configure
      if test $ac_count -gt ${ac_path_GREP_max-0}; then
        # Best one so far, save it but keep looking for a better one
        ac_cv_path_GREP="$ac_path_GREP"
-@@ -3383,26 +3445,24 @@
+@@ -3383,26 +3491,24 @@
        $ac_path_GREP_found && break 3
      done
    done
@@ -3813,7 +3870,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if echo a | $GREP -E '(a|b)' >/dev/null 2>&1
-@@ -3416,7 +3476,7 @@
+@@ -3416,7 +3522,7 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -3822,7 +3879,7 @@ Index: b/configure
      for ac_exec_ext in '' $ac_executable_extensions; do
        ac_path_EGREP="$as_dir/$ac_prog$ac_exec_ext"
        { test -f "$ac_path_EGREP" && $as_test_x "$ac_path_EGREP"; } || continue
-@@ -3436,7 +3496,7 @@
+@@ -3436,7 +3542,7 @@
      $as_echo 'EGREP' >> "conftest.nl"
      "$ac_path_EGREP" 'EGREP$' < "conftest.nl" >"conftest.out" 2>/dev/null || break
      diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
@@ -3831,7 +3888,7 @@ Index: b/configure
      if test $ac_count -gt ${ac_path_EGREP_max-0}; then
        # Best one so far, save it but keep looking for a better one
        ac_cv_path_EGREP="$ac_path_EGREP"
-@@ -3451,12 +3511,10 @@
+@@ -3451,12 +3557,10 @@
        $ac_path_EGREP_found && break 3
      done
    done
@@ -3846,7 +3903,7 @@ Index: b/configure
    fi
  else
    ac_cv_path_EGREP=$EGREP
-@@ -3464,21 +3522,17 @@
+@@ -3464,21 +3568,17 @@
  
     fi
  fi
@@ -3872,7 +3929,7 @@ Index: b/configure
  /* end confdefs.h.  */
  #include <stdlib.h>
  #include <stdarg.h>
-@@ -3490,51 +3544,26 @@
+@@ -3490,51 +3590,26 @@
  {
  
    ;
@@ -3932,7 +3989,7 @@ Index: b/configure
  else
    ac_cv_header_stdc=no
  fi
-@@ -3544,18 +3573,14 @@
+@@ -3544,18 +3619,14 @@
  
  if test $ac_cv_header_stdc = yes; then
    # ISC 2.0.2 stdlib.h does not declare free, contrary to ANSI.
@@ -3954,7 +4011,7 @@ Index: b/configure
  else
    ac_cv_header_stdc=no
  fi
-@@ -3565,14 +3590,10 @@
+@@ -3565,14 +3636,10 @@
  
  if test $ac_cv_header_stdc = yes; then
    # /bin/cc in Irix-4.0.5 gets non-ANSI ctype macros unless using -ansi.
@@ -3971,7 +4028,7 @@ Index: b/configure
  /* end confdefs.h.  */
  #include <ctype.h>
  #include <stdlib.h>
-@@ -3599,118 +3620,33 @@
+@@ -3599,118 +3666,33 @@
    return 0;
  }
  _ACEOF
@@ -4102,7 +4159,7 @@ Index: b/configure
    cat >>confdefs.h <<_ACEOF
  #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
  _ACEOF
-@@ -3721,139 +3657,8 @@
+@@ -3721,139 +3703,8 @@
  
  
  
@@ -4244,7 +4301,7 @@ Index: b/configure
    MINIX=yes
  else
    MINIX=
-@@ -3862,34 +3667,23 @@
+@@ -3862,34 +3713,23 @@
  
    if test "$MINIX" = yes; then
  
@@ -4285,7 +4342,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  #	  define __EXTENSIONS__ 1
-@@ -3902,65 +3696,34 @@
+@@ -3902,65 +3742,34 @@
    return 0;
  }
  _ACEOF
@@ -4361,7 +4418,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$AWK"; then
-@@ -3971,24 +3734,24 @@
+@@ -3971,24 +3780,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -4391,7 +4448,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -4004,9 +3767,9 @@
+@@ -4004,9 +3813,9 @@
  if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}gcc", so it can be a program name with args.
  set dummy ${ac_tool_prefix}gcc; ac_word=$2
@@ -4403,7 +4460,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -4017,24 +3780,24 @@
+@@ -4017,24 +3826,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -4433,7 +4490,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -4044,9 +3807,9 @@
+@@ -4044,9 +3853,9 @@
    ac_ct_CC=$CC
    # Extract the first word of "gcc", so it can be a program name with args.
  set dummy gcc; ac_word=$2
@@ -4445,7 +4502,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_CC"; then
-@@ -4057,24 +3820,24 @@
+@@ -4057,24 +3866,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -4475,7 +4532,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -4083,7 +3846,7 @@
+@@ -4083,7 +3892,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -4484,7 +4541,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -4097,9 +3860,9 @@
+@@ -4097,9 +3906,9 @@
            if test -n "$ac_tool_prefix"; then
      # Extract the first word of "${ac_tool_prefix}cc", so it can be a program name with args.
  set dummy ${ac_tool_prefix}cc; ac_word=$2
@@ -4496,7 +4553,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -4110,24 +3873,24 @@
+@@ -4110,24 +3919,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -4526,7 +4583,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -4137,9 +3900,9 @@
+@@ -4137,9 +3946,9 @@
  if test -z "$CC"; then
    # Extract the first word of "cc", so it can be a program name with args.
  set dummy cc; ac_word=$2
@@ -4538,7 +4595,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -4151,18 +3914,18 @@
+@@ -4151,18 +3960,18 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -4560,7 +4617,7 @@ Index: b/configure
  IFS=$as_save_IFS
  
  if test $ac_prog_rejected = yes; then
-@@ -4181,10 +3944,10 @@
+@@ -4181,10 +3990,10 @@
  fi
  CC=$ac_cv_prog_CC
  if test -n "$CC"; then
@@ -4573,7 +4630,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -4196,9 +3959,9 @@
+@@ -4196,9 +4005,9 @@
    do
      # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
  set dummy $ac_tool_prefix$ac_prog; ac_word=$2
@@ -4585,7 +4642,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -4209,24 +3972,24 @@
+@@ -4209,24 +4018,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -4615,7 +4672,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -4240,9 +4003,9 @@
+@@ -4240,9 +4049,9 @@
  do
    # Extract the first word of "$ac_prog", so it can be a program name with args.
  set dummy $ac_prog; ac_word=$2
@@ -4627,7 +4684,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_CC"; then
-@@ -4253,24 +4016,24 @@
+@@ -4253,24 +4062,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -4657,7 +4714,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -4283,7 +4046,7 @@
+@@ -4283,7 +4092,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -4666,7 +4723,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -4294,62 +4057,42 @@
+@@ -4294,62 +4103,42 @@
  fi
  
  
@@ -4751,7 +4808,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  int
-@@ -4363,37 +4106,16 @@
+@@ -4363,37 +4152,16 @@
    return 0;
  }
  _ACEOF
@@ -4792,7 +4849,7 @@ Index: b/configure
  $as_echo "$ac_cv_c_compiler_gnu" >&6; }
  if test $ac_compiler_gnu = yes; then
    GCC=yes
-@@ -4402,20 +4124,16 @@
+@@ -4402,20 +4170,16 @@
  fi
  ac_test_CFLAGS=${CFLAGS+set}
  ac_save_CFLAGS=$CFLAGS
@@ -4816,7 +4873,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  int
-@@ -4426,35 +4144,11 @@
+@@ -4426,35 +4190,11 @@
    return 0;
  }
  _ACEOF
@@ -4855,7 +4912,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  int
-@@ -4465,36 +4159,12 @@
+@@ -4465,36 +4205,12 @@
    return 0;
  }
  _ACEOF
@@ -4896,7 +4953,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  int
-@@ -4505,42 +4175,17 @@
+@@ -4505,42 +4221,17 @@
    return 0;
  }
  _ACEOF
@@ -4941,7 +4998,7 @@ Index: b/configure
  $as_echo "$ac_cv_prog_cc_g" >&6; }
  if test "$ac_test_CFLAGS" = set; then
    CFLAGS=$ac_save_CFLAGS
-@@ -4557,18 +4202,14 @@
+@@ -4557,18 +4248,14 @@
      CFLAGS=
    fi
  fi
@@ -4963,7 +5020,7 @@ Index: b/configure
  /* end confdefs.h.  */
  #include <stdarg.h>
  #include <stdio.h>
-@@ -4620,37 +4261,14 @@
+@@ -4620,37 +4307,14 @@
    ;
    return 0;
  }
@@ -5007,7 +5064,7 @@ Index: b/configure
  rm -f core conftest.err conftest.$ac_objext
    test "x$ac_cv_prog_cc_c89" != "xno" && break
  done
-@@ -4661,17 +4279,19 @@
+@@ -4661,17 +4325,19 @@
  # AC_CACHE_VAL
  case "x$ac_cv_prog_cc_c89" in
    x)
@@ -5030,7 +5087,7 @@ Index: b/configure
  
  ac_ext=c
  ac_cpp='$CPP $CPPFLAGS'
-@@ -4680,22 +4300,18 @@
+@@ -4680,22 +4346,18 @@
  ac_compiler_gnu=$ac_cv_c_compiler_gnu
  
  if test "x$CC" != xcc; then
@@ -5057,7 +5114,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  int
-@@ -4711,63 +4327,63 @@
+@@ -4711,63 +4373,63 @@
  # existing .o file with -o, though they will create one.
  ac_try='$CC -c conftest.$ac_ext -o conftest2.$ac_objext >&5'
  rm -f conftest2.*
@@ -5146,7 +5203,7 @@ Index: b/configure
        then
  	# cc works too.
  	:
-@@ -4784,15 +4400,13 @@
+@@ -4784,15 +4446,13 @@
  
  fi
  if eval test \$ac_cv_prog_cc_${ac_cc}_c_o = yes; then
@@ -5165,7 +5222,7 @@ Index: b/configure
  
  fi
  
-@@ -4814,16 +4428,12 @@
+@@ -4814,16 +4474,12 @@
  fi
  
  
@@ -5185,7 +5242,7 @@ Index: b/configure
  /* end confdefs.h.  */
  #include <stdlib.h>
  #include <stdarg.h>
-@@ -4838,48 +4448,23 @@
+@@ -4838,48 +4494,23 @@
    return 0;
  }
  _ACEOF
@@ -5239,7 +5296,7 @@ Index: b/configure
  else
    ac_cv_header_stdc=no
  fi
-@@ -4889,18 +4474,14 @@
+@@ -4889,18 +4520,14 @@
  
  if test $ac_cv_header_stdc = yes; then
    # ISC 2.0.2 stdlib.h does not declare free, contrary to ANSI.
@@ -5261,7 +5318,7 @@ Index: b/configure
  else
    ac_cv_header_stdc=no
  fi
-@@ -4910,14 +4491,10 @@
+@@ -4910,14 +4537,10 @@
  
  if test $ac_cv_header_stdc = yes; then
    # /bin/cc in Irix-4.0.5 gets non-ANSI ctype macros unless using -ansi.
@@ -5278,7 +5335,7 @@ Index: b/configure
  /* end confdefs.h.  */
  #include <ctype.h>
  #include <stdlib.h>
-@@ -4944,64 +4521,31 @@
+@@ -4944,64 +4567,31 @@
    return 0;
  }
  _ACEOF
@@ -5353,7 +5410,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  int
-@@ -5061,41 +4605,18 @@
+@@ -5061,41 +4651,18 @@
    return 0;
  }
  _ACEOF
@@ -5399,7 +5456,7 @@ Index: b/configure
  
  fi
  
-@@ -5116,10 +4637,10 @@
+@@ -5116,10 +4683,10 @@
  # OS/2's system install, which has a completely different semantic
  # ./install, which can be erroneously created by make from ./install.sh.
  # Reject install programs that cannot install multiple files.
@@ -5412,7 +5469,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-@@ -5127,11 +4648,11 @@
+@@ -5127,11 +4694,11 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -5428,7 +5485,7 @@ Index: b/configure
    /usr/ucb/* ) ;;
    *)
      # OSF1 and SCO ODT 3.0 have their own names for install.
-@@ -5168,7 +4689,7 @@
+@@ -5168,7 +4735,7 @@
      ;;
  esac
  
@@ -5437,7 +5494,7 @@ Index: b/configure
  IFS=$as_save_IFS
  
  rm -rf conftest.one conftest.two conftest.dir
-@@ -5184,7 +4705,7 @@
+@@ -5184,7 +4751,7 @@
      INSTALL=$ac_install_sh
    fi
  fi
@@ -5446,7 +5503,7 @@ Index: b/configure
  $as_echo "$INSTALL" >&6; }
  
  # Use test -z because SunOS4 sh mishandles braces in ${var-val}.
-@@ -5195,7 +4716,7 @@
+@@ -5195,7 +4762,7 @@
  
  test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
  
@@ -5455,7 +5512,7 @@ Index: b/configure
  $as_echo_n "checking whether build environment is sane... " >&6; }
  # Just in case
  sleep 1
-@@ -5206,15 +4727,11 @@
+@@ -5206,15 +4773,11 @@
  '
  case `pwd` in
    *[\\\"\#\$\&\'\`$am_lf]*)
@@ -5473,7 +5530,7 @@ Index: b/configure
  esac
  
  # Do `set' in a subshell so we don't clobber the current shell's
-@@ -5236,11 +4753,8 @@
+@@ -5236,11 +4799,8 @@
        # if, for instance, CONFIG_SHELL is bash and it inherits a
        # broken ls alias from the environment.  This has actually
        # happened.  Such a system could not be considered "sane".
@@ -5487,7 +5544,7 @@ Index: b/configure
     fi
  
     test "$2" = conftest.file
-@@ -5249,13 +4763,10 @@
+@@ -5249,13 +4809,10 @@
     # Ok.
     :
  else
@@ -5504,7 +5561,7 @@ Index: b/configure
  $as_echo "yes" >&6; }
  test "$program_prefix" != NONE &&
    program_transform_name="s&^&$program_prefix&;$program_transform_name"
-@@ -5280,7 +4791,7 @@
+@@ -5280,7 +4837,7 @@
    am_missing_run="$MISSING --run "
  else
    am_missing_run=
@@ -5513,7 +5570,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: \`missing' script is too old or missing" >&2;}
  fi
  
-@@ -5301,9 +4812,9 @@
+@@ -5301,9 +4858,9 @@
    if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}strip", so it can be a program name with args.
  set dummy ${ac_tool_prefix}strip; ac_word=$2
@@ -5525,7 +5582,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$STRIP"; then
-@@ -5314,24 +4825,24 @@
+@@ -5314,24 +4871,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -5555,7 +5612,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -5341,9 +4852,9 @@
+@@ -5341,9 +4898,9 @@
    ac_ct_STRIP=$STRIP
    # Extract the first word of "strip", so it can be a program name with args.
  set dummy strip; ac_word=$2
@@ -5567,7 +5624,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_STRIP"; then
-@@ -5354,24 +4865,24 @@
+@@ -5354,24 +4911,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -5597,7 +5654,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -5380,7 +4891,7 @@
+@@ -5380,7 +4937,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -5606,7 +5663,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -5393,10 +4904,10 @@
+@@ -5393,10 +4950,10 @@
  fi
  INSTALL_STRIP_PROGRAM="\$(install_sh) -c -s"
  
@@ -5619,7 +5676,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-@@ -5404,7 +4915,7 @@
+@@ -5404,7 +4961,7 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -5628,7 +5685,7 @@ Index: b/configure
  	 for ac_exec_ext in '' $ac_executable_extensions; do
  	   { test -f "$as_dir/$ac_prog$ac_exec_ext" && $as_test_x "$as_dir/$ac_prog$ac_exec_ext"; } || continue
  	   case `"$as_dir/$ac_prog$ac_exec_ext" --version 2>&1` in #(
-@@ -5416,11 +4927,12 @@
+@@ -5416,11 +4973,12 @@
  	   esac
  	 done
         done
@@ -5642,7 +5699,7 @@ Index: b/configure
    if test "${ac_cv_path_mkdir+set}" = set; then
      MKDIR_P="$ac_cv_path_mkdir -p"
    else
-@@ -5428,11 +4940,10 @@
+@@ -5428,11 +4986,10 @@
      # value for MKDIR_P within a source directory, because that will
      # break other packages using the cache if that directory is
      # removed, or if the value is a relative name.
@@ -5655,7 +5712,7 @@ Index: b/configure
  $as_echo "$MKDIR_P" >&6; }
  
  mkdir_p="$MKDIR_P"
-@@ -5441,11 +4952,11 @@
+@@ -5441,11 +4998,11 @@
    */*) mkdir_p="\$(top_builddir)/$mkdir_p" ;;
  esac
  
@@ -5669,7 +5726,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    cat >conftest.make <<\_ACEOF
-@@ -5453,7 +4964,7 @@
+@@ -5453,7 +5010,7 @@
  all:
  	@echo '@@@%%%=$(MAKE)=@@@%%%'
  _ACEOF
@@ -5678,7 +5735,7 @@ Index: b/configure
  case `${MAKE-make} -f conftest.make 2>/dev/null` in
    *@@@%%%=?*=@@@%%%*)
      eval ac_cv_prog_make_${ac_make}_set=yes;;
-@@ -5463,11 +4974,11 @@
+@@ -5463,11 +5020,11 @@
  rm -f conftest.make
  fi
  if eval test \$ac_cv_prog_make_${ac_make}_set = yes; then
@@ -5692,7 +5749,7 @@ Index: b/configure
  $as_echo "no" >&6; }
    SET_MAKE="MAKE=${MAKE-make}"
  fi
-@@ -5493,7 +5004,7 @@
+@@ -5493,7 +5050,7 @@
  .PHONY: am__doit
  END
  # If we don't find an include directive, just comment out the code.
@@ -5701,7 +5758,7 @@ Index: b/configure
  $as_echo_n "checking for style of include used by $am_make... " >&6; }
  am__include="#"
  am__quote=
-@@ -5521,12 +5032,12 @@
+@@ -5521,12 +5078,12 @@
  fi
  
  
@@ -5716,7 +5773,7 @@ Index: b/configure
    enableval=$enable_dependency_tracking;
  fi
  
-@@ -5549,9 +5060,7 @@
+@@ -5549,9 +5106,7 @@
    am__isrc=' -I$(srcdir)'
    # test to see if srcdir already configured
    if test -f $srcdir/config.status; then
@@ -5727,7 +5784,7 @@ Index: b/configure
    fi
  fi
  
-@@ -5608,9 +5117,9 @@
+@@ -5608,9 +5163,9 @@
  
  depcc="$CC"   am_compiler_list=
  
@@ -5739,7 +5796,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -z "$AMDEP_TRUE" && test -f "$am_depcomp"; then
-@@ -5718,7 +5227,7 @@
+@@ -5718,7 +5273,7 @@
  fi
  
  fi
@@ -5748,7 +5805,7 @@ Index: b/configure
  $as_echo "$am_cv_CC_dependencies_compiler_type" >&6; }
  CCDEPMODE=depmode=$am_cv_CC_dependencies_compiler_type
  
-@@ -5735,7 +5244,7 @@
+@@ -5735,7 +5290,7 @@
  
  
  # Check whether --enable-silent-rules was given.
@@ -5757,7 +5814,7 @@ Index: b/configure
    enableval=$enable_silent_rules;
  fi
  
-@@ -5747,16 +5256,16 @@
+@@ -5747,16 +5302,16 @@
  AM_BACKSLASH='\'
  
  
@@ -5777,7 +5834,7 @@ Index: b/configure
  $as_echo "$USE_MAINTAINER_MODE" >&6; }
     if test $USE_MAINTAINER_MODE = yes; then
    MAINTAINER_MODE_TRUE=
-@@ -5772,13 +5281,17 @@
+@@ -5772,13 +5327,17 @@
  
  
  
@@ -5797,7 +5854,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    case $PKG_CONFIG in
-@@ -5791,14 +5304,14 @@
+@@ -5791,14 +5350,14 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -5815,7 +5872,7 @@ Index: b/configure
  IFS=$as_save_IFS
  
    ;;
-@@ -5806,10 +5319,10 @@
+@@ -5806,10 +5365,10 @@
  fi
  PKG_CONFIG=$ac_cv_path_PKG_CONFIG
  if test -n "$PKG_CONFIG"; then
@@ -5828,7 +5885,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -5819,9 +5332,9 @@
+@@ -5819,9 +5378,9 @@
    ac_pt_PKG_CONFIG=$PKG_CONFIG
    # Extract the first word of "pkg-config", so it can be a program name with args.
  set dummy pkg-config; ac_word=$2
@@ -5840,7 +5897,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    case $ac_pt_PKG_CONFIG in
-@@ -5834,14 +5347,14 @@
+@@ -5834,14 +5393,14 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -5858,7 +5915,7 @@ Index: b/configure
  IFS=$as_save_IFS
  
    ;;
-@@ -5849,10 +5362,10 @@
+@@ -5849,10 +5408,10 @@
  fi
  ac_pt_PKG_CONFIG=$ac_cv_path_ac_pt_PKG_CONFIG
  if test -n "$ac_pt_PKG_CONFIG"; then
@@ -5871,7 +5928,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -5861,7 +5374,7 @@
+@@ -5861,7 +5420,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -5880,7 +5937,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -5874,28 +5387,27 @@
+@@ -5874,28 +5433,27 @@
  fi
  if test -n "$PKG_CONFIG"; then
  	_pkg_min_version=0.9.0
@@ -5915,7 +5972,7 @@ Index: b/configure
  
  
  
-@@ -5913,35 +5425,27 @@
+@@ -5913,35 +5471,27 @@
  
  # Make sure we can run config.sub.
  $SHELL "$ac_aux_dir/config.sub" sun4 >/dev/null 2>&1 ||
@@ -5958,7 +6015,7 @@ Index: b/configure
  esac
  build=$ac_cv_build
  ac_save_IFS=$IFS; IFS='-'
-@@ -5957,28 +5461,24 @@
+@@ -5957,28 +5507,24 @@
  case $build_os in *\ *) build_os=`echo "$build_os" | sed 's/ /-/g'`;; esac
  
  
@@ -5992,7 +6049,7 @@ Index: b/configure
  esac
  host=$ac_cv_host
  ac_save_IFS=$IFS; IFS='-'
-@@ -5994,9 +5494,9 @@
+@@ -5994,9 +5540,9 @@
  case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
  
  
@@ -6004,7 +6061,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
              ac_script=s/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/
-@@ -6004,7 +5504,7 @@
+@@ -6004,7 +5550,7 @@
         ac_script="$ac_script$as_nl$ac_script"
       done
       echo "$ac_script" 2>/dev/null | sed 99q >conftest.sed
@@ -6013,7 +6070,7 @@ Index: b/configure
       if test -z "$SED"; then
    ac_path_SED_found=false
    # Loop through the user's path and test for each of PROGNAME-LIST
-@@ -6013,7 +5513,7 @@
+@@ -6013,7 +5559,7 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6022,7 +6079,7 @@ Index: b/configure
      for ac_exec_ext in '' $ac_executable_extensions; do
        ac_path_SED="$as_dir/$ac_prog$ac_exec_ext"
        { test -f "$ac_path_SED" && $as_test_x "$ac_path_SED"; } || continue
-@@ -6033,7 +5533,7 @@
+@@ -6033,7 +5579,7 @@
      $as_echo '' >> "conftest.nl"
      "$ac_path_SED" -f conftest.sed < "conftest.nl" >"conftest.out" 2>/dev/null || break
      diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
@@ -6031,7 +6088,7 @@ Index: b/configure
      if test $ac_count -gt ${ac_path_SED_max-0}; then
        # Best one so far, save it but keep looking for a better one
        ac_cv_path_SED="$ac_path_SED"
-@@ -6048,19 +5548,17 @@
+@@ -6048,19 +5594,17 @@
        $ac_path_SED_found && break 3
      done
    done
@@ -6054,7 +6111,7 @@ Index: b/configure
  $as_echo "$ac_cv_path_SED" >&6; }
   SED="$ac_cv_path_SED"
    rm -f conftest.sed
-@@ -6078,9 +5576,9 @@
+@@ -6078,9 +5622,9 @@
  
  
  
@@ -6066,7 +6123,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if echo 'ab*c' | $GREP -F 'ab*c' >/dev/null 2>&1
-@@ -6094,7 +5592,7 @@
+@@ -6094,7 +5638,7 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6075,7 +6132,7 @@ Index: b/configure
      for ac_exec_ext in '' $ac_executable_extensions; do
        ac_path_FGREP="$as_dir/$ac_prog$ac_exec_ext"
        { test -f "$ac_path_FGREP" && $as_test_x "$ac_path_FGREP"; } || continue
-@@ -6114,7 +5612,7 @@
+@@ -6114,7 +5658,7 @@
      $as_echo 'FGREP' >> "conftest.nl"
      "$ac_path_FGREP" FGREP < "conftest.nl" >"conftest.out" 2>/dev/null || break
      diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
@@ -6084,7 +6141,7 @@ Index: b/configure
      if test $ac_count -gt ${ac_path_FGREP_max-0}; then
        # Best one so far, save it but keep looking for a better one
        ac_cv_path_FGREP="$ac_path_FGREP"
-@@ -6129,12 +5627,10 @@
+@@ -6129,12 +5673,10 @@
        $ac_path_FGREP_found && break 3
      done
    done
@@ -6099,7 +6156,7 @@ Index: b/configure
    fi
  else
    ac_cv_path_FGREP=$FGREP
-@@ -6142,7 +5638,7 @@
+@@ -6142,7 +5684,7 @@
  
     fi
  fi
@@ -6108,7 +6165,7 @@ Index: b/configure
  $as_echo "$ac_cv_path_FGREP" >&6; }
   FGREP="$ac_cv_path_FGREP"
  
-@@ -6168,7 +5664,7 @@
+@@ -6168,7 +5710,7 @@
  
  
  # Check whether --with-gnu-ld was given.
@@ -6117,7 +6174,7 @@ Index: b/configure
    withval=$with_gnu_ld; test "$withval" = no || with_gnu_ld=yes
  else
    with_gnu_ld=no
-@@ -6177,7 +5673,7 @@
+@@ -6177,7 +5719,7 @@
  ac_prog=ld
  if test "$GCC" = yes; then
    # Check if gcc -print-prog-name=ld gives a path.
@@ -6126,7 +6183,7 @@ Index: b/configure
  $as_echo_n "checking for ld used by $CC... " >&6; }
    case $host in
    *-*-mingw*)
-@@ -6207,13 +5703,13 @@
+@@ -6207,13 +5749,13 @@
      ;;
    esac
  elif test "$with_gnu_ld" = yes; then
@@ -6143,7 +6200,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -z "$LD"; then
-@@ -6244,18 +5740,16 @@
+@@ -6244,18 +5786,16 @@
  
  LD="$lt_cv_path_LD"
  if test -n "$LD"; then
@@ -6167,7 +6224,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    # I'd rather use --version here, but apparently some GNU lds only accept -v.
-@@ -6268,7 +5762,7 @@
+@@ -6268,7 +5808,7 @@
    ;;
  esac
  fi
@@ -6176,7 +6233,7 @@ Index: b/configure
  $as_echo "$lt_cv_prog_gnu_ld" >&6; }
  with_gnu_ld=$lt_cv_prog_gnu_ld
  
-@@ -6280,9 +5774,9 @@
+@@ -6280,9 +5820,9 @@
  
  
  
@@ -6188,7 +6245,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$NM"; then
-@@ -6329,7 +5823,7 @@
+@@ -6329,7 +5869,7 @@
    : ${lt_cv_path_NM=no}
  fi
  fi
@@ -6197,7 +6254,7 @@ Index: b/configure
  $as_echo "$lt_cv_path_NM" >&6; }
  if test "$lt_cv_path_NM" != "no"; then
    NM="$lt_cv_path_NM"
-@@ -6340,9 +5834,9 @@
+@@ -6340,9 +5880,9 @@
    do
      # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
  set dummy $ac_tool_prefix$ac_prog; ac_word=$2
@@ -6209,7 +6266,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$DUMPBIN"; then
-@@ -6353,24 +5847,24 @@
+@@ -6353,24 +5893,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6239,7 +6296,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -6384,9 +5878,9 @@
+@@ -6384,9 +5924,9 @@
  do
    # Extract the first word of "$ac_prog", so it can be a program name with args.
  set dummy $ac_prog; ac_word=$2
@@ -6251,7 +6308,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_DUMPBIN"; then
-@@ -6397,24 +5891,24 @@
+@@ -6397,24 +5937,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6281,7 +6338,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -6427,7 +5921,7 @@
+@@ -6427,7 +5967,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -6290,7 +6347,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -6447,44 +5941,44 @@
+@@ -6447,44 +5987,44 @@
  
  
  
@@ -6304,15 +6361,15 @@ Index: b/configure
    lt_cv_nm_interface="BSD nm"
    echo "int some_variable = 0;" > conftest.$ac_ext
 -  (eval echo "\"\$as_me:6457: $ac_compile\"" >&5)
-+  (eval echo "\"\$as_me:5951: $ac_compile\"" >&5)
++  (eval echo "\"\$as_me:5997: $ac_compile\"" >&5)
    (eval "$ac_compile" 2>conftest.err)
    cat conftest.err >&5
 -  (eval echo "\"\$as_me:6460: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
-+  (eval echo "\"\$as_me:5954: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
++  (eval echo "\"\$as_me:6000: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
    (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
    cat conftest.err >&5
 -  (eval echo "\"\$as_me:6463: output\"" >&5)
-+  (eval echo "\"\$as_me:5957: output\"" >&5)
++  (eval echo "\"\$as_me:6003: output\"" >&5)
    cat conftest.out >&5
    if $GREP 'External.*some_variable' conftest.out > /dev/null; then
      lt_cv_nm_interface="MS dumpbin"
@@ -6346,7 +6403,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
      i=0
-@@ -6602,10 +6096,10 @@
+@@ -6602,10 +6142,10 @@
  fi
  
  if test -n $lt_cv_sys_max_cmd_len ; then
@@ -6359,7 +6416,7 @@ Index: b/configure
  $as_echo "none" >&6; }
  fi
  max_cmd_len=$lt_cv_sys_max_cmd_len
-@@ -6619,7 +6113,7 @@
+@@ -6619,7 +6159,7 @@
  : ${MV="mv -f"}
  : ${RM="rm -f"}
  
@@ -6368,7 +6425,7 @@ Index: b/configure
  $as_echo_n "checking whether the shell understands some XSI constructs... " >&6; }
  # Try some XSI features
  xsi_shell=no
-@@ -6629,17 +6123,17 @@
+@@ -6629,17 +6169,17 @@
      && eval 'test $(( 1 + 1 )) -eq 2 \
      && test "${#_lt_dummy}" -eq 5' ) >/dev/null 2>&1 \
    && xsi_shell=yes
@@ -6389,7 +6446,7 @@ Index: b/configure
  $as_echo "$lt_shell_append" >&6; }
  
  
-@@ -6674,14 +6168,14 @@
+@@ -6674,14 +6214,14 @@
  
  
  
@@ -6407,7 +6464,7 @@ Index: b/configure
  $as_echo "$lt_cv_ld_reload_flag" >&6; }
  reload_flag=$lt_cv_ld_reload_flag
  case $reload_flag in
-@@ -6710,9 +6204,9 @@
+@@ -6710,9 +6250,9 @@
  if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}objdump", so it can be a program name with args.
  set dummy ${ac_tool_prefix}objdump; ac_word=$2
@@ -6419,7 +6476,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$OBJDUMP"; then
-@@ -6723,24 +6217,24 @@
+@@ -6723,24 +6263,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6449,7 +6506,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -6750,9 +6244,9 @@
+@@ -6750,9 +6290,9 @@
    ac_ct_OBJDUMP=$OBJDUMP
    # Extract the first word of "objdump", so it can be a program name with args.
  set dummy objdump; ac_word=$2
@@ -6461,7 +6518,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_OBJDUMP"; then
-@@ -6763,24 +6257,24 @@
+@@ -6763,24 +6303,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6491,7 +6548,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -6789,7 +6283,7 @@
+@@ -6789,7 +6329,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -6500,7 +6557,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -6809,9 +6303,9 @@
+@@ -6809,9 +6349,9 @@
  
  
  
@@ -6512,7 +6569,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    lt_cv_file_magic_cmd='$MAGIC_CMD'
-@@ -6926,11 +6420,11 @@
+@@ -6926,11 +6466,11 @@
    ;;
  
  # This must be Linux ELF.
@@ -6526,7 +6583,7 @@ Index: b/configure
    if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
      lt_cv_deplibs_check_method='match_pattern /lib[^/]+(\.so\.[0-9]+\.[0-9]+|_pic\.a)$'
    else
-@@ -7005,7 +6499,7 @@
+@@ -7005,7 +6545,7 @@
  esac
  
  fi
@@ -6535,7 +6592,7 @@ Index: b/configure
  $as_echo "$lt_cv_deplibs_check_method" >&6; }
  file_magic_cmd=$lt_cv_file_magic_cmd
  deplibs_check_method=$lt_cv_deplibs_check_method
-@@ -7025,9 +6519,9 @@
+@@ -7025,9 +6565,9 @@
  if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}ar", so it can be a program name with args.
  set dummy ${ac_tool_prefix}ar; ac_word=$2
@@ -6547,7 +6604,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$AR"; then
-@@ -7038,24 +6532,24 @@
+@@ -7038,24 +6578,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6577,7 +6634,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -7065,9 +6559,9 @@
+@@ -7065,9 +6605,9 @@
    ac_ct_AR=$AR
    # Extract the first word of "ar", so it can be a program name with args.
  set dummy ar; ac_word=$2
@@ -6589,7 +6646,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_AR"; then
-@@ -7078,24 +6572,24 @@
+@@ -7078,24 +6618,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6619,7 +6676,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -7104,7 +6598,7 @@
+@@ -7104,7 +6644,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -6628,7 +6685,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -7130,9 +6624,9 @@
+@@ -7130,9 +6670,9 @@
  if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}strip", so it can be a program name with args.
  set dummy ${ac_tool_prefix}strip; ac_word=$2
@@ -6640,7 +6697,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$STRIP"; then
-@@ -7143,24 +6637,24 @@
+@@ -7143,24 +6683,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6670,7 +6727,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -7170,9 +6664,9 @@
+@@ -7170,9 +6710,9 @@
    ac_ct_STRIP=$STRIP
    # Extract the first word of "strip", so it can be a program name with args.
  set dummy strip; ac_word=$2
@@ -6682,7 +6739,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_STRIP"; then
-@@ -7183,24 +6677,24 @@
+@@ -7183,24 +6723,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6712,7 +6769,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -7209,7 +6703,7 @@
+@@ -7209,7 +6749,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -6721,7 +6778,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -7229,9 +6723,9 @@
+@@ -7229,9 +6769,9 @@
  if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}ranlib", so it can be a program name with args.
  set dummy ${ac_tool_prefix}ranlib; ac_word=$2
@@ -6733,7 +6790,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$RANLIB"; then
-@@ -7242,24 +6736,24 @@
+@@ -7242,24 +6782,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6763,7 +6820,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -7269,9 +6763,9 @@
+@@ -7269,9 +6809,9 @@
    ac_ct_RANLIB=$RANLIB
    # Extract the first word of "ranlib", so it can be a program name with args.
  set dummy ranlib; ac_word=$2
@@ -6775,7 +6832,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_RANLIB"; then
-@@ -7282,24 +6776,24 @@
+@@ -7282,24 +6822,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -6805,7 +6862,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -7308,7 +6802,7 @@
+@@ -7308,7 +6848,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -6814,7 +6871,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -7386,9 +6880,9 @@
+@@ -7386,9 +6926,9 @@
  
  
  # Check for command to grab the raw symbol name followed by C symbol from nm.
@@ -6826,7 +6883,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
  
-@@ -7504,18 +6998,18 @@
+@@ -7504,18 +7044,18 @@
  int main(){nm_test_var='a';nm_test_func();return(0);}
  _LT_EOF
  
@@ -6851,7 +6908,7 @@ Index: b/configure
        # Try sorting and uniquifying the output.
        if sort "$nlist" | uniq > "$nlist"T; then
  	mv -f "$nlist"T "$nlist"
-@@ -7568,11 +7062,11 @@
+@@ -7568,11 +7108,11 @@
  	  lt_save_CFLAGS="$CFLAGS"
  	  LIBS="conftstm.$ac_objext"
  	  CFLAGS="$CFLAGS$lt_prog_compiler_no_builtin_flag"
@@ -6866,7 +6923,7 @@ Index: b/configure
  	    pipe_works=yes
  	  fi
  	  LIBS="$lt_save_LIBS"
-@@ -7606,10 +7100,10 @@
+@@ -7606,10 +7146,10 @@
    lt_cv_sys_global_symbol_to_cdecl=
  fi
  if test -z "$lt_cv_sys_global_symbol_pipe$lt_cv_sys_global_symbol_to_cdecl"; then
@@ -6879,7 +6936,7 @@ Index: b/configure
  $as_echo "ok" >&6; }
  fi
  
-@@ -7635,7 +7129,7 @@
+@@ -7635,7 +7175,7 @@
  
  
  # Check whether --enable-libtool-lock was given.
@@ -6888,7 +6945,7 @@ Index: b/configure
    enableval=$enable_libtool_lock;
  fi
  
-@@ -7647,11 +7141,11 @@
+@@ -7647,11 +7187,11 @@
  ia64-*-hpux*)
    # Find out which ABI we are using.
    echo 'int i;' > conftest.$ac_ext
@@ -6903,13 +6960,13 @@ Index: b/configure
      case `/usr/bin/file conftest.$ac_objext` in
        *ELF-32*)
  	HPUX_IA64_MODE="32"
-@@ -7665,12 +7159,12 @@
+@@ -7665,12 +7205,12 @@
    ;;
  *-*-irix6*)
    # Find out which ABI we are using.
 -  echo '#line 7668 "configure"' > conftest.$ac_ext
 -  if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
-+  echo '#line 7162 "configure"' > conftest.$ac_ext
++  echo '#line 7208 "configure"' > conftest.$ac_ext
 +  if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
    (eval $ac_compile) 2>&5
    ac_status=$?
@@ -6920,7 +6977,7 @@ Index: b/configure
      if test "$lt_cv_prog_gnu_ld" = yes; then
        case `/usr/bin/file conftest.$ac_objext` in
  	*32-bit*)
-@@ -7704,11 +7198,11 @@
+@@ -7704,11 +7244,11 @@
  s390*-*linux*|s390*-*tpf*|sparc*-*linux*)
    # Find out which ABI we are using.
    echo 'int i;' > conftest.$ac_ext
@@ -6935,7 +6992,7 @@ Index: b/configure
      case `/usr/bin/file conftest.o` in
        *32-bit*)
  	case $host in
-@@ -7757,9 +7251,9 @@
+@@ -7757,9 +7297,9 @@
    # On SCO OpenServer 5, we need -belf to get full-featured binaries.
    SAVE_CFLAGS="$CFLAGS"
    CFLAGS="$CFLAGS -belf"
@@ -6947,7 +7004,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    ac_ext=c
-@@ -7768,11 +7262,7 @@
+@@ -7768,11 +7308,7 @@
  ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
  ac_compiler_gnu=$ac_cv_c_compiler_gnu
  
@@ -6960,7 +7017,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  int
-@@ -7783,38 +7273,13 @@
+@@ -7783,38 +7319,13 @@
    return 0;
  }
  _ACEOF
@@ -7003,7 +7060,7 @@ Index: b/configure
       ac_ext=c
  ac_cpp='$CPP $CPPFLAGS'
  ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-@@ -7822,7 +7287,7 @@
+@@ -7822,7 +7333,7 @@
  ac_compiler_gnu=$ac_cv_c_compiler_gnu
  
  fi
@@ -7012,7 +7069,7 @@ Index: b/configure
  $as_echo "$lt_cv_cc_needs_belf" >&6; }
    if test x"$lt_cv_cc_needs_belf" != x"yes"; then
      # this is probably gcc 2.8.0, egcs 1.0 or newer; no need for -belf
-@@ -7832,11 +7297,11 @@
+@@ -7832,11 +7343,11 @@
  sparc*-*solaris*)
    # Find out which ABI we are using.
    echo 'int i;' > conftest.$ac_ext
@@ -7027,7 +7084,7 @@ Index: b/configure
      case `/usr/bin/file conftest.o` in
      *64-bit*)
        case $lt_cv_prog_gnu_ld in
-@@ -7862,9 +7327,9 @@
+@@ -7862,9 +7373,9 @@
      if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}dsymutil", so it can be a program name with args.
  set dummy ${ac_tool_prefix}dsymutil; ac_word=$2
@@ -7039,7 +7096,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$DSYMUTIL"; then
-@@ -7875,24 +7340,24 @@
+@@ -7875,24 +7386,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7069,7 +7126,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -7902,9 +7367,9 @@
+@@ -7902,9 +7413,9 @@
    ac_ct_DSYMUTIL=$DSYMUTIL
    # Extract the first word of "dsymutil", so it can be a program name with args.
  set dummy dsymutil; ac_word=$2
@@ -7081,7 +7138,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_DSYMUTIL"; then
-@@ -7915,24 +7380,24 @@
+@@ -7915,24 +7426,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7111,7 +7168,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -7941,7 +7406,7 @@
+@@ -7941,7 +7452,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -7120,7 +7177,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -7954,9 +7419,9 @@
+@@ -7954,9 +7465,9 @@
      if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}nmedit", so it can be a program name with args.
  set dummy ${ac_tool_prefix}nmedit; ac_word=$2
@@ -7132,7 +7189,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$NMEDIT"; then
-@@ -7967,24 +7432,24 @@
+@@ -7967,24 +7478,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7162,7 +7219,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -7994,9 +7459,9 @@
+@@ -7994,9 +7505,9 @@
    ac_ct_NMEDIT=$NMEDIT
    # Extract the first word of "nmedit", so it can be a program name with args.
  set dummy nmedit; ac_word=$2
@@ -7174,7 +7231,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_NMEDIT"; then
-@@ -8007,24 +7472,24 @@
+@@ -8007,24 +7518,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7204,7 +7261,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -8033,7 +7498,7 @@
+@@ -8033,7 +7544,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -7213,7 +7270,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -8046,9 +7511,9 @@
+@@ -8046,9 +7557,9 @@
      if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}lipo", so it can be a program name with args.
  set dummy ${ac_tool_prefix}lipo; ac_word=$2
@@ -7225,7 +7282,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$LIPO"; then
-@@ -8059,24 +7524,24 @@
+@@ -8059,24 +7570,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7255,7 +7312,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -8086,9 +7551,9 @@
+@@ -8086,9 +7597,9 @@
    ac_ct_LIPO=$LIPO
    # Extract the first word of "lipo", so it can be a program name with args.
  set dummy lipo; ac_word=$2
@@ -7267,7 +7324,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_LIPO"; then
-@@ -8099,24 +7564,24 @@
+@@ -8099,24 +7610,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7297,7 +7354,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -8125,7 +7590,7 @@
+@@ -8125,7 +7636,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -7306,7 +7363,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -8138,9 +7603,9 @@
+@@ -8138,9 +7649,9 @@
      if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}otool", so it can be a program name with args.
  set dummy ${ac_tool_prefix}otool; ac_word=$2
@@ -7318,7 +7375,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$OTOOL"; then
-@@ -8151,24 +7616,24 @@
+@@ -8151,24 +7662,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7348,7 +7405,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -8178,9 +7643,9 @@
+@@ -8178,9 +7689,9 @@
    ac_ct_OTOOL=$OTOOL
    # Extract the first word of "otool", so it can be a program name with args.
  set dummy otool; ac_word=$2
@@ -7360,7 +7417,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_OTOOL"; then
-@@ -8191,24 +7656,24 @@
+@@ -8191,24 +7702,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7390,7 +7447,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -8217,7 +7682,7 @@
+@@ -8217,7 +7728,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -7399,7 +7456,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -8230,9 +7695,9 @@
+@@ -8230,9 +7741,9 @@
      if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}otool64", so it can be a program name with args.
  set dummy ${ac_tool_prefix}otool64; ac_word=$2
@@ -7411,7 +7468,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$OTOOL64"; then
-@@ -8243,24 +7708,24 @@
+@@ -8243,24 +7754,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7441,7 +7498,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -8270,9 +7735,9 @@
+@@ -8270,9 +7781,9 @@
    ac_ct_OTOOL64=$OTOOL64
    # Extract the first word of "otool64", so it can be a program name with args.
  set dummy otool64; ac_word=$2
@@ -7453,7 +7510,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_OTOOL64"; then
-@@ -8283,24 +7748,24 @@
+@@ -8283,24 +7794,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -7483,7 +7540,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -8309,7 +7774,7 @@
+@@ -8309,7 +7820,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -7492,7 +7549,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -8345,9 +7810,9 @@
+@@ -8345,9 +7856,9 @@
  
  
  
@@ -7504,7 +7561,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    lt_cv_apple_cc_single_mod=no
-@@ -8372,22 +7837,18 @@
+@@ -8372,22 +7883,18 @@
  	rm -f conftest.*
        fi
  fi
@@ -7531,7 +7588,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  int
-@@ -8398,42 +7859,17 @@
+@@ -8398,42 +7905,17 @@
    return 0;
  }
  _ACEOF
@@ -7579,7 +7636,7 @@ Index: b/configure
  $as_echo "$lt_cv_ld_exported_symbols_list" >&6; }
      case $host_os in
      rhapsody* | darwin1.[012])
-@@ -8470,62 +7906,13 @@
+@@ -8470,62 +7952,13 @@
      ;;
    esac
  
@@ -7647,7 +7704,7 @@ Index: b/configure
  _ACEOF
  
  fi
-@@ -8545,7 +7932,7 @@
+@@ -8545,7 +7978,7 @@
  
  
              # Check whether --enable-shared was given.
@@ -7656,7 +7713,7 @@ Index: b/configure
    enableval=$enable_shared; p=${PACKAGE-default}
      case $enableval in
      yes) enable_shared=yes ;;
-@@ -8576,7 +7963,7 @@
+@@ -8576,7 +8009,7 @@
  
  
    # Check whether --enable-static was given.
@@ -7665,7 +7722,7 @@ Index: b/configure
    enableval=$enable_static; p=${PACKAGE-default}
      case $enableval in
      yes) enable_static=yes ;;
-@@ -8608,7 +7995,7 @@
+@@ -8608,7 +8041,7 @@
  
  
  # Check whether --with-pic was given.
@@ -7674,7 +7731,7 @@ Index: b/configure
    withval=$with_pic; pic_mode="$withval"
  else
    pic_mode=default
-@@ -8624,7 +8011,7 @@
+@@ -8624,7 +8057,7 @@
  
  
    # Check whether --enable-fast-install was given.
@@ -7683,7 +7740,7 @@ Index: b/configure
    enableval=$enable_fast_install; p=${PACKAGE-default}
      case $enableval in
      yes) enable_fast_install=yes ;;
-@@ -8705,9 +8092,9 @@
+@@ -8705,9 +8138,9 @@
     setopt NO_GLOB_SUBST
  fi
  
@@ -7695,7 +7752,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    rm -f .libs 2>/dev/null
-@@ -8720,7 +8107,7 @@
+@@ -8720,7 +8153,7 @@
  fi
  rmdir .libs 2>/dev/null
  fi
@@ -7704,7 +7761,7 @@ Index: b/configure
  $as_echo "$lt_cv_objdir" >&6; }
  objdir=$lt_cv_objdir
  
-@@ -8813,9 +8200,9 @@
+@@ -8813,9 +8246,9 @@
  case $deplibs_check_method in
  file_magic*)
    if test "$file_magic_cmd" = '$MAGIC_CMD'; then
@@ -7716,7 +7773,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    case $MAGIC_CMD in
-@@ -8866,10 +8253,10 @@
+@@ -8866,10 +8299,10 @@
  
  MAGIC_CMD="$lt_cv_path_MAGIC_CMD"
  if test -n "$MAGIC_CMD"; then
@@ -7729,7 +7786,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -8879,9 +8266,9 @@
+@@ -8879,9 +8312,9 @@
  
  if test -z "$lt_cv_path_MAGIC_CMD"; then
    if test -n "$ac_tool_prefix"; then
@@ -7741,7 +7798,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    case $MAGIC_CMD in
-@@ -8932,10 +8319,10 @@
+@@ -8932,10 +8365,10 @@
  
  MAGIC_CMD="$lt_cv_path_MAGIC_CMD"
  if test -n "$MAGIC_CMD"; then
@@ -7754,7 +7811,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -9012,9 +8399,9 @@
+@@ -9012,9 +8445,9 @@
  if test "$GCC" = yes; then
    lt_prog_compiler_no_builtin_flag=' -fno-builtin'
  
@@ -7766,21 +7823,21 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    lt_cv_prog_compiler_rtti_exceptions=no
-@@ -9030,11 +8417,11 @@
+@@ -9030,11 +8463,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:9033: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:8420: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8466: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:9037: \$? = $ac_status" >&5
-+   echo "$as_me:8424: \$? = $ac_status" >&5
++   echo "$as_me:8470: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -9047,7 +8434,7 @@
+@@ -9047,7 +8480,7 @@
     $RM conftest*
  
  fi
@@ -7789,7 +7846,7 @@ Index: b/configure
  $as_echo "$lt_cv_prog_compiler_rtti_exceptions" >&6; }
  
  if test x"$lt_cv_prog_compiler_rtti_exceptions" = xyes; then
-@@ -9067,7 +8454,7 @@
+@@ -9067,7 +8500,7 @@
  lt_prog_compiler_pic=
  lt_prog_compiler_static=
  
@@ -7798,7 +7855,7 @@ Index: b/configure
  $as_echo_n "checking for $compiler option to produce PIC... " >&6; }
  
    if test "$GCC" = yes; then
-@@ -9199,7 +8586,7 @@
+@@ -9199,7 +8632,7 @@
        lt_prog_compiler_static='-non_shared'
        ;;
  
@@ -7807,7 +7864,7 @@ Index: b/configure
        case $cc_basename in
        # old Intel for x86_64 which still supported -KPIC.
        ecc*)
-@@ -9339,7 +8726,7 @@
+@@ -9339,7 +8772,7 @@
      lt_prog_compiler_pic="$lt_prog_compiler_pic -DPIC"
      ;;
  esac
@@ -7816,7 +7873,7 @@ Index: b/configure
  $as_echo "$lt_prog_compiler_pic" >&6; }
  
  
-@@ -9351,9 +8738,9 @@
+@@ -9351,9 +8784,9 @@
  # Check to make sure the PIC flag actually works.
  #
  if test -n "$lt_prog_compiler_pic"; then
@@ -7828,21 +7885,21 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    lt_cv_prog_compiler_pic_works=no
-@@ -9369,11 +8756,11 @@
+@@ -9369,11 +8802,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:9372: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:8759: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8805: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:9376: \$? = $ac_status" >&5
-+   echo "$as_me:8763: \$? = $ac_status" >&5
++   echo "$as_me:8809: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -9386,7 +8773,7 @@
+@@ -9386,7 +8819,7 @@
     $RM conftest*
  
  fi
@@ -7851,7 +7908,7 @@ Index: b/configure
  $as_echo "$lt_cv_prog_compiler_pic_works" >&6; }
  
  if test x"$lt_cv_prog_compiler_pic_works" = xyes; then
-@@ -9410,9 +8797,9 @@
+@@ -9410,9 +8843,9 @@
  # Check to make sure the static flag actually works.
  #
  wl=$lt_prog_compiler_wl eval lt_tmp_static_flag=\"$lt_prog_compiler_static\"
@@ -7863,7 +7920,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    lt_cv_prog_compiler_static_works=no
-@@ -9438,7 +8825,7 @@
+@@ -9438,7 +8871,7 @@
     LDFLAGS="$save_LDFLAGS"
  
  fi
@@ -7872,7 +7929,7 @@ Index: b/configure
  $as_echo "$lt_cv_prog_compiler_static_works" >&6; }
  
  if test x"$lt_cv_prog_compiler_static_works" = xyes; then
-@@ -9453,9 +8840,9 @@
+@@ -9453,9 +8886,9 @@
  
  
  
@@ -7884,21 +7941,21 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    lt_cv_prog_compiler_c_o=no
-@@ -9474,11 +8861,11 @@
+@@ -9474,11 +8907,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:9477: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:8864: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8910: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:9481: \$? = $ac_status" >&5
-+   echo "$as_me:8868: \$? = $ac_status" >&5
++   echo "$as_me:8914: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -9500,7 +8887,7 @@
+@@ -9500,7 +8933,7 @@
     $RM conftest*
  
  fi
@@ -7907,7 +7964,7 @@ Index: b/configure
  $as_echo "$lt_cv_prog_compiler_c_o" >&6; }
  
  
-@@ -9508,9 +8895,9 @@
+@@ -9508,9 +8941,9 @@
  
  
  
@@ -7919,21 +7976,21 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    lt_cv_prog_compiler_c_o=no
-@@ -9529,11 +8916,11 @@
+@@ -9529,11 +8962,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:9532: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:8919: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8965: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:9536: \$? = $ac_status" >&5
-+   echo "$as_me:8923: \$? = $ac_status" >&5
++   echo "$as_me:8969: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -9555,7 +8942,7 @@
+@@ -9555,7 +8988,7 @@
     $RM conftest*
  
  fi
@@ -7942,7 +7999,7 @@ Index: b/configure
  $as_echo "$lt_cv_prog_compiler_c_o" >&6; }
  
  
-@@ -9564,7 +8951,7 @@
+@@ -9564,7 +8997,7 @@
  hard_links="nottested"
  if test "$lt_cv_prog_compiler_c_o" = no && test "$need_locks" != no; then
    # do not overwrite the value of need_locks provided by the user
@@ -7951,7 +8008,7 @@ Index: b/configure
  $as_echo_n "checking if we can lock with hard links... " >&6; }
    hard_links=yes
    $RM conftest*
-@@ -9572,10 +8959,10 @@
+@@ -9572,10 +9005,10 @@
    touch conftest.a
    ln conftest.a conftest.b 2>&5 || hard_links=no
    ln conftest.a conftest.b 2>/dev/null && hard_links=no
@@ -7964,7 +8021,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: \`$CC' does not support \`-c -o', so \`make -j' may be unsafe" >&2;}
      need_locks=warn
    fi
-@@ -9588,7 +8975,7 @@
+@@ -9588,7 +9021,7 @@
  
  
  
@@ -7973,7 +8030,7 @@ Index: b/configure
  $as_echo_n "checking whether the $compiler linker ($LD) supports shared libraries... " >&6; }
  
    runpath_var=
-@@ -9648,6 +9035,9 @@
+@@ -9648,6 +9081,9 @@
    openbsd*)
      with_gnu_ld=no
      ;;
@@ -7983,7 +8040,7 @@ Index: b/configure
    esac
  
    ld_shlibs=yes
-@@ -9669,6 +9059,7 @@
+@@ -9669,6 +9105,7 @@
      fi
      supports_anon_versioning=no
      case `$LD -v 2>&1` in
@@ -7991,7 +8048,7 @@ Index: b/configure
        *\ [01].* | *\ 2.[0-9].* | *\ 2.10.*) ;; # catch versions < 2.11
        *\ 2.11.93.0.2\ *) supports_anon_versioning=yes ;; # RH7.3 ...
        *\ 2.11.92.0.12\ *) supports_anon_versioning=yes ;; # Mandrake 8.2 ...
-@@ -9760,7 +9151,7 @@
+@@ -9760,7 +9197,7 @@
        archive_expsym_cmds='sed "s,^,_," $export_symbols >$output_objdir/$soname.expsym~$CC -shared $pic_flag $libobjs $deplibs $compiler_flags ${wl}-h,$soname ${wl}--retain-symbols-file,$output_objdir/$soname.expsym ${wl}--image-base,`expr ${RANDOM-$$} % 4096 / 2 \* 262144 + 1342177280` -o $lib'
        ;;
  
@@ -8000,7 +8057,7 @@ Index: b/configure
        tmp_diet=no
        if test "$host_os" = linux-dietlibc; then
  	case $cc_basename in
-@@ -9830,7 +9221,7 @@
+@@ -9830,7 +9267,7 @@
        fi
        ;;
  
@@ -8009,7 +8066,7 @@ Index: b/configure
        if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -10005,6 +9396,7 @@
+@@ -10005,6 +9442,7 @@
  	if test "$aix_use_runtimelinking" = yes; then
  	  shared_flag="$shared_flag "'${wl}-G'
  	fi
@@ -8017,7 +8074,7 @@ Index: b/configure
        else
  	# not using gcc
  	if test "$host_cpu" = ia64; then
-@@ -10030,11 +9422,7 @@
+@@ -10030,11 +9468,7 @@
  	allow_undefined_flag='-berok'
          # Determine the default libpath from the value encoded in an
          # empty executable.
@@ -8030,7 +8087,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  int
-@@ -10045,27 +9433,7 @@
+@@ -10045,27 +9479,7 @@
    return 0;
  }
  _ACEOF
@@ -8059,7 +8116,7 @@ Index: b/configure
  
  lt_aix_libpath_sed='
      /Import File Strings/,/^$/ {
-@@ -10079,16 +9447,9 @@
+@@ -10079,16 +9493,9 @@
  if test -z "$aix_libpath"; then
    aix_libpath=`dump -HX64 conftest$ac_exeext 2>/dev/null | $SED -n -e "$lt_aix_libpath_sed"`
  fi
@@ -8078,7 +8135,7 @@ Index: b/configure
  if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
  
          hardcode_libdir_flag_spec='${wl}-blibpath:$libdir:'"$aix_libpath"
-@@ -10101,11 +9462,7 @@
+@@ -10101,43 +9508,19 @@
  	else
  	 # Determine the default libpath from the value encoded in an
  	 # empty executable.
@@ -8090,11 +8147,14 @@ Index: b/configure
 +	 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
- int
-@@ -10116,27 +9473,7 @@
-   return 0;
- }
- _ACEOF
+-int
+-main ()
+-{
+-
+-  ;
+-  return 0;
+-}
+-_ACEOF
 -rm -f conftest.$ac_objext conftest$ac_exeext
 -if { (ac_try="$ac_link"
 -case "(($ac_try" in
@@ -8116,38 +8176,40 @@ Index: b/configure
 -	 test "$cross_compiling" = yes ||
 -	 $as_test_x conftest$ac_exeext
 -       }; then
+-
++int
++main ()
++{
++
++  ;
++  return 0;
++}
++_ACEOF
 +if ac_fn_c_try_link "$LINENO"; then :
- 
++
  lt_aix_libpath_sed='
      /Import File Strings/,/^$/ {
-@@ -10146,20 +9483,13 @@
- 	}
-     }'
- aix_libpath=`dump -H conftest$ac_exeext 2>/dev/null | $SED -n -e "$lt_aix_libpath_sed"`
--# Check for a 64-bit object if we didn't find anything.
--if test -z "$aix_libpath"; then
--  aix_libpath=`dump -HX64 conftest$ac_exeext 2>/dev/null | $SED -n -e "$lt_aix_libpath_sed"`
--fi
+ 	/^0/ {
+@@ -10150,16 +9533,9 @@
+ if test -z "$aix_libpath"; then
+   aix_libpath=`dump -HX64 conftest$ac_exeext 2>/dev/null | $SED -n -e "$lt_aix_libpath_sed"`
+ fi
 -else
 -  $as_echo "$as_me: failed program was:" >&5
 -sed 's/^/| /' conftest.$ac_ext >&5
 -
 -
-+# Check for a 64-bit object if we didn't find anything.
-+if test -z "$aix_libpath"; then
-+  aix_libpath=`dump -HX64 conftest$ac_exeext 2>/dev/null | $SED -n -e "$lt_aix_libpath_sed"`
  fi
 -
 -rm -rf conftest.dSYM
 -rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
 -      conftest$ac_exeext conftest.$ac_ext
-+fi
 +rm -f core conftest.err conftest.$ac_objext \
 +    conftest$ac_exeext conftest.$ac_ext
  if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
  
  	 hardcode_libdir_flag_spec='${wl}-blibpath:$libdir:'"$aix_libpath"
-@@ -10371,42 +9701,16 @@
+@@ -10371,42 +9747,16 @@
  	# implicitly export all symbols.
          save_LDFLAGS="$LDFLAGS"
          LDFLAGS="$LDFLAGS -shared ${wl}-exported_symbol ${wl}foo ${wl}-update_registry ${wl}/dev/null"
@@ -8195,7 +8257,7 @@ Index: b/configure
          LDFLAGS="$save_LDFLAGS"
        else
  	archive_cmds='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && $ECHO "X-set_version $verstring" | $Xsed` -update_registry ${output_objdir}/so_locations -o $lib'
-@@ -10419,7 +9723,7 @@
+@@ -10419,7 +9769,7 @@
        link_all_deplibs=yes
        ;;
  
@@ -8204,7 +8266,7 @@ Index: b/configure
        if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -10662,7 +9966,7 @@
+@@ -10662,7 +10012,7 @@
      fi
    fi
  
@@ -8213,7 +8275,7 @@ Index: b/configure
  $as_echo "$ld_shlibs" >&6; }
  test "$ld_shlibs" = no && can_build_shared=no
  
-@@ -10699,16 +10003,16 @@
+@@ -10699,16 +10049,16 @@
        # Test whether the compiler implicitly links with -lc since on some
        # systems, -lgcc has to come before -lc. If gcc already passes -lc
        # to ld, don't add -lc before -lgcc.
@@ -8234,7 +8296,7 @@ Index: b/configure
          soname=conftest
          lib=conftest
          libobjs=conftest.$ac_objext
-@@ -10722,11 +10026,11 @@
+@@ -10722,11 +10072,11 @@
          libname=conftest
          lt_save_allow_undefined_flag=$allow_undefined_flag
          allow_undefined_flag=
@@ -8249,7 +8311,7 @@ Index: b/configure
          then
  	  archive_cmds_need_lc=no
          else
-@@ -10737,7 +10041,7 @@
+@@ -10737,7 +10087,7 @@
          cat conftest.err 1>&5
        fi
        $RM conftest*
@@ -8258,7 +8320,7 @@ Index: b/configure
  $as_echo "$archive_cmds_need_lc" >&6; }
        ;;
      esac
-@@ -10901,7 +10205,7 @@
+@@ -10901,7 +10251,7 @@
  
  
  
@@ -8267,7 +8329,7 @@ Index: b/configure
  $as_echo_n "checking dynamic linker characteristics... " >&6; }
  
  if test "$GCC" = yes; then
-@@ -11309,7 +10613,7 @@
+@@ -11309,7 +10659,7 @@
    ;;
  
  # This must be Linux ELF.
@@ -8276,7 +8338,7 @@ Index: b/configure
    version_type=linux
    need_lib_prefix=no
    need_version=no
-@@ -11323,11 +10627,7 @@
+@@ -11323,11 +10673,7 @@
    save_libdir=$libdir
    eval "libdir=/foo; wl=\"$lt_prog_compiler_wl\"; \
         LDFLAGS=\"\$LDFLAGS $hardcode_libdir_flag_spec\""
@@ -8289,7 +8351,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  int
-@@ -11338,41 +10638,13 @@
+@@ -11338,41 +10684,13 @@
    return 0;
  }
  _ACEOF
@@ -8335,7 +8397,7 @@ Index: b/configure
    LDFLAGS=$save_LDFLAGS
    libdir=$save_libdir
  
-@@ -11381,13 +10653,10 @@
+@@ -11381,13 +10699,10 @@
    # before this can be enabled.
    hardcode_into_libs=yes
  
@@ -8350,7 +8412,7 @@ Index: b/configure
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -11399,6 +10668,18 @@
+@@ -11399,6 +10714,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -8369,7 +8431,7 @@ Index: b/configure
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -11587,7 +10868,7 @@
+@@ -11587,7 +10914,7 @@
    dynamic_linker=no
    ;;
  esac
@@ -8378,7 +8440,7 @@ Index: b/configure
  $as_echo "$dynamic_linker" >&6; }
  test "$dynamic_linker" = no && can_build_shared=no
  
-@@ -11689,7 +10970,7 @@
+@@ -11689,7 +11016,7 @@
  
  
  
@@ -8387,7 +8449,7 @@ Index: b/configure
  $as_echo_n "checking how to hardcode library paths into programs... " >&6; }
  hardcode_action=
  if test -n "$hardcode_libdir_flag_spec" ||
-@@ -11714,7 +10995,7 @@
+@@ -11714,7 +11041,7 @@
    # directories.
    hardcode_action=unsupported
  fi
@@ -8396,7 +8458,7 @@ Index: b/configure
  $as_echo "$hardcode_action" >&6; }
  
  if test "$hardcode_action" = relink ||
-@@ -11759,18 +11040,14 @@
+@@ -11759,18 +11086,14 @@
  
    darwin*)
    # if libdl is installed we need to link against it
@@ -8418,7 +8480,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -11788,43 +11065,18 @@
+@@ -11788,43 +11111,18 @@
    return 0;
  }
  _ACEOF
@@ -8468,7 +8530,7 @@ Index: b/configure
    lt_cv_dlopen="dlopen" lt_cv_dlopen_libs="-ldl"
  else
  
-@@ -11837,106 +11089,18 @@
+@@ -11837,106 +11135,18 @@
      ;;
  
    *)
@@ -8580,7 +8642,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -11954,145 +11118,32 @@
+@@ -11954,145 +11164,32 @@
    return 0;
  }
  _ACEOF
@@ -8737,7 +8799,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -12110,57 +11161,28 @@
+@@ -12110,57 +11207,28 @@
    return 0;
  }
  _ACEOF
@@ -8804,7 +8866,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -12178,57 +11200,28 @@
+@@ -12178,57 +11246,28 @@
    return 0;
  }
  _ACEOF
@@ -8871,7 +8933,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -12246,43 +11239,18 @@
+@@ -12246,43 +11285,18 @@
    return 0;
  }
  _ACEOF
@@ -8921,7 +8983,7 @@ Index: b/configure
    lt_cv_dlopen="dld_link" lt_cv_dlopen_libs="-ldld"
  fi
  
-@@ -12321,9 +11289,9 @@
+@@ -12321,9 +11335,9 @@
      save_LIBS="$LIBS"
      LIBS="$lt_cv_dlopen_libs $LIBS"
  
@@ -8933,16 +8995,16 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    	  if test "$cross_compiling" = yes; then :
-@@ -12332,7 +11300,7 @@
+@@ -12332,7 +11346,7 @@
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<_LT_EOF
 -#line 12335 "configure"
-+#line 11303 "configure"
++#line 11349 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -12391,11 +11359,11 @@
+@@ -12391,11 +11405,11 @@
    return status;
  }
  _LT_EOF
@@ -8957,7 +9019,7 @@ Index: b/configure
      (./conftest; exit; ) >&5 2>/dev/null
      lt_status=$?
      case x$lt_status in
-@@ -12412,14 +11380,14 @@
+@@ -12412,14 +11426,14 @@
  
  
  fi
@@ -8975,16 +9037,16 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
    	  if test "$cross_compiling" = yes; then :
-@@ -12428,7 +11396,7 @@
+@@ -12428,7 +11442,7 @@
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<_LT_EOF
 -#line 12431 "configure"
-+#line 11399 "configure"
++#line 11445 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -12487,11 +11455,11 @@
+@@ -12487,11 +11501,11 @@
    return status;
  }
  _LT_EOF
@@ -8999,7 +9061,7 @@ Index: b/configure
      (./conftest; exit; ) >&5 2>/dev/null
      lt_status=$?
      case x$lt_status in
-@@ -12508,7 +11476,7 @@
+@@ -12508,7 +11522,7 @@
  
  
  fi
@@ -9008,7 +9070,7 @@ Index: b/configure
  $as_echo "$lt_cv_dlopen_self_static" >&6; }
      fi
  
-@@ -12547,12 +11515,12 @@
+@@ -12547,12 +11561,12 @@
  
  striplib=
  old_striplib=
@@ -9023,7 +9085,7 @@ Index: b/configure
  $as_echo "yes" >&6; }
  else
  # FIXME - insert some real tests, host_os isn't really good enough
-@@ -12561,15 +11529,15 @@
+@@ -12561,15 +11575,15 @@
      if test -n "$STRIP" ; then
        striplib="$STRIP -x"
        old_striplib="$STRIP -S"
@@ -9042,7 +9104,7 @@ Index: b/configure
  $as_echo "no" >&6; }
      ;;
    esac
-@@ -12587,12 +11555,12 @@
+@@ -12587,12 +11601,12 @@
  
  
    # Report which library types will actually be built
@@ -9058,7 +9120,7 @@ Index: b/configure
  $as_echo_n "checking whether to build shared libraries... " >&6; }
    test "$can_build_shared" = "no" && enable_shared=no
  
-@@ -12613,14 +11581,14 @@
+@@ -12613,14 +11627,14 @@
      fi
      ;;
    esac
@@ -9076,7 +9138,7 @@ Index: b/configure
  $as_echo "$enable_static" >&6; }
  
  
-@@ -12674,18 +11642,18 @@
+@@ -12674,18 +11688,18 @@
  
  
  pkg_failed=no
@@ -9099,7 +9161,7 @@ Index: b/configure
    pkg_cv_IMAGE_CFLAGS=`$PKG_CONFIG --cflags "libpng >= 1.2.16 " 2>/dev/null`
  else
    pkg_failed=yes
-@@ -12697,11 +11665,11 @@
+@@ -12697,11 +11711,11 @@
      pkg_cv_IMAGE_LIBS="$IMAGE_LIBS"
   elif test -n "$PKG_CONFIG"; then
      if test -n "$PKG_CONFIG" && \
@@ -9114,7 +9176,7 @@ Index: b/configure
    pkg_cv_IMAGE_LIBS=`$PKG_CONFIG --libs "libpng >= 1.2.16 " 2>/dev/null`
  else
    pkg_failed=yes
-@@ -12713,6 +11681,8 @@
+@@ -12713,6 +11727,8 @@
  
  
  if test $pkg_failed = yes; then
@@ -9123,39 +9185,30 @@ Index: b/configure
  
  if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
          _pkg_short_errors_supported=yes
-@@ -12722,23 +11692,12 @@
-         if test $_pkg_short_errors_supported = yes; then
- 	        IMAGE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "libpng >= 1.2.16 " 2>&1`
-         else
--	        IMAGE_PKG_ERRORS=`$PKG_CONFIG --print-errors "libpng >= 1.2.16 " 2>&1`
--        fi
--	# Put the nasty error message in config.log where it belongs
--	echo "$IMAGE_PKG_ERRORS" >&5
--
+@@ -12727,7 +11743,7 @@
+ 	# Put the nasty error message in config.log where it belongs
+ 	echo "$IMAGE_PKG_ERRORS" >&5
+ 
 -	{ { $as_echo "$as_me:$LINENO: error: Package requirements (libpng >= 1.2.16 ) were not met:
++	as_fn_error $? "Package requirements (libpng >= 1.2.16 ) were not met:
+ 
+ $IMAGE_PKG_ERRORS
+ 
+@@ -12736,34 +11752,13 @@
+ 
+ Alternatively, you may set the environment variables IMAGE_CFLAGS
+ and IMAGE_LIBS to avoid the need to call pkg-config.
+-See the pkg-config man page for more details.
+-" >&5
+-$as_echo "$as_me: error: Package requirements (libpng >= 1.2.16 ) were not met:
 -
 -$IMAGE_PKG_ERRORS
 -
 -Consider adjusting the PKG_CONFIG_PATH environment variable if you
 -installed software in a non-standard prefix.
-+	        IMAGE_PKG_ERRORS=`$PKG_CONFIG --print-errors "libpng >= 1.2.16 " 2>&1`
-+        fi
-+	# Put the nasty error message in config.log where it belongs
-+	echo "$IMAGE_PKG_ERRORS" >&5
- 
+-
 -Alternatively, you may set the environment variables IMAGE_CFLAGS
 -and IMAGE_LIBS to avoid the need to call pkg-config.
--See the pkg-config man page for more details.
--" >&5
--$as_echo "$as_me: error: Package requirements (libpng >= 1.2.16 ) were not met:
-+	as_fn_error $? "Package requirements (libpng >= 1.2.16 ) were not met:
- 
- $IMAGE_PKG_ERRORS
- 
-@@ -12747,23 +11706,13 @@
- 
- Alternatively, you may set the environment variables IMAGE_CFLAGS
- and IMAGE_LIBS to avoid the need to call pkg-config.
 -See the pkg-config man page for more details.
 -" >&2;}
 -   { (exit 1); exit 1; }; }
@@ -9181,7 +9234,7 @@ Index: b/configure
  is in your PATH or set the PKG_CONFIG environment variable to the full
  path to pkg-config.
  
-@@ -12772,14 +11721,13 @@
+@@ -12772,14 +11767,13 @@
  See the pkg-config man page for more details.
  
  To get pkg-config, see <http://pkg-config.freedesktop.org/>.
@@ -9199,7 +9252,7 @@ Index: b/configure
  fi
  
  
-@@ -12791,7 +11739,7 @@
+@@ -12791,7 +11785,7 @@
  
  
  # Check whether --enable-pango was given.
@@ -9208,7 +9261,7 @@ Index: b/configure
    enableval=$enable_pango; enable_pango=$enableval
  else
    enable_pango=yes
-@@ -12809,18 +11757,18 @@
+@@ -12809,18 +11803,18 @@
  if test x$enable_pango = xyes; then
  
  pkg_failed=no
@@ -9231,7 +9284,7 @@ Index: b/configure
    pkg_cv_PANGO_CFLAGS=`$PKG_CONFIG --cflags "pangocairo >= 1.21.0 " 2>/dev/null`
  else
    pkg_failed=yes
-@@ -12832,11 +11780,11 @@
+@@ -12832,11 +11826,11 @@
      pkg_cv_PANGO_LIBS="$PANGO_LIBS"
   elif test -n "$PKG_CONFIG"; then
      if test -n "$PKG_CONFIG" && \
@@ -9246,7 +9299,7 @@ Index: b/configure
    pkg_cv_PANGO_LIBS=`$PKG_CONFIG --libs "pangocairo >= 1.21.0 " 2>/dev/null`
  else
    pkg_failed=yes
-@@ -12848,6 +11796,8 @@
+@@ -12848,6 +11842,8 @@
  
  
  if test $pkg_failed = yes; then
@@ -9255,7 +9308,7 @@ Index: b/configure
  
  if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
          _pkg_short_errors_supported=yes
-@@ -12862,18 +11812,7 @@
+@@ -12862,18 +11858,7 @@
  	# Put the nasty error message in config.log where it belongs
  	echo "$PANGO_PKG_ERRORS" >&5
  
@@ -9275,7 +9328,7 @@ Index: b/configure
  
  $PANGO_PKG_ERRORS
  
-@@ -12882,23 +11821,13 @@
+@@ -12882,23 +11867,13 @@
  
  Alternatively, you may set the environment variables PANGO_CFLAGS
  and PANGO_LIBS to avoid the need to call pkg-config.
@@ -9304,7 +9357,7 @@ Index: b/configure
  is in your PATH or set the PKG_CONFIG environment variable to the full
  path to pkg-config.
  
-@@ -12907,14 +11836,13 @@
+@@ -12907,14 +11882,13 @@
  See the pkg-config man page for more details.
  
  To get pkg-config, see <http://pkg-config.freedesktop.org/>.
@@ -9322,7 +9375,7 @@ Index: b/configure
  fi
  
  
-@@ -12922,18 +11850,18 @@
+@@ -12922,18 +11896,18 @@
  
  
  pkg_failed=no
@@ -9345,7 +9398,7 @@ Index: b/configure
    pkg_cv_GTK_CFLAGS=`$PKG_CONFIG --cflags "gtk+-2.0 >= 2.12.0 " 2>/dev/null`
  else
    pkg_failed=yes
-@@ -12945,11 +11873,11 @@
+@@ -12945,11 +11919,11 @@
      pkg_cv_GTK_LIBS="$GTK_LIBS"
   elif test -n "$PKG_CONFIG"; then
      if test -n "$PKG_CONFIG" && \
@@ -9360,7 +9413,7 @@ Index: b/configure
    pkg_cv_GTK_LIBS=`$PKG_CONFIG --libs "gtk+-2.0 >= 2.12.0 " 2>/dev/null`
  else
    pkg_failed=yes
-@@ -12961,6 +11889,8 @@
+@@ -12961,6 +11935,8 @@
  
  
  if test $pkg_failed = yes; then
@@ -9369,7 +9422,7 @@ Index: b/configure
  
  if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
          _pkg_short_errors_supported=yes
-@@ -12975,18 +11905,7 @@
+@@ -12975,18 +11951,7 @@
  	# Put the nasty error message in config.log where it belongs
  	echo "$GTK_PKG_ERRORS" >&5
  
@@ -9389,7 +9442,7 @@ Index: b/configure
  
  $GTK_PKG_ERRORS
  
-@@ -12995,23 +11914,13 @@
+@@ -12995,23 +11960,13 @@
  
  Alternatively, you may set the environment variables GTK_CFLAGS
  and GTK_LIBS to avoid the need to call pkg-config.
@@ -9418,7 +9471,7 @@ Index: b/configure
  is in your PATH or set the PKG_CONFIG environment variable to the full
  path to pkg-config.
  
-@@ -13020,32 +11929,31 @@
+@@ -13020,32 +11975,31 @@
  See the pkg-config man page for more details.
  
  To get pkg-config, see <http://pkg-config.freedesktop.org/>.
@@ -9458,7 +9511,7 @@ Index: b/configure
    pkg_cv_DRM_CFLAGS=`$PKG_CONFIG --cflags "libdrm libdrm_intel libdrm_radeon libdrm_nouveau" 2>/dev/null`
  else
    pkg_failed=yes
-@@ -13057,11 +11965,11 @@
+@@ -13057,11 +12011,11 @@
      pkg_cv_DRM_LIBS="$DRM_LIBS"
   elif test -n "$PKG_CONFIG"; then
      if test -n "$PKG_CONFIG" && \
@@ -9473,7 +9526,7 @@ Index: b/configure
    pkg_cv_DRM_LIBS=`$PKG_CONFIG --libs "libdrm libdrm_intel libdrm_radeon libdrm_nouveau" 2>/dev/null`
  else
    pkg_failed=yes
-@@ -13073,6 +11981,8 @@
+@@ -13073,6 +12027,8 @@
  
  
  if test $pkg_failed = yes; then
@@ -9482,22 +9535,11 @@ Index: b/configure
  
  if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
          _pkg_short_errors_supported=yes
-@@ -13087,7 +11997,7 @@
+@@ -13087,18 +12043,7 @@
  	# Put the nasty error message in config.log where it belongs
  	echo "$DRM_PKG_ERRORS" >&5
  
 -	{ { $as_echo "$as_me:$LINENO: error: Package requirements (libdrm libdrm_intel libdrm_radeon libdrm_nouveau) were not met:
-+	as_fn_error $? "Package requirements (libdrm libdrm_intel libdrm_radeon libdrm_nouveau) were not met:
- 
- $DRM_PKG_ERRORS
- 
-@@ -13096,34 +12006,13 @@
- 
- Alternatively, you may set the environment variables DRM_CFLAGS
- and DRM_LIBS to avoid the need to call pkg-config.
--See the pkg-config man page for more details.
--" >&5
--$as_echo "$as_me: error: Package requirements (libdrm libdrm_intel libdrm_radeon libdrm_nouveau) were not met:
 -
 -$DRM_PKG_ERRORS
 -
@@ -9506,6 +9548,17 @@ Index: b/configure
 -
 -Alternatively, you may set the environment variables DRM_CFLAGS
 -and DRM_LIBS to avoid the need to call pkg-config.
+-See the pkg-config man page for more details.
+-" >&5
+-$as_echo "$as_me: error: Package requirements (libdrm libdrm_intel libdrm_radeon libdrm_nouveau) were not met:
++	as_fn_error $? "Package requirements (libdrm libdrm_intel libdrm_radeon libdrm_nouveau) were not met:
+ 
+ $DRM_PKG_ERRORS
+ 
+@@ -13107,23 +12052,13 @@
+ 
+ Alternatively, you may set the environment variables DRM_CFLAGS
+ and DRM_LIBS to avoid the need to call pkg-config.
 -See the pkg-config man page for more details.
 -" >&2;}
 -   { (exit 1); exit 1; }; }
@@ -9531,7 +9584,7 @@ Index: b/configure
  is in your PATH or set the PKG_CONFIG environment variable to the full
  path to pkg-config.
  
-@@ -13132,25 +12021,20 @@
+@@ -13132,25 +12067,20 @@
  See the pkg-config man page for more details.
  
  To get pkg-config, see <http://pkg-config.freedesktop.org/>.
@@ -9562,7 +9615,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
    #include <stdint.h>
-@@ -13167,50 +12051,25 @@
+@@ -13167,50 +12097,25 @@
    return 0;
  }
  _ACEOF
@@ -9619,7 +9672,7 @@ Index: b/configure
  /* end confdefs.h.  */
  
      #include <stdint.h>
-@@ -13227,44 +12086,21 @@
+@@ -13227,44 +12132,21 @@
    return 0;
  }
  _ACEOF
@@ -9669,7 +9722,7 @@ Index: b/configure
    fi
  fi
  CFLAGS="$OLD_CFLAGS"
-@@ -13272,7 +12108,7 @@
+@@ -13272,7 +12154,7 @@
  
  
  # Check whether --enable-tracing was given.
@@ -9678,7 +9731,7 @@ Index: b/configure
    enableval=$enable_tracing; enable_tracing=$enableval
  else
    enable_tracing=yes
-@@ -13281,14 +12117,12 @@
+@@ -13281,14 +12163,12 @@
  
  if test x$enable_tracing = xyes; then
  
@@ -9695,25 +9748,19 @@ Index: b/configure
    enableval=$enable_tests; enable_tests=$enableval
  else
    enable_tests=yes
-@@ -13302,27 +12136,272 @@
-   ENABLE_TESTS_TRUE='#'
-   ENABLE_TESTS_FALSE=
- fi
--
--
--# Check whether --enable-gdm-transition was given.
+@@ -13305,24 +12185,269 @@
+ 
+ 
+ # Check whether --enable-gdm-transition was given.
 -if test "${enable_gdm_transition+set}" = set; then
--  enableval=$enable_gdm_transition; enable_gdm_transition=$enableval
-+
-+
-+# Check whether --enable-gdm-transition was given.
 +if test "${enable_gdm_transition+set}" = set; then :
-+  enableval=$enable_gdm_transition; enable_gdm_transition=$enableval
-+else
-+  enable_gdm_transition=no
-+fi
-+
-+
+   enableval=$enable_gdm_transition; enable_gdm_transition=$enableval
+ else
+   enable_gdm_transition=no
+ fi
+ 
+ 
+-if test x$enable_gdm_transition = xyes; then
 +if test x$enable_gdm_transition = xyes; then
 +
 +$as_echo "#define PLY_ENABLE_GDM_TRANSITION 1" >>confdefs.h
@@ -9948,14 +9995,12 @@ Index: b/configure
 +$as_echo "$ac_cv_lib_curses_initscr" >&6; }
 +if test "x$ac_cv_lib_curses_initscr" = x""yes; then :
 +  CURSES_LIBS="$CURSES_LIBS -lcurses"
- else
--  enable_gdm_transition=no
++else
 +  as_fn_error $? "no curses library found" "$LINENO" 5
- fi
- 
 +fi
- 
--if test x$enable_gdm_transition = xyes; then
++
++fi
++
 +fi
  
 -cat >>confdefs.h <<\_ACEOF
@@ -9979,7 +10024,7 @@ Index: b/configure
    withval=$with_system_root_install; with_system_root_install=${withval}
  else
    with_system_root_install=yes
-@@ -13349,7 +12428,7 @@
+@@ -13349,7 +12474,7 @@
  
  
  # Check whether --with-rhgb-compat-link was given.
@@ -9988,7 +10033,7 @@ Index: b/configure
    withval=$with_rhgb_compat_link; with_rhgb_compat_link=${withval}
  else
    with_rhgb_compat_link=yes
-@@ -13366,7 +12445,7 @@
+@@ -13366,7 +12491,7 @@
  
  
  # Check whether --with-gdm-autostart-file was given.
@@ -9997,7 +10042,7 @@ Index: b/configure
    withval=$with_gdm_autostart_file; with_gdm_autostart_file=$withval
  else
    with_gdm_autostart_file=yes
-@@ -13384,7 +12463,7 @@
+@@ -13384,7 +12509,7 @@
  
  
  # Check whether --with-logo was given.
@@ -10006,7 +10051,7 @@ Index: b/configure
    withval=$with_logo; logofile=${withval}
  else
    logofile=$datadir/plymouth/bizcom.png
-@@ -13403,7 +12482,7 @@
+@@ -13403,7 +12528,7 @@
  
  
  # Check whether --with-background-color was given.
@@ -10015,7 +10060,7 @@ Index: b/configure
    withval=$with_background_color; background_color=${withval}
  else
    background_color=0x5d5950
-@@ -13413,7 +12492,7 @@
+@@ -13413,7 +12538,7 @@
  
  
  # Check whether --with-background-start-color-stop was given.
@@ -10024,7 +10069,7 @@ Index: b/configure
    withval=$with_background_start_color_stop; background_start_color=${withval}
  else
    background_start_color=0x807c71
-@@ -13423,7 +12502,7 @@
+@@ -13423,7 +12548,7 @@
  
  
  # Check whether --with-background-end-color-stop was given.
@@ -10033,7 +10078,7 @@ Index: b/configure
    withval=$with_background_end_color_stop; background_end_color=${withval}
  else
    background_end_color=0x3a362f
-@@ -13433,7 +12512,7 @@
+@@ -13433,7 +12558,7 @@
  
  
  # Check whether --with-release-file was given.
@@ -10042,7 +10087,7 @@ Index: b/configure
    withval=$with_release_file; RELEASE_FILE=${withval}
  else
    RELEASE_FILE=/etc/system-release
-@@ -13449,7 +12528,7 @@
+@@ -13449,7 +12574,7 @@
  
  
  # Check whether --with-boot-tty was given.
@@ -10051,7 +10096,7 @@ Index: b/configure
    withval=$with_boot_tty; BOOT_TTY=${withval}
  else
    BOOT_TTY=/dev/tty1
-@@ -13463,7 +12542,7 @@
+@@ -13463,7 +12588,7 @@
  
  
  # Check whether --with-shutdown-tty was given.
@@ -10060,7 +10105,7 @@ Index: b/configure
    withval=$with_shutdown_tty; SHUTDOWN_TTY=${withval}
  else
    SHUTDOWN_TTY=/dev/tty63
-@@ -13475,12 +12554,33 @@
+@@ -13475,12 +12600,46 @@
  _ACEOF
  
  
@@ -10085,6 +10130,19 @@ Index: b/configure
 +fi
 +
 +
++ac_fn_c_check_decl "$LINENO" "MSG_NOSIGNAL" "ac_cv_have_decl_MSG_NOSIGNAL" " #include <sys/socket.h>
++"
++if test "x$ac_cv_have_decl_MSG_NOSIGNAL" = x""yes; then :
++  ac_have_decl=1
++else
++  ac_have_decl=0
++fi
++
++cat >>confdefs.h <<_ACEOF
++#define HAVE_DECL_MSG_NOSIGNAL $ac_have_decl
++_ACEOF
++
++
  # Turn on the additional warnings last, so -Werror doesn't affect other tests.
  
  
@@ -10095,7 +10153,7 @@ Index: b/configure
    enableval=$enable_more_warnings; set_more_warnings="$enableval"
  else
  
-@@ -13492,10 +12592,10 @@
+@@ -13492,10 +12651,10 @@
  fi
  
  
@@ -10108,7 +10166,7 @@ Index: b/configure
  $as_echo "yes" >&6; }
    MAYBE_WARN="\
     -Wall -Wextra  \
-@@ -13505,11 +12605,11 @@
+@@ -13505,11 +12664,11 @@
     -Wno-missing-field-initializers -Wno-unused-parameter \
     -Wcast-align -Wsign-compare -Wp,-D_FORTIFY_SOURCE=2"
  elif test "$GCC" = "yes"; then
@@ -10122,7 +10180,7 @@ Index: b/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -13517,9 +12617,9 @@
+@@ -13517,9 +12676,9 @@
  if test "x$plymouth_cv_warn_maybe" != "x$MAYBE_WARN"; then
  	unset plymouth_cv_warn_cflags
  fi
@@ -10134,7 +10192,7 @@ Index: b/configure
    $as_echo_n "(cached) " >&6
  else
  
-@@ -13539,41 +12639,21 @@
+@@ -13539,41 +12698,21 @@
  
  	for W in $MAYBE_WARN; do
  
@@ -10181,7 +10239,7 @@ Index: b/configure
  rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
    CFLAGS="$plymouth_save_CFLAGS"
  
-@@ -13582,7 +12662,7 @@
+@@ -13582,7 +12721,7 @@
    else
      :
    fi
@@ -10190,7 +10248,7 @@ Index: b/configure
  $as_echo "$plymouth_cc_flag" >&6; }
  
  	done
-@@ -13590,10 +12670,10 @@
+@@ -13590,10 +12729,10 @@
  	plymouth_cv_warn_cflags=$WARN_CFLAGS
  	plymouth_cv_warn_maybe=$MAYBE_WARN
  
@@ -10203,7 +10261,7 @@ Index: b/configure
  $as_echo "$plymouth_cv_warn_cflags" >&6; }
  
  WARN_CFLAGS="$plymouth_cv_warn_cflags"
-@@ -13804,7 +12884,7 @@
+@@ -13804,7 +12943,7 @@
    exec_prefix=$exec_prefix_save
  
  
@@ -10212,7 +10270,7 @@ Index: b/configure
  
  cat >confcache <<\_ACEOF
  # This file is a shell script that caches the results of configure
-@@ -13833,13 +12913,13 @@
+@@ -13833,13 +12972,13 @@
      case $ac_val in #(
      *${as_nl}*)
        case $ac_var in #(
@@ -10228,7 +10286,7 @@ Index: b/configure
        esac ;;
      esac
    done
-@@ -13847,8 +12927,8 @@
+@@ -13847,8 +12986,8 @@
    (set) 2>&1 |
      case $as_nl`(ac_space=' '; set) 2>&1` in #(
      *${as_nl}ac_space=\ *)
@@ -10239,7 +10297,7 @@ Index: b/configure
        sed -n \
  	"s/'/'\\\\''/g;
  	  s/^\\([_$as_cr_alnum]*_cv_[_$as_cr_alnum]*\\)=\\(.*\\)/\\1='\\2'/p"
-@@ -13871,11 +12951,11 @@
+@@ -13871,11 +13010,11 @@
  if diff "$cache_file" confcache >/dev/null 2>&1; then :; else
    if test -w "$cache_file"; then
      test "x$cache_file" != "x/dev/null" &&
@@ -10253,7 +10311,7 @@ Index: b/configure
  $as_echo "$as_me: not updating unwritable cache $cache_file" >&6;}
    fi
  fi
-@@ -13889,14 +12969,15 @@
+@@ -13889,14 +13028,15 @@
  
  ac_libobjs=
  ac_ltlibobjs=
@@ -10271,7 +10329,7 @@ Index: b/configure
  done
  LIBOBJS=$ac_libobjs
  
-@@ -13904,18 +12985,12 @@
+@@ -13904,18 +13044,12 @@
  
  
  if test -z "${AMDEP_TRUE}" && test -z "${AMDEP_FALSE}"; then
@@ -10294,7 +10352,7 @@ Index: b/configure
  fi
   if test -n "$EXEEXT"; then
    am__EXEEXT_TRUE=
-@@ -13926,62 +13001,50 @@
+@@ -13926,62 +13060,50 @@
  fi
  
  if test -z "${MAINTAINER_MODE_TRUE}" && test -z "${MAINTAINER_MODE_FALSE}"; then
@@ -10382,7 +10440,7 @@ Index: b/configure
  #! $SHELL
  # Generated by $as_me.
  # Run this file to recreate the current configuration.
-@@ -13991,17 +13054,18 @@
+@@ -13991,17 +13113,18 @@
  debug=false
  ac_cs_recheck=false
  ac_cs_silent=false
@@ -10408,7 +10466,7 @@ Index: b/configure
    emulate sh
    NULLCMD=:
    # Pre-4.2 versions of Zsh do word splitting on ${1+"$@"}, which
-@@ -14009,23 +13073,15 @@
+@@ -14009,23 +13132,15 @@
    alias -g '${1+"$@"}'='"$@"'
    setopt NO_GLOB_SUBST
  else
@@ -10437,7 +10495,7 @@ Index: b/configure
  as_nl='
  '
  export as_nl
-@@ -14033,7 +13089,13 @@
+@@ -14033,7 +13148,13 @@
  as_echo='\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
  as_echo=$as_echo$as_echo$as_echo$as_echo$as_echo
  as_echo=$as_echo$as_echo$as_echo$as_echo$as_echo$as_echo
@@ -10452,7 +10510,7 @@ Index: b/configure
    as_echo='printf %s\n'
    as_echo_n='printf %s'
  else
-@@ -14044,7 +13106,7 @@
+@@ -14044,7 +13165,7 @@
      as_echo_body='eval expr "X$1" : "X\\(.*\\)"'
      as_echo_n_body='eval
        arg=$1;
@@ -10461,7 +10519,7 @@ Index: b/configure
        *"$as_nl"*)
  	expr "X$arg" : "X\\(.*\\)$as_nl";
  	arg=`expr "X$arg" : ".*$as_nl\\(.*\\)"`;;
-@@ -14067,13 +13129,6 @@
+@@ -14067,13 +13188,6 @@
    }
  fi
  
@@ -10475,7 +10533,7 @@ Index: b/configure
  
  # IFS
  # We need space, tab and new line, in precisely that order.  Quoting is
-@@ -14083,15 +13138,15 @@
+@@ -14083,15 +13197,15 @@
  IFS=" ""	$as_nl"
  
  # Find who we are.  Look in the path if we contain no directory separator.
@@ -10494,7 +10552,7 @@ Index: b/configure
  IFS=$as_save_IFS
  
       ;;
-@@ -14103,12 +13158,16 @@
+@@ -14103,12 +13217,16 @@
  fi
  if test ! -f "$as_myself"; then
    $as_echo "$as_myself: error: cannot find myself; rerun with an absolute file name" >&2
@@ -10515,7 +10573,7 @@ Index: b/configure
  done
  PS1='$ '
  PS2='> '
-@@ -14120,7 +13179,89 @@
+@@ -14120,7 +13238,89 @@
  LANGUAGE=C
  export LANGUAGE
  
@@ -10606,7 +10664,7 @@ Index: b/configure
  if expr a : '\(a\)' >/dev/null 2>&1 &&
     test "X`expr 00001 : '.*\(...\)'`" = X001; then
    as_expr=expr
-@@ -14134,8 +13275,12 @@
+@@ -14134,8 +13334,12 @@
    as_basename=false
  fi
  
@@ -10620,7 +10678,7 @@ Index: b/configure
  as_me=`$as_basename -- "$0" ||
  $as_expr X/"$0" : '.*/\([^/][^/]*\)/*$' \| \
  	 X"$0" : 'X\(//\)$' \| \
-@@ -14155,76 +13300,25 @@
+@@ -14155,76 +13359,25 @@
  	  }
  	  s/.*/./; q'`
  
@@ -10708,7 +10766,7 @@ Index: b/configure
  
  rm -f conf$$ conf$$.exe conf$$.file
  if test -d conf$$.dir; then
-@@ -14253,8 +13347,56 @@
+@@ -14253,8 +13406,56 @@
  rm -f conf$$ conf$$.exe conf$$.dir/conf$$.file conf$$.file
  rmdir conf$$.dir 2>/dev/null
  
@@ -10766,7 +10824,7 @@ Index: b/configure
  else
    test -d ./-p && rmdir ./-p
    as_mkdir_p=false
-@@ -14273,10 +13415,10 @@
+@@ -14273,10 +13474,10 @@
        if test -d "$1"; then
  	test -d "$1/.";
        else
@@ -10779,7 +10837,7 @@ Index: b/configure
  	???[sx]*):;;*)false;;esac;fi
      '\'' sh
    '
-@@ -14291,13 +13433,19 @@
+@@ -14291,13 +13492,19 @@
  
  
  exec 6>&1
@@ -10801,7 +10859,7 @@ Index: b/configure
  
    CONFIG_FILES    = $CONFIG_FILES
    CONFIG_HEADERS  = $CONFIG_HEADERS
-@@ -14329,13 +13477,15 @@
+@@ -14329,13 +13536,15 @@
  
  cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
  ac_cs_usage="\
@@ -10820,7 +10878,7 @@ Index: b/configure
    -q, --quiet, --silent
                     do not print progress messages
    -d, --debug      don't remove temporary files
-@@ -14354,16 +13504,17 @@
+@@ -14354,16 +13563,17 @@
  Configuration commands:
  $config_commands
  
@@ -10842,7 +10900,7 @@ Index: b/configure
  This config.status script is free software; the Free Software Foundation
  gives unlimited permission to copy, distribute and modify it."
  
-@@ -14381,11 +13532,16 @@
+@@ -14381,11 +13591,16 @@
  while test $# != 0
  do
    case $1 in
@@ -10860,7 +10918,7 @@ Index: b/configure
    *)
      ac_option=$1
      ac_optarg=$2
-@@ -14399,27 +13555,29 @@
+@@ -14399,27 +13614,29 @@
      ac_cs_recheck=: ;;
    --version | --versio | --versi | --vers | --ver | --ve | --v | -V )
      $as_echo "$ac_cs_version"; exit ;;
@@ -10895,7 +10953,7 @@ Index: b/configure
    --help | --hel | -h )
      $as_echo "$ac_cs_usage"; exit ;;
    -q | -quiet | --quiet | --quie | --qui | --qu | --q \
-@@ -14427,11 +13585,10 @@
+@@ -14427,11 +13644,10 @@
      ac_cs_silent=: ;;
  
    # This is an error.
@@ -10910,7 +10968,7 @@ Index: b/configure
       ac_need_defaults=false ;;
  
    esac
-@@ -14751,9 +13908,11 @@
+@@ -14751,9 +13967,11 @@
      "src/plugins/renderers/frame-buffer/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/renderers/frame-buffer/Makefile" ;;
      "src/plugins/renderers/drm/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/renderers/drm/Makefile" ;;
      "src/plugins/renderers/x11/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/renderers/x11/Makefile" ;;
@@ -10922,7 +10980,7 @@ Index: b/configure
      "src/plugins/splash/text/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/splash/text/Makefile" ;;
      "src/plugins/splash/details/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/splash/details/Makefile" ;;
      "src/plugins/splash/space-flares/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/splash/space-flares/Makefile" ;;
-@@ -14765,6 +13924,7 @@
+@@ -14765,6 +13983,7 @@
      "src/client/ply-boot-client.pc") CONFIG_FILES="$CONFIG_FILES src/client/ply-boot-client.pc" ;;
      "src/client/Makefile") CONFIG_FILES="$CONFIG_FILES src/client/Makefile" ;;
      "src/viewer/Makefile") CONFIG_FILES="$CONFIG_FILES src/viewer/Makefile" ;;
@@ -10930,7 +10988,7 @@ Index: b/configure
      "src/tests/Makefile") CONFIG_FILES="$CONFIG_FILES src/tests/Makefile" ;;
      "src/libply/tests/Makefile") CONFIG_FILES="$CONFIG_FILES src/libply/tests/Makefile" ;;
      "src/client/tests/Makefile") CONFIG_FILES="$CONFIG_FILES src/client/tests/Makefile" ;;
-@@ -14776,6 +13936,9 @@
+@@ -14776,6 +13995,9 @@
      "themes/solar/Makefile") CONFIG_FILES="$CONFIG_FILES themes/solar/Makefile" ;;
      "themes/glow/Makefile") CONFIG_FILES="$CONFIG_FILES themes/glow/Makefile" ;;
      "themes/script/Makefile") CONFIG_FILES="$CONFIG_FILES themes/script/Makefile" ;;
@@ -10940,7 +10998,7 @@ Index: b/configure
      "images/Makefile") CONFIG_FILES="$CONFIG_FILES images/Makefile" ;;
      "scripts/plymouth-generate-initrd") CONFIG_FILES="$CONFIG_FILES scripts/plymouth-generate-initrd" ;;
      "scripts/plymouth-populate-initrd") CONFIG_FILES="$CONFIG_FILES scripts/plymouth-populate-initrd" ;;
-@@ -14783,9 +13946,7 @@
+@@ -14783,9 +14005,7 @@
      "scripts/Makefile") CONFIG_FILES="$CONFIG_FILES scripts/Makefile" ;;
      "docs/Makefile") CONFIG_FILES="$CONFIG_FILES docs/Makefile" ;;
  
@@ -10951,7 +11009,7 @@ Index: b/configure
    esac
  done
  
-@@ -14812,7 +13973,7 @@
+@@ -14812,7 +14032,7 @@
    trap 'exit_status=$?
    { test -z "$tmp" || test ! -d "$tmp" || rm -fr "$tmp"; } && exit $exit_status
  ' 0
@@ -10960,7 +11018,7 @@ Index: b/configure
  }
  # Create a (secure) tmp directory for tmp files.
  
-@@ -14823,11 +13984,7 @@
+@@ -14823,11 +14043,7 @@
  {
    tmp=./conf$$-$RANDOM
    (umask 077 && mkdir "$tmp")
@@ -10973,7 +11031,7 @@ Index: b/configure
  
  # Set up the scripts for CONFIG_FILES section.
  # No need to generate them if there are no CONFIG_FILES.
-@@ -14835,7 +13992,13 @@
+@@ -14835,7 +14051,13 @@
  if test -n "$CONFIG_FILES"; then
  
  
@@ -10988,7 +11046,7 @@ Index: b/configure
  ac_cs_awk_cr=`$AWK 'BEGIN { print "a\rb" }' </dev/null 2>/dev/null`
  if test "$ac_cs_awk_cr" = "a${ac_cr}b"; then
    ac_cs_awk_cr='\\r'
-@@ -14852,24 +14015,18 @@
+@@ -14852,24 +14074,18 @@
    echo "$ac_subst_vars" | sed 's/.*/&!$&$ac_delim/' &&
    echo "_ACEOF"
  } >conf$$subs.sh ||
@@ -11017,7 +11075,7 @@ Index: b/configure
    else
      ac_delim="$ac_delim!$ac_delim _$ac_delim!! "
    fi
-@@ -14891,7 +14048,7 @@
+@@ -14891,7 +14107,7 @@
  t delim
  :nl
  h
@@ -11026,7 +11084,7 @@ Index: b/configure
  t more1
  s/["\\]/\\&/g; s/^/"/; s/$/\\n"\\/
  p
-@@ -14905,7 +14062,7 @@
+@@ -14905,7 +14121,7 @@
  t nl
  :delim
  h
@@ -11035,7 +11093,7 @@ Index: b/configure
  t more2
  s/["\\]/\\&/g; s/^/"/; s/$/"/
  p
-@@ -14958,22 +14115,28 @@
+@@ -14958,22 +14174,28 @@
  else
    cat
  fi < "$tmp/subs1.awk" > "$tmp/subs.awk" \
@@ -11074,7 +11132,7 @@ Index: b/configure
  s/^[^=]*=[	 ]*$//
  }'
  fi
-@@ -15001,9 +14164,7 @@
+@@ -15001,9 +14223,7 @@
    if test -z "$ac_t"; then
      break
    elif $ac_last_try; then
@@ -11085,7 +11143,7 @@ Index: b/configure
    else
      ac_delim="$ac_delim!$ac_delim _$ac_delim!! "
    fi
-@@ -15088,9 +14249,7 @@
+@@ -15088,9 +14308,7 @@
  _ACAWK
  _ACEOF
  cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
@@ -11096,7 +11154,7 @@ Index: b/configure
  fi # test -n "$CONFIG_HEADERS"
  
  
-@@ -15103,9 +14262,7 @@
+@@ -15103,9 +14321,7 @@
    esac
    case $ac_mode$ac_tag in
    :[FHL]*:*);;
@@ -11107,7 +11165,7 @@ Index: b/configure
    :[FH]-) ac_tag=-:-;;
    :[FH]*) ac_tag=$ac_tag:$ac_tag.in;;
    esac
-@@ -15133,12 +14290,10 @@
+@@ -15133,12 +14349,10 @@
  	   [\\/$]*) false;;
  	   *) test -f "$srcdir/$ac_f" && ac_f="$srcdir/$ac_f";;
  	   esac ||
@@ -11122,7 +11180,7 @@ Index: b/configure
      done
  
      # Let's still pretend it is `configure' which instantiates (i.e., don't
-@@ -15149,7 +14304,7 @@
+@@ -15149,7 +14363,7 @@
  	`' by configure.'
      if test x"$ac_file" != x-; then
        configure_input="$ac_file.  $configure_input"
@@ -11131,7 +11189,7 @@ Index: b/configure
  $as_echo "$as_me: creating $ac_file" >&6;}
      fi
      # Neutralize special characters interpreted by sed in replacement strings.
-@@ -15162,9 +14317,7 @@
+@@ -15162,9 +14376,7 @@
  
      case $ac_tag in
      *:-:* | *:-) cat >"$tmp/stdin" \
@@ -11142,7 +11200,7 @@ Index: b/configure
      esac
      ;;
    esac
-@@ -15192,47 +14345,7 @@
+@@ -15192,47 +14404,7 @@
  	    q
  	  }
  	  s/.*/./; q'`
@@ -11191,7 +11249,7 @@ Index: b/configure
    ac_builddir=.
  
  case "$ac_dir" in
-@@ -15289,7 +14402,6 @@
+@@ -15289,7 +14461,6 @@
  # If the template does not know about datarootdir, expand it.
  # FIXME: This hack should be removed a few years after 2.60.
  ac_datarootdir_hack=; ac_datarootdir_seen=
@@ -11199,7 +11257,7 @@ Index: b/configure
  ac_sed_dataroot='
  /datarootdir/ {
    p
-@@ -15299,12 +14411,11 @@
+@@ -15299,12 +14470,11 @@
  /@docdir@/p
  /@infodir@/p
  /@localedir@/p
@@ -11214,7 +11272,7 @@ Index: b/configure
  $as_echo "$as_me: WARNING: $ac_file_inputs seems to ignore the --datarootdir setting" >&2;}
  _ACEOF
  cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
-@@ -15314,7 +14425,7 @@
+@@ -15314,7 +14484,7 @@
    s&@infodir@&$infodir&g
    s&@localedir@&$localedir&g
    s&@mandir@&$mandir&g
@@ -11223,7 +11281,7 @@ Index: b/configure
  esac
  _ACEOF
  
-@@ -15343,26 +14454,22 @@
+@@ -15343,26 +14513,22 @@
  $ac_datarootdir_hack
  "
  eval sed \"\$ac_sed_extra\" "$ac_file_inputs" | $AWK -f "$tmp/subs.awk" >$tmp/out \
@@ -11255,7 +11313,7 @@ Index: b/configure
   ;;
    :H)
    #
-@@ -15373,25 +14480,19 @@
+@@ -15373,25 +14539,19 @@
        $as_echo "/* $configure_input  */" \
        && eval '$AWK -f "$tmp/defines.awk"' "$ac_file_inputs"
      } >"$tmp/config.h" \
@@ -11285,7 +11343,7 @@ Index: b/configure
    fi
  # Compute "$ac_file"'s index in $config_headers.
  _am_arg="$ac_file"
-@@ -15429,7 +14530,7 @@
+@@ -15429,7 +14589,7 @@
  	  s/.*/./; q'`/stamp-h$_am_stamp_count
   ;;
  
@@ -11294,7 +11352,7 @@ Index: b/configure
  $as_echo "$as_me: executing $ac_file commands" >&6;}
   ;;
    esac
-@@ -15524,47 +14625,7 @@
+@@ -15524,47 +14684,7 @@
  	    q
  	  }
  	  s/.*/./; q'`
@@ -11343,7 +11401,7 @@ Index: b/configure
        # echo "creating $dirpart/$file"
        echo '# dummy' > "$dirpart/$file"
      done
-@@ -16211,15 +15272,12 @@
+@@ -16211,15 +15331,12 @@
  done # for ac_tag
  
  
@@ -11361,7 +11419,7 @@ Index: b/configure
  
  
  # configure is writing to config.log, and then calls config.status.
-@@ -16240,10 +15298,10 @@
+@@ -16240,10 +15357,10 @@
    exec 5>>config.log
    # Use ||, not &&, to avoid exiting from the if with $? = 1, which
    # would make configure fail if this is the last instruction.
@@ -11374,10 +11432,10 @@ Index: b/configure
  $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
  fi
  
-Index: b/Makefile.in
+Index: plymouth/Makefile.in
 ===================================================================
---- a/Makefile.in
-+++ b/Makefile.in
+--- plymouth.orig/Makefile.in	2011-02-12 14:48:31.986555189 +0100
++++ plymouth/Makefile.in	2011-02-12 14:48:49.906581471 +0100
 @@ -124,7 +124,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -11404,10 +11462,10 @@ Index: b/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/themes/Makefile.in
+Index: plymouth/themes/Makefile.in
 ===================================================================
---- a/themes/Makefile.in
-+++ b/themes/Makefile.in
+--- plymouth.orig/themes/Makefile.in	2011-02-12 14:48:32.396555789 +0100
++++ plymouth/themes/Makefile.in	2011-02-12 14:48:49.906581471 +0100
 @@ -106,7 +106,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -11443,10 +11501,10 @@ Index: b/themes/Makefile.in
  MAINTAINERCLEANFILES = Makefile.in
  all: all-recursive
  
-Index: b/themes/kubuntu-text/Makefile.in
+Index: plymouth/themes/kubuntu-text/Makefile.in
 ===================================================================
---- /dev/null
-+++ b/themes/kubuntu-text/Makefile.in
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ plymouth/themes/kubuntu-text/Makefile.in	2011-02-12 14:48:49.000000000 +0100
 @@ -0,0 +1,442 @@
 +# Makefile.in generated by automake 1.11.1 from Makefile.am.
 +# @configure_input@
@@ -11890,10 +11948,10 @@ Index: b/themes/kubuntu-text/Makefile.in
 +# Tell versions [3.59,3.63) of GNU make to not export all variables.
 +# Otherwise a system limit (for SysV at least) may be exceeded.
 +.NOEXPORT:
-Index: b/themes/ubuntu-text/Makefile.in
+Index: plymouth/themes/ubuntu-text/Makefile.in
 ===================================================================
---- /dev/null
-+++ b/themes/ubuntu-text/Makefile.in
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ plymouth/themes/ubuntu-text/Makefile.in	2011-02-12 14:48:49.000000000 +0100
 @@ -0,0 +1,442 @@
 +# Makefile.in generated by automake 1.11.1 from Makefile.am.
 +# @configure_input@
@@ -12337,10 +12395,10 @@ Index: b/themes/ubuntu-text/Makefile.in
 +# Tell versions [3.59,3.63) of GNU make to not export all variables.
 +# Otherwise a system limit (for SysV at least) may be exceeded.
 +.NOEXPORT:
-Index: b/themes/spinfinity/Makefile.in
+Index: plymouth/themes/spinfinity/Makefile.in
 ===================================================================
---- a/themes/spinfinity/Makefile.in
-+++ b/themes/spinfinity/Makefile.in
+--- plymouth.orig/themes/spinfinity/Makefile.in	2011-02-12 14:48:32.476555911 +0100
++++ plymouth/themes/spinfinity/Makefile.in	2011-02-12 14:48:49.916581485 +0100
 @@ -91,7 +91,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -12367,10 +12425,10 @@ Index: b/themes/spinfinity/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/themes/ubuntu-logo/Makefile.in
+Index: plymouth/themes/ubuntu-logo/Makefile.in
 ===================================================================
---- /dev/null
-+++ b/themes/ubuntu-logo/Makefile.in
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ plymouth/themes/ubuntu-logo/Makefile.in	2011-02-12 14:48:49.000000000 +0100
 @@ -0,0 +1,480 @@
 +# Makefile.in generated by automake 1.11.1 from Makefile.am.
 +# @configure_input@
@@ -12852,10 +12910,10 @@ Index: b/themes/ubuntu-logo/Makefile.in
 +# Tell versions [3.59,3.63) of GNU make to not export all variables.
 +# Otherwise a system limit (for SysV at least) may be exceeded.
 +.NOEXPORT:
-Index: b/themes/details/Makefile.in
+Index: plymouth/themes/details/Makefile.in
 ===================================================================
---- a/themes/details/Makefile.in
-+++ b/themes/details/Makefile.in
+--- plymouth.orig/themes/details/Makefile.in	2011-02-12 14:48:32.486555919 +0100
++++ plymouth/themes/details/Makefile.in	2011-02-12 14:48:49.916581485 +0100
 @@ -91,7 +91,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -12882,10 +12940,10 @@ Index: b/themes/details/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/themes/solar/Makefile.in
+Index: plymouth/themes/solar/Makefile.in
 ===================================================================
---- a/themes/solar/Makefile.in
-+++ b/themes/solar/Makefile.in
+--- plymouth.orig/themes/solar/Makefile.in	2011-02-12 14:48:32.516555965 +0100
++++ plymouth/themes/solar/Makefile.in	2011-02-12 14:48:49.916581485 +0100
 @@ -91,7 +91,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -12912,10 +12970,10 @@ Index: b/themes/solar/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/themes/fade-in/Makefile.in
+Index: plymouth/themes/fade-in/Makefile.in
 ===================================================================
---- a/themes/fade-in/Makefile.in
-+++ b/themes/fade-in/Makefile.in
+--- plymouth.orig/themes/fade-in/Makefile.in	2011-02-12 14:48:32.466555893 +0100
++++ plymouth/themes/fade-in/Makefile.in	2011-02-12 14:48:49.916581485 +0100
 @@ -91,7 +91,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -12942,10 +13000,10 @@ Index: b/themes/fade-in/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/themes/glow/Makefile.in
+Index: plymouth/themes/glow/Makefile.in
 ===================================================================
---- a/themes/glow/Makefile.in
-+++ b/themes/glow/Makefile.in
+--- plymouth.orig/themes/glow/Makefile.in	2011-02-12 14:48:32.436555850 +0100
++++ plymouth/themes/glow/Makefile.in	2011-02-12 14:48:49.916581485 +0100
 @@ -91,7 +91,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -12972,10 +13030,10 @@ Index: b/themes/glow/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/themes/script/Makefile.in
+Index: plymouth/themes/script/Makefile.in
 ===================================================================
---- a/themes/script/Makefile.in
-+++ b/themes/script/Makefile.in
+--- plymouth.orig/themes/script/Makefile.in	2011-02-12 14:48:32.406555809 +0100
++++ plymouth/themes/script/Makefile.in	2011-02-12 14:48:49.916581485 +0100
 @@ -91,7 +91,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -13002,10 +13060,10 @@ Index: b/themes/script/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/themes/text/Makefile.in
+Index: plymouth/themes/text/Makefile.in
 ===================================================================
---- a/themes/text/Makefile.in
-+++ b/themes/text/Makefile.in
+--- plymouth.orig/themes/text/Makefile.in	2011-02-12 14:48:32.506555956 +0100
++++ plymouth/themes/text/Makefile.in	2011-02-12 14:48:49.916581485 +0100
 @@ -91,7 +91,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -13032,10 +13090,10 @@ Index: b/themes/text/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/images/Makefile.in
+Index: plymouth/images/Makefile.in
 ===================================================================
---- a/images/Makefile.in
-+++ b/images/Makefile.in
+--- plymouth.orig/images/Makefile.in	2011-02-12 14:48:32.376555762 +0100
++++ plymouth/images/Makefile.in	2011-02-12 14:48:49.916581485 +0100
 @@ -90,7 +90,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -13062,10 +13120,10 @@ Index: b/images/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/scripts/Makefile.in
+Index: plymouth/scripts/Makefile.in
 ===================================================================
---- a/scripts/Makefile.in
-+++ b/scripts/Makefile.in
+--- plymouth.orig/scripts/Makefile.in	2011-02-12 14:48:31.976555172 +0100
++++ plymouth/scripts/Makefile.in	2011-02-12 14:48:49.926581505 +0100
 @@ -96,7 +96,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -13092,10 +13150,10 @@ Index: b/scripts/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/docs/Makefile.in
+Index: plymouth/docs/Makefile.in
 ===================================================================
---- a/docs/Makefile.in
-+++ b/docs/Makefile.in
+--- plymouth.orig/docs/Makefile.in	2011-02-12 14:48:32.006555215 +0100
++++ plymouth/docs/Makefile.in	2011-02-12 14:48:49.926581505 +0100
 @@ -92,7 +92,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -13122,10 +13180,10 @@ Index: b/docs/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/build-tools/config.guess
+Index: plymouth/build-tools/config.guess
 ===================================================================
---- a/build-tools/config.guess
-+++ b/build-tools/config.guess
+--- plymouth.orig/build-tools/config.guess	2011-02-12 14:48:32.576556058 +0100
++++ plymouth/build-tools/config.guess	2011-02-12 14:48:49.926581505 +0100
 @@ -1,10 +1,10 @@
  #! /bin/sh
  # Attempt to guess a canonical system name.
@@ -13151,10 +13209,10 @@ Index: b/build-tools/config.guess
  
  This is free software; see the source for copying conditions.  There is NO
  warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
-Index: b/build-tools/config.sub
+Index: plymouth/build-tools/config.sub
 ===================================================================
---- a/build-tools/config.sub
-+++ b/build-tools/config.sub
+--- plymouth.orig/build-tools/config.sub	2011-02-12 14:48:32.586556067 +0100
++++ plymouth/build-tools/config.sub	2011-02-12 14:48:49.926581505 +0100
 @@ -1,10 +1,10 @@
  #! /bin/sh
  # Configuration validation subroutine script.
@@ -13211,10 +13269,10 @@ Index: b/build-tools/config.sub
  	-none)
  		;;
  	*)
-Index: b/build-tools/ltmain.sh
+Index: plymouth/build-tools/ltmain.sh
 ===================================================================
---- a/build-tools/ltmain.sh
-+++ b/build-tools/ltmain.sh
+--- plymouth.orig/build-tools/ltmain.sh	2011-02-12 14:48:32.606556095 +0100
++++ plymouth/build-tools/ltmain.sh	2011-02-12 14:48:49.936581515 +0100
 @@ -1,6 +1,6 @@
  # Generated from ltmain.m4sh.
  
@@ -13304,10 +13362,10 @@ Index: b/build-tools/ltmain.sh
  	  esac
  	  ;;
  	no)
-Index: b/src/Makefile.in
+Index: plymouth/src/Makefile.in
 ===================================================================
---- a/src/Makefile.in
-+++ b/src/Makefile.in
+--- plymouth.orig/src/Makefile.in	2011-02-12 14:48:32.026555252 +0100
++++ plymouth/src/Makefile.in	2011-02-12 14:48:49.936581515 +0100
 @@ -35,6 +35,7 @@
  POST_UNINSTALL = :
  build_triplet = @build@
@@ -13362,10 +13420,10 @@ Index: b/src/Makefile.in
  INCLUDES = -I$(top_srcdir)                                                    \
             -I$(srcdir)/libply                                                 \
             -I$(srcdir)/libply-splash-core                                     \
-Index: b/src/viewer/Makefile.in
+Index: plymouth/src/viewer/Makefile.in
 ===================================================================
---- a/src/viewer/Makefile.in
-+++ b/src/viewer/Makefile.in
+--- plymouth.orig/src/viewer/Makefile.in	2011-02-12 14:48:32.096555354 +0100
++++ plymouth/src/viewer/Makefile.in	2011-02-12 14:48:49.936581515 +0100
 @@ -167,7 +167,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -13392,10 +13450,10 @@ Index: b/src/viewer/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/plugins/Makefile.in
+Index: plymouth/src/plugins/Makefile.in
 ===================================================================
---- a/src/plugins/Makefile.in
-+++ b/src/plugins/Makefile.in
+--- plymouth.orig/src/plugins/Makefile.in	2011-02-12 14:48:32.106555363 +0100
++++ plymouth/src/plugins/Makefile.in	2011-02-12 14:48:49.936581515 +0100
 @@ -106,7 +106,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -13422,10 +13480,10 @@ Index: b/src/plugins/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/plugins/controls/Makefile.in
+Index: plymouth/src/plugins/controls/Makefile.in
 ===================================================================
---- a/src/plugins/controls/Makefile.in
-+++ b/src/plugins/controls/Makefile.in
+--- plymouth.orig/src/plugins/controls/Makefile.in	2011-02-12 14:48:32.236555559 +0100
++++ plymouth/src/plugins/controls/Makefile.in	2011-02-12 14:48:49.936581515 +0100
 @@ -106,7 +106,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -13452,10 +13510,10 @@ Index: b/src/plugins/controls/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/plugins/controls/label/Makefile.in
+Index: plymouth/src/plugins/controls/label/Makefile.in
 ===================================================================
---- a/src/plugins/controls/label/Makefile.in
-+++ b/src/plugins/controls/label/Makefile.in
+--- plymouth.orig/src/plugins/controls/label/Makefile.in	2011-02-12 14:48:32.256555585 +0100
++++ plymouth/src/plugins/controls/label/Makefile.in	2011-02-12 14:48:49.936581515 +0100
 @@ -125,7 +125,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -13482,10 +13540,10 @@ Index: b/src/plugins/controls/label/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/plugins/splash/Makefile.in
+Index: plymouth/src/plugins/splash/Makefile.in
 ===================================================================
---- a/src/plugins/splash/Makefile.in
-+++ b/src/plugins/splash/Makefile.in
+--- plymouth.orig/src/plugins/splash/Makefile.in	2011-02-12 14:48:32.126555391 +0100
++++ plymouth/src/plugins/splash/Makefile.in	2011-02-12 14:48:49.946581529 +0100
 @@ -106,7 +106,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -13521,10 +13579,10 @@ Index: b/src/plugins/splash/Makefile.in
  MAINTAINERCLEANFILES = Makefile.in
  all: all-recursive
  
-Index: b/src/plugins/splash/space-flares/Makefile.in
+Index: plymouth/src/plugins/splash/space-flares/Makefile.in
 ===================================================================
---- a/src/plugins/splash/space-flares/Makefile.in
-+++ b/src/plugins/splash/space-flares/Makefile.in
+--- plymouth.orig/src/plugins/splash/space-flares/Makefile.in	2011-02-12 14:48:32.166555457 +0100
++++ plymouth/src/plugins/splash/space-flares/Makefile.in	2011-02-12 14:48:49.946581529 +0100
 @@ -126,7 +126,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -13551,10 +13609,10 @@ Index: b/src/plugins/splash/space-flares/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/plugins/splash/ubuntu-text/Makefile.in
+Index: plymouth/src/plugins/splash/ubuntu-text/Makefile.in
 ===================================================================
---- /dev/null
-+++ b/src/plugins/splash/ubuntu-text/Makefile.in
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ plymouth/src/plugins/splash/ubuntu-text/Makefile.in	2011-02-12 14:48:49.000000000 +0100
 @@ -0,0 +1,602 @@
 +# Makefile.in generated by automake 1.11.1 from Makefile.am.
 +# @configure_input@
@@ -14158,10 +14216,10 @@ Index: b/src/plugins/splash/ubuntu-text/Makefile.in
 +# Tell versions [3.59,3.63) of GNU make to not export all variables.
 +# Otherwise a system limit (for SysV at least) may be exceeded.
 +.NOEXPORT:
-Index: b/src/plugins/splash/details/Makefile.in
+Index: plymouth/src/plugins/splash/details/Makefile.in
 ===================================================================
---- a/src/plugins/splash/details/Makefile.in
-+++ b/src/plugins/splash/details/Makefile.in
+--- plymouth.orig/src/plugins/splash/details/Makefile.in	2011-02-12 14:48:32.186555481 +0100
++++ plymouth/src/plugins/splash/details/Makefile.in	2011-02-12 14:48:49.946581529 +0100
 @@ -124,7 +124,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -14188,10 +14246,10 @@ Index: b/src/plugins/splash/details/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/plugins/splash/throbgress/Makefile.in
+Index: plymouth/src/plugins/splash/throbgress/Makefile.in
 ===================================================================
---- a/src/plugins/splash/throbgress/Makefile.in
-+++ b/src/plugins/splash/throbgress/Makefile.in
+--- plymouth.orig/src/plugins/splash/throbgress/Makefile.in	2011-02-12 14:48:32.216555524 +0100
++++ plymouth/src/plugins/splash/throbgress/Makefile.in	2011-02-12 14:48:49.946581529 +0100
 @@ -125,7 +125,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -14218,10 +14276,10 @@ Index: b/src/plugins/splash/throbgress/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/plugins/splash/two-step/Makefile.in
+Index: plymouth/src/plugins/splash/two-step/Makefile.in
 ===================================================================
---- a/src/plugins/splash/two-step/Makefile.in
-+++ b/src/plugins/splash/two-step/Makefile.in
+--- plymouth.orig/src/plugins/splash/two-step/Makefile.in	2011-02-12 14:48:32.226555541 +0100
++++ plymouth/src/plugins/splash/two-step/Makefile.in	2011-02-12 14:48:49.946581529 +0100
 @@ -125,7 +125,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -14248,10 +14306,10 @@ Index: b/src/plugins/splash/two-step/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/plugins/splash/fade-throbber/Makefile.in
+Index: plymouth/src/plugins/splash/fade-throbber/Makefile.in
 ===================================================================
---- a/src/plugins/splash/fade-throbber/Makefile.in
-+++ b/src/plugins/splash/fade-throbber/Makefile.in
+--- plymouth.orig/src/plugins/splash/fade-throbber/Makefile.in	2011-02-12 14:48:32.146555419 +0100
++++ plymouth/src/plugins/splash/fade-throbber/Makefile.in	2011-02-12 14:48:49.946581529 +0100
 @@ -126,7 +126,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -14278,10 +14336,10 @@ Index: b/src/plugins/splash/fade-throbber/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/plugins/splash/script/Makefile.in
+Index: plymouth/src/plugins/splash/script/Makefile.in
 ===================================================================
---- a/src/plugins/splash/script/Makefile.in
-+++ b/src/plugins/splash/script/Makefile.in
+--- plymouth.orig/src/plugins/splash/script/Makefile.in	2011-02-12 14:48:32.136555410 +0100
++++ plymouth/src/plugins/splash/script/Makefile.in	2011-02-12 14:48:49.946581529 +0100
 @@ -131,7 +131,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -14308,10 +14366,10 @@ Index: b/src/plugins/splash/script/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/plugins/splash/text/Makefile.in
+Index: plymouth/src/plugins/splash/text/Makefile.in
 ===================================================================
---- a/src/plugins/splash/text/Makefile.in
-+++ b/src/plugins/splash/text/Makefile.in
+--- plymouth.orig/src/plugins/splash/text/Makefile.in	2011-02-12 14:48:32.196555498 +0100
++++ plymouth/src/plugins/splash/text/Makefile.in	2011-02-12 14:48:49.956581549 +0100
 @@ -123,7 +123,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -14338,10 +14396,10 @@ Index: b/src/plugins/splash/text/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/plugins/renderers/Makefile.in
+Index: plymouth/src/plugins/renderers/Makefile.in
 ===================================================================
---- a/src/plugins/renderers/Makefile.in
-+++ b/src/plugins/renderers/Makefile.in
+--- plymouth.orig/src/plugins/renderers/Makefile.in	2011-02-12 14:48:32.266555604 +0100
++++ plymouth/src/plugins/renderers/Makefile.in	2011-02-12 14:48:49.956581549 +0100
 @@ -33,6 +33,7 @@
  POST_UNINSTALL = :
  build_triplet = @build@
@@ -14394,10 +14452,10 @@ Index: b/src/plugins/renderers/Makefile.in
  MAINTAINERCLEANFILES = Makefile.in
  all: all-recursive
  
-Index: b/src/plugins/renderers/drm/Makefile.in
+Index: plymouth/src/plugins/renderers/drm/Makefile.in
 ===================================================================
---- a/src/plugins/renderers/drm/Makefile.in
-+++ b/src/plugins/renderers/drm/Makefile.in
+--- plymouth.orig/src/plugins/renderers/drm/Makefile.in	2011-02-12 14:48:32.296555641 +0100
++++ plymouth/src/plugins/renderers/drm/Makefile.in	2011-02-12 14:48:49.956581549 +0100
 @@ -127,7 +127,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -14424,10 +14482,10 @@ Index: b/src/plugins/renderers/drm/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/plugins/renderers/frame-buffer/Makefile.in
+Index: plymouth/src/plugins/renderers/frame-buffer/Makefile.in
 ===================================================================
---- a/src/plugins/renderers/frame-buffer/Makefile.in
-+++ b/src/plugins/renderers/frame-buffer/Makefile.in
+--- plymouth.orig/src/plugins/renderers/frame-buffer/Makefile.in	2011-02-12 14:48:32.286555632 +0100
++++ plymouth/src/plugins/renderers/frame-buffer/Makefile.in	2011-02-12 14:48:49.956581549 +0100
 @@ -125,7 +125,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -14454,10 +14512,10 @@ Index: b/src/plugins/renderers/frame-buffer/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/plugins/renderers/x11/Makefile.in
+Index: plymouth/src/plugins/renderers/x11/Makefile.in
 ===================================================================
---- a/src/plugins/renderers/x11/Makefile.in
-+++ b/src/plugins/renderers/x11/Makefile.in
+--- plymouth.orig/src/plugins/renderers/x11/Makefile.in	2011-02-12 14:48:32.306555660 +0100
++++ plymouth/src/plugins/renderers/x11/Makefile.in	2011-02-12 14:48:49.956581549 +0100
 @@ -124,7 +124,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -14484,10 +14542,10 @@ Index: b/src/plugins/renderers/x11/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/plugins/renderers/vga16fb/Makefile.in
+Index: plymouth/src/plugins/renderers/vga16fb/Makefile.in
 ===================================================================
---- /dev/null
-+++ b/src/plugins/renderers/vga16fb/Makefile.in
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ plymouth/src/plugins/renderers/vga16fb/Makefile.in	2011-02-12 14:48:49.000000000 +0100
 @@ -0,0 +1,597 @@
 +# Makefile.in generated by automake 1.11.1 from Makefile.am.
 +# @configure_input@
@@ -15086,10 +15144,10 @@ Index: b/src/plugins/renderers/vga16fb/Makefile.in
 +# Tell versions [3.59,3.63) of GNU make to not export all variables.
 +# Otherwise a system limit (for SysV at least) may be exceeded.
 +.NOEXPORT:
-Index: b/src/libply/Makefile.in
+Index: plymouth/src/libply/Makefile.in
 ===================================================================
---- a/src/libply/Makefile.in
-+++ b/src/libply/Makefile.in
+--- plymouth.orig/src/libply/Makefile.in	2011-02-12 14:48:32.036555261 +0100
++++ plymouth/src/libply/Makefile.in	2011-02-12 14:48:49.956581549 +0100
 @@ -171,7 +171,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -15116,10 +15174,10 @@ Index: b/src/libply/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/libply/tests/Makefile.in
+Index: plymouth/src/libply/tests/Makefile.in
 ===================================================================
---- a/src/libply/tests/Makefile.in
-+++ b/src/libply/tests/Makefile.in
+--- plymouth.orig/src/libply/tests/Makefile.in	2011-02-12 14:48:32.046555280 +0100
++++ plymouth/src/libply/tests/Makefile.in	2011-02-12 14:48:49.966581559 +0100
 @@ -294,7 +294,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -15146,10 +15204,10 @@ Index: b/src/libply/tests/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/libply-splash-core/Makefile.in
+Index: plymouth/src/libply-splash-core/Makefile.in
 ===================================================================
---- a/src/libply-splash-core/Makefile.in
-+++ b/src/libply-splash-core/Makefile.in
+--- plymouth.orig/src/libply-splash-core/Makefile.in	2011-02-12 14:48:32.336555706 +0100
++++ plymouth/src/libply-splash-core/Makefile.in	2011-02-12 14:48:49.966581559 +0100
 @@ -137,7 +137,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -15176,10 +15234,10 @@ Index: b/src/libply-splash-core/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/libply-splash-graphics/Makefile.in
+Index: plymouth/src/libply-splash-graphics/Makefile.in
 ===================================================================
---- a/src/libply-splash-graphics/Makefile.in
-+++ b/src/libply-splash-graphics/Makefile.in
+--- plymouth.orig/src/libply-splash-graphics/Makefile.in	2011-02-12 14:48:32.066555308 +0100
++++ plymouth/src/libply-splash-graphics/Makefile.in	2011-02-12 14:48:49.966581559 +0100
 @@ -138,7 +138,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -15206,10 +15264,10 @@ Index: b/src/libply-splash-graphics/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/client/Makefile.in
+Index: plymouth/src/client/Makefile.in
 ===================================================================
---- a/src/client/Makefile.in
-+++ b/src/client/Makefile.in
+--- plymouth.orig/src/client/Makefile.in	2011-02-12 14:48:32.346555715 +0100
++++ plymouth/src/client/Makefile.in	2011-02-12 14:48:49.966581559 +0100
 @@ -180,7 +180,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -15236,10 +15294,10 @@ Index: b/src/client/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/client/tests/Makefile.in
+Index: plymouth/src/client/tests/Makefile.in
 ===================================================================
---- a/src/client/tests/Makefile.in
-+++ b/src/client/tests/Makefile.in
+--- plymouth.orig/src/client/tests/Makefile.in	2011-02-12 14:48:32.366555743 +0100
++++ plymouth/src/client/tests/Makefile.in	2011-02-12 14:48:49.966581559 +0100
 @@ -73,7 +73,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -15266,10 +15324,10 @@ Index: b/src/client/tests/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/tests/Makefile.in
+Index: plymouth/src/tests/Makefile.in
 ===================================================================
---- a/src/tests/Makefile.in
-+++ b/src/tests/Makefile.in
+--- plymouth.orig/src/tests/Makefile.in	2011-02-12 14:48:32.076555317 +0100
++++ plymouth/src/tests/Makefile.in	2011-02-12 14:48:49.976581573 +0100
 @@ -147,7 +147,10 @@
  CFLAGS = @CFLAGS@
  CPP = @CPP@
@@ -15296,10 +15354,10 @@ Index: b/src/tests/Makefile.in
  PLYMOUTH_CFLAGS = @PLYMOUTH_CFLAGS@
  PLYMOUTH_CONF_DIR = @PLYMOUTH_CONF_DIR@
  PLYMOUTH_DATADIR = @PLYMOUTH_DATADIR@
-Index: b/src/upstart-bridge/Makefile.in
+Index: plymouth/src/upstart-bridge/Makefile.in
 ===================================================================
---- /dev/null
-+++ b/src/upstart-bridge/Makefile.in
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ plymouth/src/upstart-bridge/Makefile.in	2011-02-12 14:48:49.000000000 +0100
 @@ -0,0 +1,621 @@
 +# Makefile.in generated by automake 1.11.1 from Makefile.am.
 +# @configure_input@
