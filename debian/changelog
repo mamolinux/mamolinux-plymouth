@@ -1,3 +1,12 @@
+plymouth (0.8.2-2ubuntu16) natty; urgency=low
+
+  * Rename .plymouth files to .plymouth.in.
+  * Fold changes from debian-changes that went missing back into patches to
+    which they pertain.
+  * Refresh autoreconf.patch.
+
+ -- Soren Hansen <soren@ubuntu.com>  Sat, 12 Feb 2011 15:25:03 +0100
+
 plymouth (0.8.2-2ubuntu15) natty; urgency=low
 
   * Pass MSG_NOSIGNAL when writing to Plymouth. This stops clients from
