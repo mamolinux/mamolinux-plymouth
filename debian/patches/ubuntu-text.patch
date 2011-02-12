@@ -3,10 +3,10 @@ Author: Scott James Remnant <scott@ubuntu.com>
 Forwarded: not-needed
 Last-Update: 2011-01-21
 
-Index: b/configure.ac
+Index: plymouth/configure.ac
 ===================================================================
---- a/configure.ac
-+++ b/configure.ac
+--- plymouth.orig/configure.ac
++++ plymouth/configure.ac
 @@ -271,6 +271,7 @@
             src/plugins/splash/Makefile
             src/plugins/splash/throbgress/Makefile
@@ -23,18 +23,18 @@ Index: b/configure.ac
             images/Makefile
  	   scripts/plymouth-generate-initrd
  	   scripts/plymouth-populate-initrd
-Index: b/themes/Makefile.am
+Index: plymouth/themes/Makefile.am
 ===================================================================
---- a/themes/Makefile.am
-+++ b/themes/Makefile.am
+--- plymouth.orig/themes/Makefile.am
++++ plymouth/themes/Makefile.am
 @@ -1,2 +1,2 @@
 -SUBDIRS = spinfinity fade-in text details solar glow script ubuntu-logo
 +SUBDIRS = spinfinity fade-in text details solar glow script ubuntu-logo ubuntu-text
  MAINTAINERCLEANFILES = Makefile.in
-Index: b/themes/ubuntu-text/ubuntu-text.plymouth
+Index: plymouth/themes/ubuntu-text/ubuntu-text.plymouth.in
 ===================================================================
 --- /dev/null
-+++ b/themes/ubuntu-text/ubuntu-text.plymouth
++++ plymouth/themes/ubuntu-text/ubuntu-text.plymouth.in
 @@ -0,0 +1,11 @@
 +[Plymouth Theme]
 +Name=Ubuntu Text
@@ -47,27 +47,27 @@ Index: b/themes/ubuntu-text/ubuntu-text.plymouth
 +white=0xffffff
 +brown=0xff4012
 +blue=0x988592
-Index: b/themes/ubuntu-text/Makefile.am
+Index: plymouth/themes/ubuntu-text/Makefile.am
 ===================================================================
 --- /dev/null
-+++ b/themes/ubuntu-text/Makefile.am
++++ plymouth/themes/ubuntu-text/Makefile.am
 @@ -0,0 +1,4 @@
 +themedir = $(datadir)/plymouth/themes/ubuntu-text
-+dist_theme_DATA = ubuntu-text.plymouth
++dist_theme_DATA = ubuntu-text.plymouth.in
 +
 +MAINTAINERCLEANFILES = Makefile.in
-Index: b/src/plugins/splash/Makefile.am
+Index: plymouth/src/plugins/splash/Makefile.am
 ===================================================================
---- a/src/plugins/splash/Makefile.am
-+++ b/src/plugins/splash/Makefile.am
+--- plymouth.orig/src/plugins/splash/Makefile.am
++++ plymouth/src/plugins/splash/Makefile.am
 @@ -1,2 +1,2 @@
 -SUBDIRS = throbgress fade-throbber text details space-flares two-step script
 +SUBDIRS = throbgress fade-throbber text details space-flares two-step script ubuntu-text
  MAINTAINERCLEANFILES = Makefile.in
-Index: b/src/plugins/splash/ubuntu-text/Makefile.am
+Index: plymouth/src/plugins/splash/ubuntu-text/Makefile.am
 ===================================================================
 --- /dev/null
-+++ b/src/plugins/splash/ubuntu-text/Makefile.am
++++ plymouth/src/plugins/splash/ubuntu-text/Makefile.am
 @@ -0,0 +1,23 @@
 +INCLUDES = -I$(top_srcdir)                                                    \
 +           -I$(srcdir)/../../../libply                                        \
@@ -92,10 +92,10 @@ Index: b/src/plugins/splash/ubuntu-text/Makefile.am
 +ubuntu_text_la_SOURCES = $(srcdir)/plugin.c
 +
 +MAINTAINERCLEANFILES = Makefile.in
-Index: b/src/plugins/splash/ubuntu-text/plugin.c
+Index: plymouth/src/plugins/splash/ubuntu-text/plugin.c
 ===================================================================
 --- /dev/null
-+++ b/src/plugins/splash/ubuntu-text/plugin.c
++++ plymouth/src/plugins/splash/ubuntu-text/plugin.c
 @@ -0,0 +1,823 @@
 +/* ubuntu-text.c - boot splash plugin
 + *
