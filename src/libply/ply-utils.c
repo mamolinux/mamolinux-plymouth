@@ -303,9 +303,14 @@ ply_write (int         fd,
     {
       ssize_t bytes_written = 0;
 
-      bytes_written = write (fd,
+      bytes_written = send  (fd,
                              ((uint8_t *) buffer) + total_bytes_written,
-                             bytes_left_to_write);
+                             bytes_left_to_write,
+                             0
+#if HAVE_DECL_MSG_NOSIGNAL
+                             |MSG_NOSIGNAL
+#endif
+                             );
 
       if (bytes_written > 0)
         {
