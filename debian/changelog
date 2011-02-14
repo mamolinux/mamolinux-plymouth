@@ -1,3 +1,10 @@
+plymouth (0.8.2-2ubuntu17) natty; urgency=low
+
+  * Rework the avoid-sigpipe patch to first attempt to use send(), and
+    then fall back to write in case of ENOTSOCK. (LP: #718044).
+
+ -- Soren Hansen <soren@ubuntu.com>  Mon, 14 Feb 2011 13:30:00 +0100
+
 plymouth (0.8.2-2ubuntu16) natty; urgency=low
 
   * Rename .plymouth files to .plymouth.in.
