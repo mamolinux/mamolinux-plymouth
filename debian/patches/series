@@ -1,5 +1,7 @@
 misc-changes.patch
 vga16fb-renderer.patch
+lbm-nouveau.patch
+nouveau-framebuffer.patch
 ubuntu-logo.patch
 ubuntu-text.patch
 kubuntu-text.patch

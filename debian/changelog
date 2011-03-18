@@ -1,3 +1,17 @@
+plymouth (0.8.2-2ubuntu18) natty; urgency=low
+
+  [ Colin Watson ]
+  * Split nouveau patches out from misc-changes.patch.
+  * If plymouth:force-drm is found on the kernel command line, use the drm
+    renderer even on nouveau.  This allows us to test fixes for LP #539655.
+    See also LP #533135.
+
+  [ Andy Whitcroft ]
+  * Make splash dependant on either a graphics device appearing or
+    udev-graphics-fallback completing.  (LP: #702090)
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Fri, 18 Mar 2011 22:35:41 +0000
+
 plymouth (0.8.2-2ubuntu17) natty; urgency=low
 
   * Rework the avoid-sigpipe patch to first attempt to use send(), and
