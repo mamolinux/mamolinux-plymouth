@@ -365,27 +365,6 @@ Index: b/src/plugins/splash/text/plugin.c
  
    ply_text_display_set_draw_handler (view->display,
                                       (ply_text_display_draw_handler_t)
-Index: b/src/plugins/renderers/drm/plugin.c
-===================================================================
---- a/src/plugins/renderers/drm/plugin.c
-+++ b/src/plugins/renderers/drm/plugin.c
-@@ -454,10 +454,15 @@
-       backend->driver_interface = ply_renderer_radeon_driver_get_interface ();
-       backend->driver_supports_mapping_console = false;
-     }
--  else if (strcmp (driver_name, "nouveau") == 0)
-+  else if (strcmp (driver_name, "nouveau") == 0
-+           || strcmp (driver_name, "lbm-nouveau") == 0)
-     {
-+#ifdef GDM_HANGING_IS_FINE_WITH_ME
-       backend->driver_interface = ply_renderer_nouveau_driver_get_interface ();
-       backend->driver_supports_mapping_console = false;
-+#else
-+      ply_trace("falling back to framebuffer for nouveau to avoid DRM hang");
-+#endif
-     }
-   free (driver_name);
- 
 Index: b/src/plugins/renderers/frame-buffer/plugin.c
 ===================================================================
 --- a/src/plugins/renderers/frame-buffer/plugin.c

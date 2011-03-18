@@ -8,7 +8,7 @@ Vcs-Bzr: lp:ubuntu/plymouth
 
 Package: plymouth
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libplymouth2 (= ${binary:Version}), libdrm-intel1 | libdrm-radeon1 | libdrm-nouveau1a, udev (>= 149-2), mountall (>= 2.0), initramfs-tools
+Depends: ${shlibs:Depends}, ${misc:Depends}, libplymouth2 (= ${binary:Version}), libdrm-intel1 | libdrm-radeon1 | libdrm-nouveau1a, udev (>= 166-0ubuntu4), mountall (>= 2.0), initramfs-tools
 Recommends: plymouth-theme-ubuntu-text | plymouth-theme
 Conflicts: usplash
 Breaks: gdm (<< 2.29.1-0ubuntu4), kdm (<< 4:4.4.2-0ubuntu6), ubuntustudio-plymouth-theme (<= 0.38), xubuntu-plymouth-theme (<< 10.04.4), lubuntu-plymouth-theme (<= 0.4)
