@@ -1,3 +1,13 @@
+plymouth (0.8.2-2ubuntu19) natty; urgency=low
+
+  * debian/initramfs-tools/hooks/plymouth: handle the nss_files modules
+    being in the multiarch library path instead of in /lib.
+  * Build-depend on dpkg-dev (>= 1.16.0~ubuntu4) so we can check the 
+    multiarch path at build time.
+  * Also handle multiarch paths for pango modules.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Wed, 23 Mar 2011 15:18:47 -0700
+
 plymouth (0.8.2-2ubuntu18) natty; urgency=low
 
   [ Colin Watson ]
