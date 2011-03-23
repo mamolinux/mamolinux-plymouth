@@ -6,6 +6,8 @@
 CFLAGS = -Wall -g
 LDFLAGS = -Wl,--as-needed
 
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+
 # Disable optimisations if noopt found in $DEB_BUILD_OPTIONS
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 	CFLAGS += -O0
@@ -50,6 +52,8 @@ override_dh_install:
 	sed -e'/frame-buffer\.so$$/a\
 $(VGA_RENDERER)' < debian/plymouth.install.in > debian/plymouth.install
 	dh_install
+	sed -i -e's/#DEB_HOST_MULTIARCH#/$(DEB_HOST_MULTIARCH)/g' \
+		debian/plymouth/usr/share/initramfs-tools/hooks/plymouth
 
 override_dh_auto_clean:
 	dh_auto_clean
