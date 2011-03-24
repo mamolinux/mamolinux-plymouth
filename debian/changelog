@@ -1,3 +1,15 @@
+plymouth (0.8.2-2ubuntu20) natty; urgency=low
+
+  * Backport from upstream:
+    - [event-loop] Add reference count to event sources (with any luck, this
+      will fix LP: #553745).
+    - [event-loop] Handle more than 8 events at once (LP: #518926).
+    - [terminal] Force enter to output newline.
+    - [terminal] Add OPOST to tty attributes (LP: #546251).
+    - [terminal] Don't set ISTRIP in terminal attributes.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Thu, 24 Mar 2011 14:17:20 +0000
+
 plymouth (0.8.2-2ubuntu19) natty; urgency=low
 
   * debian/initramfs-tools/hooks/plymouth: handle the nss_files modules
