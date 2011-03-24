@@ -9,4 +9,9 @@ gcc45-arith-workaround.patch
 debug-fixes.patch
 upstart-bridge.patch
 avoid-sigpipe.patch
+upstream-event-loop-reference.patch
+upstream-event-loop-number.patch
+upstream-terminal-force-newline.patch
+upstream-terminal-OPOST.patch
+upstream-terminal-no-ISTRIP.patch
 autoreconf.patch

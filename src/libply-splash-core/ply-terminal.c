@@ -179,8 +179,11 @@ ply_terminal_set_unbuffered_input (ply_terminal_t *terminal)
 
   cfmakeraw (&term_attributes);
 
+  /* Make return output new line like canonical mode */
+  term_attributes.c_iflag |= ICRNL;
+
   /* Make \n return go to the beginning of the next line */
-  term_attributes.c_oflag |= ONLCR;
+  term_attributes.c_oflag |= ONLCR | OPOST;
 
   if (tcsetattr (terminal->fd, TCSANOW, &term_attributes) != 0)
     return false;
@@ -215,7 +218,7 @@ ply_terminal_set_buffered_input (ply_terminal_t *terminal)
    */
   if (!terminal->original_term_attributes_saved || !(terminal->original_term_attributes.c_lflag & ICANON))
     {
-      term_attributes.c_iflag |= BRKINT | IGNPAR | ISTRIP | ICRNL | IXON;
+      term_attributes.c_iflag |= BRKINT | IGNPAR | ICRNL | IXON;
       term_attributes.c_oflag |= OPOST;
       term_attributes.c_lflag |= ECHO | ICANON | ISIG | IEXTEN;
 
