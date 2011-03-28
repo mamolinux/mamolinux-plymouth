@@ -1,3 +1,9 @@
+plymouth (0.8.2-2ubuntu21) natty; urgency=low
+
+  * Tolerate pre-multiarch versions of pango (LP: #741832).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Mon, 28 Mar 2011 11:07:14 +0100
+
 plymouth (0.8.2-2ubuntu20) natty; urgency=low
 
   * Backport from upstream:
