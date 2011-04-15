@@ -1,3 +1,10 @@
+plymouth (0.8.2-2ubuntu22) natty; urgency=low
+
+  * Install slave alternative for plymouth-theme-ubuntu-logo, telling GRUB
+    to set an aubergine background (LP: #696915).
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Fri, 15 Apr 2011 14:35:17 +0100
+
 plymouth (0.8.2-2ubuntu21) natty; urgency=low
 
   * Tolerate pre-multiarch versions of pango (LP: #741832).

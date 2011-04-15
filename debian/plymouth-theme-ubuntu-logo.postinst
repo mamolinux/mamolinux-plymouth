@@ -20,7 +20,9 @@ case "$1" in
     configure)
 	update-alternatives \
 		--install /lib/plymouth/themes/default.plymouth default.plymouth \
-		/lib/plymouth/themes/ubuntu-logo/ubuntu-logo.plymouth 100
+		/lib/plymouth/themes/ubuntu-logo/ubuntu-logo.plymouth 100 \
+		--slave /lib/plymouth/themes/default.grub default.plymouth.grub \
+		/lib/plymouth/themes/ubuntu-logo/ubuntu-logo.grub
 
 	if which update-initramfs >/dev/null 2>&1
 	then
