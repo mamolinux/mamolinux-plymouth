@@ -349,6 +349,27 @@ display_normal (ply_boot_splash_plugin_t *plugin)
     }
 }
 
+/* @shorten_prompt:
+ *
+ * Points prompt to the character immediately after the
+ * last '\n' in prompt
+ */
+static void shorten_prompt(const char ** prompt)
+{
+  int last_nl=-1, i=0;
+  const char * str = *prompt;
+  for(i=0; str[i] != '\0'; i++) {
+    if(str[i] == '\n') {
+        last_nl = i;
+    }
+  }
+  if (last_nl >= 0) {
+    if((str[last_nl] == '\n') && (last_nl < i)){
+      *prompt = &str[last_nl + 1];
+    }
+  }
+}
+
 static void
 display_password (ply_boot_splash_plugin_t *plugin,
                   const char               *prompt,
@@ -363,16 +384,17 @@ display_password (ply_boot_splash_plugin_t *plugin,
                     strlen (CLEAR_LINE_SEQUENCE));
   plugin->state = PLY_BOOT_SPLASH_DISPLAY_PASSWORD_ENTRY;
 
-  if (prompt)
+  if (prompt) {
+    if (bullets > 0)
+      shorten_prompt(&prompt);
     write_on_views (plugin,
                     prompt,
                     strlen (prompt));
+  }
   else
     write_on_views (plugin,
-                    "Password",
-                    strlen ("Password"));
-
-  write_on_views (plugin, ":", strlen (":"));
+                    "Password:",
+                    strlen ("Password:"));
 
   for (i = 0; i < bullets; i++)
     write_on_views (plugin, "*", strlen ("*"));

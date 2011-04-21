@@ -1,3 +1,15 @@
+plymouth (0.8.2-2ubuntu23) natty-proposed; urgency=low
+
+  * details/plugin.c: On every key stroke, the "details" plugin in plymouth
+    clears only the current line before overwriting it with the password
+    prompt. If the prompt is multilined then the last line ends up being
+    overwritten but the previous lines are repeated. Re-printing only the
+    last line of the password prompt on every keystroke. (LP: #566818)
+  * details/plugin.c: Removed the explicit printing of ':'. Expected to be a
+    part of the prompt.
+
+ -- Surbhi Palande <surbhi.palande@canonical.com>  Thu, 21 Apr 2011 09:54:07 +0300
+
 plymouth (0.8.2-2ubuntu22) natty; urgency=low
 
   * Install slave alternative for plymouth-theme-ubuntu-logo, telling GRUB
