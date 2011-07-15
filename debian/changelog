@@ -1,3 +1,10 @@
+plymouth (0.8.2-2ubuntu24) oneiric; urgency=low
+
+  * initramfs scripts: /dev/.initramfs/ → /run/initramfs transition.
+    (LP: #810956)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Fri, 15 Jul 2011 12:26:00 +0200
+
 plymouth (0.8.2-2ubuntu23) natty-proposed; urgency=low
 
   * details/plugin.c: On every key stroke, the "details" plugin in plymouth
