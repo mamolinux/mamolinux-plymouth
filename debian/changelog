@@ -1,3 +1,10 @@
+plymouth (0.8.2-2ubuntu25) oneiric; urgency=low
+
+  * debian/libplymouth2.apport: include grub configuration file and the
+    contents of /proc/cmdline when reporting a bug with apport (LP: #787685)
+
+ -- Brian Murray <brian@ubuntu.com>  Tue, 19 Jul 2011 09:57:35 -0700
+
 plymouth (0.8.2-2ubuntu24) oneiric; urgency=low
 
   * initramfs scripts: /dev/.initramfs/ → /run/initramfs transition.
