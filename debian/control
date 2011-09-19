@@ -31,7 +31,7 @@ Description: graphical boot animation and logger - X11 interface
 
 Package: plymouth-label
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libplymouth2 (= ${binary:Version}), plymouth (= ${binary:Version})
+Depends: ${shlibs:Depends}, ${misc:Depends}, libplymouth2 (= ${binary:Version}), plymouth (= ${binary:Version}), ttf-dejavu-core
 Replaces: plymouth (<< 0.8.1-4)
 Description: graphical boot animation and logger - label control
  Plymouth is an application that runs very early in the boot process

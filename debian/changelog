@@ -1,3 +1,19 @@
+plymouth (0.8.2-2ubuntu26) oneiric; urgency=low
+
+  * Add direct dependency on ttf-dejavu-core since that's the font used in
+    the initramfs-tools hook, instead of trusting that fontconfig-config
+    pulls in the right alternative.  LP: #828027.
+  * debian/initramfs-tools/scripts/init-bottom/plymouth: /run doesn't get
+    moved to ${rootmnt}/run until *after* our script has run, so don't try
+    to check for it before calling plymouth update-root-fs - it's not like
+    we would ever want to not pivot root, anyway.  Fixes the fact that we
+    haven't been getting /var/log/boot.log for months now.
+  * debian/plymouth.plymouth-stop.upstart: if stopped by lightdm, let
+    lightdm handle the VT transition as it's able, so we get flicker-free
+    boot.  LP: #849954.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Mon, 19 Sep 2011 10:56:55 -0700
+
 plymouth (0.8.2-2ubuntu25) oneiric; urgency=low
 
   * debian/libplymouth2.apport: include grub configuration file and the
