@@ -1,3 +1,13 @@
+plymouth (0.8.2-2ubuntu27) oneiric; urgency=low
+
+  * debian/plymouth.upstart: don't start up on 'stopped gdm' or 'stopped
+    lightdm' since on upgrade one of these two will always be stopped at
+    system boot.  Instead look for a 'desktop-shutdown' event, and declare
+    appropriate Breaks: against earlier versions of gdm, lightdm, kdm and
+    lxdm that don't implement this event.  LP: #854329.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Sun, 25 Sep 2011 22:58:30 -0700
+
 plymouth (0.8.2-2ubuntu26) oneiric; urgency=low
 
   * Add direct dependency on ttf-dejavu-core since that's the font used in

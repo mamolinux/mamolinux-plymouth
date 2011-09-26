@@ -9,11 +9,8 @@ description	"Userspace bootsplash utility"
 
 start on (starting mountall
           or (runlevel [016]
-              and (stopped gdm
-                   or stopped kdm
+              and (desktop-shutdown
                    or stopped xdm
-                   or stopped lxdm
-                   or stopped lightdm
                    or stopped uxlaunch)))
 
 expect fork
