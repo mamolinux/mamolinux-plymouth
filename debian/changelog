@@ -1,3 +1,10 @@
+plymouth (0.8.2-2ubuntu28) oneiric; urgency=low
+
+  * debian/libplymouth2.apport: collect boot.log and plymouth-debug.log if it
+    exists (LP: #860371)
+
+ -- Brian Murray <brian@ubuntu.com>  Wed, 28 Sep 2011 07:23:45 +0200
+
 plymouth (0.8.2-2ubuntu27) oneiric; urgency=low
 
   * debian/plymouth.upstart: don't start up on 'stopped gdm' or 'stopped
