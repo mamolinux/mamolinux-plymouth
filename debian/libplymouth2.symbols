@@ -272,6 +272,7 @@ libply-splash-core.so.2 libplymouth2 #MINVER#
  ply_terminal_get_number_of_columns@Base 0.8.0~-13~ppa1
  ply_terminal_get_number_of_rows@Base 0.8.0~-13~ppa1
  ply_terminal_get_vt_number@Base 0.8.0~-13~ppa1
+ ply_terminal_handle_vt_handoff@Base 0.8.2-2ubuntu29
  ply_terminal_ignore_mode_changes@Base 0.8.0~-13~ppa1
  ply_terminal_is_active@Base 0.8.0~-13~ppa1
  ply_terminal_is_open@Base 0.8.0~-13~ppa1
