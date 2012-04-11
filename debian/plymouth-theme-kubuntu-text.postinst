@@ -17,7 +17,7 @@
 
 
 case "$1" in
-    configure)
+    configure|triggered)
 	sed -re \
 		"/\[ubuntu-text\]/ {
 			N;

@@ -66,7 +66,7 @@ if [ -e "$THEME" ]; then
 	copy_exec /lib/plymouth/renderers/drm.so /lib/plymouth/renderers/
 	copy_exec /lib/plymouth/renderers/vga16fb.so /lib/plymouth/renderers/
 
-	cp /lib/plymouth/ubuntu-logo.png ${DESTDIR}/lib/plymouth
+	cp /lib/plymouth/ubuntu_logo.png ${DESTDIR}/lib/plymouth
 
 	# and copy the font support files needed in order to actually display
 	# any text

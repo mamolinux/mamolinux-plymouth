@@ -1,0 +1,30 @@
+From aa3ee475ec4d9e85695ddf2c0c417646e9ced14f Mon Sep 17 00:00:00 2001
+From: Ray Strode <rstrode@redhat.com>
+Date: Wed, 21 Jul 2010 00:21:16 -0400
+Subject: [PATCH] [main] Don't watch for keyboard input if no keyboard
+
+In the event should_ignore_show_splash_calls () returns
+true, we won't ever have a keyboard set.  This commit
+make sure that we don't try to use the keyboard if its
+unavailable.
+---
+ src/main.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/src/main.c b/src/main.c
+index e1dfacd..7ab763b 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -1510,7 +1510,8 @@ start_boot_splash (state_t    *state,
+       return NULL;
+     }
+ 
+-  ply_keyboard_watch_for_input (state->keyboard);
++  if (state->keyboard != NULL)
++    ply_keyboard_watch_for_input (state->keyboard);
+ 
+   update_display (state);
+   return splash;
+-- 
+1.7.5.4
+

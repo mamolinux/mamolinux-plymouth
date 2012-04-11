@@ -1451,7 +1451,8 @@ start_boot_splash (state_t    *state,
       return NULL;
     }
 
-  ply_keyboard_watch_for_input (state->keyboard);
+  if (state->keyboard != NULL)
+    ply_keyboard_watch_for_input (state->keyboard);
 
   update_display (state);
   return splash;
@@ -1653,6 +1654,20 @@ check_for_consoles (state_t    *state,
                ply_list_get_length (state->text_displays));
     if (should_add_displays && ply_list_get_length (state->text_displays) == 0)
       add_default_displays_and_keyboard (state);
+
+    if (state->mode == PLY_MODE_BOOT && state->terminal)
+      {
+        int vt_handoff = -1;
+        char *arg;
+
+        arg = strstr (state->kernel_command_line, "vt.handoff=");
+        if (arg != NULL)
+          sscanf (arg, "vt.handoff=%d", &vt_handoff);
+        if (vt_handoff > 0) {
+          ply_trace ("bootloader handed off on VT%d.", vt_handoff);
+          ply_terminal_handle_vt_handoff (state->terminal, vt_handoff);
+        }
+      }
 }
 
 static bool

@@ -16,4 +16,6 @@ upstream-event-loop-number.patch
 upstream-terminal-force-newline.patch
 upstream-terminal-OPOST.patch
 upstream-terminal-no-ISTRIP.patch
+main-Don-t-watch-for-keyboard-input-if-no-keyboard.patch 
+tty1-after-boot.patch
 autoreconf.patch

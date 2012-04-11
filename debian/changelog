@@ -1,3 +1,21 @@
+plymouth (0.8.2-2ubuntu29) precise; urgency=low
+
+  * debian/patches/main-Don-t-watch-for-keyboard-input-if-no-keyboard.patch:
+    Cherry-pick from upstream; don't watch for keyboard input if no keyboard
+    is set, as is the case when should_ignore_show_splash_calls() returns
+    true, fixing an assert failure.  LP: #619021.
+  * debian/ubuntu-logo.png: remove in favor of the logo included in the
+    ubuntu-logo theme which has the correct branding.  This has no impact on
+    the default user experience, but fixes the branding when using certain
+    non-default themes available in the archive.  (We still ship a copy in
+    the main plymouth package for this reason.)  LP: #667262.
+  * debian/patches/tty1-after-boot.patch: Switch back to tty1 on exit if
+    started with vt.handoff.  Closes LP: #913731.
+  * debian/plymouth-theme-{k,}ubuntu-text.{triggers,postinst}: regenerate
+    our theme when /etc/lsb-release changes.  LP: #957380.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Wed, 11 Apr 2012 04:59:54 +0000
+
 plymouth (0.8.2-2ubuntu28) oneiric; urgency=low
 
   * debian/libplymouth2.apport: collect boot.log and plymouth-debug.log if it
