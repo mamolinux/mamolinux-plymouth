@@ -1,0 +1,11 @@
+[Plymouth Theme]
+Name=Kubuntu Text
+Description=Text mode theme based on kubuntu-logo theme
+ModuleName=ubuntu-text
+
+[ubuntu-text]
+title=Kubuntu 12.04
+black=0xB2BAC1
+white=0x000000
+brown=0xA4BAC0
+blue=0x988592
