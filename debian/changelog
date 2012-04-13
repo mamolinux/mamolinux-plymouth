@@ -1,3 +1,15 @@
+plymouth (0.8.2-2ubuntu30) precise; urgency=low
+
+  [ Philip Muškovac ]
+  * debian/patches/kubuntu-text.patch:
+    Change kubuntu-text theme to new grey (LP: #979824)
+
+  [ James Hunt ]
+  * Temporary work-around that minimizes chance of referencing invalid
+    sources (LP: #553745). 
+
+ -- James Hunt <james.hunt@ubuntu.com>  Fri, 13 Apr 2012 15:11:36 +0100
+
 plymouth (0.8.2-2ubuntu29) precise; urgency=low
 
   * debian/patches/main-Don-t-watch-for-keyboard-input-if-no-keyboard.patch:

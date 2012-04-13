@@ -1,0 +1,46 @@
+Description: Ignore events that reference now invalid sources
+ This is a temporary workaround for epoll_wait sometimes returning events
+ for sources that have supposedly already been removed.
+Author: James Hunt <james.hunt@ubuntu.com>
+Acked-by: Colin Watson <cjwatson@ubuntu.com>
+Bug-Ubuntu: https://bugs.launchpad.net/bug/553745
+Forwarded: no
+Last-Update: 2012-04-13
+
+Index: b/src/libply/ply-event-loop.c
+===================================================================
+--- a/src/libply/ply-event-loop.c
++++ b/src/libply/ply-event-loop.c
+@@ -1298,6 +1298,10 @@
+       ply_event_source_t *source;
+       source = (ply_event_source_t *) (events[i].data.ptr);
+ 
++      /* ignore events that reference a now invalid source */
++      if (!ply_list_find_node (loop->sources, source))
++        continue;
++
+       ply_event_source_take_reference (source);
+     }
+ 
+@@ -1312,6 +1316,10 @@
+       source = (ply_event_source_t *) (events[i].data.ptr);
+       status = ply_event_loop_get_fd_status_from_poll_mask (events[i].events);
+ 
++      /* ignore events that reference a now invalid source */
++      if (!ply_list_find_node (loop->sources, source))
++        continue;
++
+       is_disconnected = false;
+       if ((events[i].events & EPOLLHUP) || (events[i].events & EPOLLERR))
+         {
+@@ -1344,6 +1352,10 @@
+ 
+       source = (ply_event_source_t *) (events[i].data.ptr);
+ 
++      /* ignore events that reference a now invalid source */
++      if (!ply_list_find_node (loop->sources, source))
++        continue;
++
+       ply_event_source_drop_reference (source);
+     }
+ }
