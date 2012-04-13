@@ -1,7 +1,7 @@
 Description: Add kubuntu-text theme
 Author: Jonathan Riddell <jriddell@ubuntu.com>
 Forwarded: not-needed
-Last-Update: 2011-01-21
+Last-Update: 2012-04-12
 
 Index: plymouth/configure.ac
 ===================================================================
@@ -34,10 +34,10 @@ Index: plymouth/themes/kubuntu-text/kubuntu-text.plymouth.in
 +ModuleName=ubuntu-text
 +
 +[ubuntu-text]
-+title=Kubuntu 11.04
-+black=0x0078C2
-+white=0xffffff
-+brown=0x009DFD
++title=Kubuntu 12.04
++black=0xB2BAC1
++white=0x000000
++brown=0xA4BAC0
 +blue=0x988592
 Index: plymouth/themes/kubuntu-text/Makefile.am
 ===================================================================
