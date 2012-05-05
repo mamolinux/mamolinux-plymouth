@@ -624,6 +624,8 @@ PLYMOUTH_CONF_DIR
 PLYMOUTH_POLICY_DIR
 PLYMOUTH_PLUGIN_PATH
 PLYMOUTH_THEME_PATH
+BUILD_VGA16FB_FALSE
+BUILD_VGA16FB_TRUE
 RELEASE_FILE
 background_end_color
 background_start_color
@@ -2017,6 +2019,52 @@ $as_echo "$ac_res" >&6; }
   eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
 
 } # ac_fn_c_check_func
+
+# ac_fn_c_check_decl LINENO SYMBOL VAR INCLUDES
+# ---------------------------------------------
+# Tests whether SYMBOL is declared in INCLUDES, setting cache variable VAR
+# accordingly.
+ac_fn_c_check_decl ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  as_decl_name=`echo $2|sed 's/ *(.*//'`
+  as_decl_use=`echo $2|sed -e 's/(/((/' -e 's/)/) 0&/' -e 's/,/) 0& (/g'`
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $as_decl_name is declared" >&5
+$as_echo_n "checking whether $as_decl_name is declared... " >&6; }
+if eval \${$3+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+int
+main ()
+{
+#ifndef $as_decl_name
+#ifdef __cplusplus
+  (void) $as_decl_use;
+#else
+  (void) $as_decl_name;
+#endif
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "$3=yes"
+else
+  eval "$3=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+eval ac_res=\$$3
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_c_check_decl
 cat >config.log <<_ACEOF
 This file contains any messages produced by compilers while
 running configure, to aid debugging if configure makes a mistake.
@@ -5248,6 +5296,7 @@ fi
 
 
 
+
 if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
 	if test -n "$ac_tool_prefix"; then
   # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
@@ -6563,7 +6612,7 @@ linux* | k*bsd*-gnu | kopensolaris*-gnu)
   lt_cv_deplibs_check_method=pass_all
   ;;
 
-netbsd*)
+netbsd* | netbsdelf*-gnu)
   if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
     lt_cv_deplibs_check_method='match_pattern /lib[^/]+(\.so\.[0-9]+\.[0-9]+|_pic\.a)$'
   else
@@ -9692,6 +9741,9 @@ $as_echo_n "checking whether the $compiler linker ($LD) supports shared librarie
   openbsd*)
     with_gnu_ld=no
     ;;
+  linux* | k*bsd*-gnu | gnu*)
+    link_all_deplibs=no
+    ;;
   esac
 
   ld_shlibs=yes
@@ -9913,7 +9965,7 @@ _LT_EOF
       fi
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
 	wlarc=
@@ -10090,6 +10142,7 @@ _LT_EOF
 	if test "$aix_use_runtimelinking" = yes; then
 	  shared_flag="$shared_flag "'${wl}-G'
 	fi
+	link_all_deplibs=no
       else
 	# not using gcc
 	if test "$host_cpu" = ia64; then
@@ -10543,7 +10596,7 @@ $as_echo "$lt_cv_irix_exported_symbol" >&6; }
       link_all_deplibs=yes
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
       else
@@ -11556,14 +11609,10 @@ fi
   # before this can be enabled.
   hardcode_into_libs=yes
 
-  # Add ABI-specific directories to the system library path.
-  sys_lib_dlsearch_path_spec="/lib64 /usr/lib64 /lib /usr/lib"
-
   # Append ld.so.conf contents to the search path
   if test -f /etc/ld.so.conf; then
     lt_ld_extra=`awk '/^include / { system(sprintf("cd /etc; cat %s 2>/dev/null", \$2)); skip = 1; } { if (!skip) print \$0; skip = 0; }' < /etc/ld.so.conf | $SED -e 's/#.*//;/^[	 ]*hwcap[	 ]/d;s/[:,	]/ /g;s/=[^=]*$//;s/=[^= ]* / /g;s/"//g;/^$/d' | tr '\n' ' '`
-    sys_lib_dlsearch_path_spec="$sys_lib_dlsearch_path_spec $lt_ld_extra"
-
+    sys_lib_dlsearch_path_spec="/lib /usr/lib $lt_ld_extra"
   fi
 
   # We used to test for /lib/ld.so.1 and disable shared libraries on
@@ -11573,6 +11622,18 @@ fi
   # people can always --disable-shared, the test was removed, and we
   # assume the GNU/Linux dynamic linker is in use.
   dynamic_linker='GNU/Linux ld.so'
+  ;;
+
+netbsdelf*-gnu)
+  version_type=linux
+  need_lib_prefix=no
+  need_version=no
+  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
+  soname_spec='${libname}${release}${shared_ext}$major'
+  shlibpath_var=LD_LIBRARY_PATH
+  shlibpath_overrides_runpath=no
+  hardcode_into_libs=yes
+  dynamic_linker='NetBSD ld.elf_so'
   ;;
 
 netbsd*)
@@ -12577,6 +12638,7 @@ if test -n "$IMAGE_CFLAGS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_IMAGE_CFLAGS=`$PKG_CONFIG --cflags "libpng >= 1.2.16 " 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -12593,6 +12655,7 @@ if test -n "$IMAGE_LIBS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_IMAGE_LIBS=`$PKG_CONFIG --libs "libpng >= 1.2.16 " 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -12612,9 +12675,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        IMAGE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "libpng >= 1.2.16 " 2>&1`
+	        IMAGE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libpng >= 1.2.16 " 2>&1`
         else
-	        IMAGE_PKG_ERRORS=`$PKG_CONFIG --print-errors "libpng >= 1.2.16 " 2>&1`
+	        IMAGE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libpng >= 1.2.16 " 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$IMAGE_PKG_ERRORS" >&5
@@ -12629,7 +12692,6 @@ installed software in a non-standard prefix.
 Alternatively, you may set the environment variables IMAGE_CFLAGS
 and IMAGE_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
-
 elif test $pkg_failed = untried; then
      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -12645,7 +12707,6 @@ See the pkg-config man page for more details.
 
 To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details" "$LINENO" 5; }
-
 else
 	IMAGE_CFLAGS=$pkg_cv_IMAGE_CFLAGS
 	IMAGE_LIBS=$pkg_cv_IMAGE_LIBS
@@ -12694,6 +12755,7 @@ if test -n "$PANGO_CFLAGS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_PANGO_CFLAGS=`$PKG_CONFIG --cflags "pangocairo >= 1.21.0 " 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -12710,6 +12772,7 @@ if test -n "$PANGO_LIBS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_PANGO_LIBS=`$PKG_CONFIG --libs "pangocairo >= 1.21.0 " 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -12729,9 +12792,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        PANGO_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "pangocairo >= 1.21.0 " 2>&1`
+	        PANGO_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "pangocairo >= 1.21.0 " 2>&1`
         else
-	        PANGO_PKG_ERRORS=`$PKG_CONFIG --print-errors "pangocairo >= 1.21.0 " 2>&1`
+	        PANGO_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "pangocairo >= 1.21.0 " 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$PANGO_PKG_ERRORS" >&5
@@ -12746,7 +12809,6 @@ installed software in a non-standard prefix.
 Alternatively, you may set the environment variables PANGO_CFLAGS
 and PANGO_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
-
 elif test $pkg_failed = untried; then
      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -12762,7 +12824,6 @@ See the pkg-config man page for more details.
 
 To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details" "$LINENO" 5; }
-
 else
 	PANGO_CFLAGS=$pkg_cv_PANGO_CFLAGS
 	PANGO_LIBS=$pkg_cv_PANGO_LIBS
@@ -12789,6 +12850,7 @@ if test -n "$GTK_CFLAGS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_GTK_CFLAGS=`$PKG_CONFIG --cflags "gtk+-2.0 >= 2.12.0 " 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -12805,6 +12867,7 @@ if test -n "$GTK_LIBS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_GTK_LIBS=`$PKG_CONFIG --libs "gtk+-2.0 >= 2.12.0 " 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -12824,9 +12887,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        GTK_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "gtk+-2.0 >= 2.12.0 " 2>&1`
+	        GTK_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "gtk+-2.0 >= 2.12.0 " 2>&1`
         else
-	        GTK_PKG_ERRORS=`$PKG_CONFIG --print-errors "gtk+-2.0 >= 2.12.0 " 2>&1`
+	        GTK_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "gtk+-2.0 >= 2.12.0 " 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$GTK_PKG_ERRORS" >&5
@@ -12841,7 +12904,6 @@ installed software in a non-standard prefix.
 Alternatively, you may set the environment variables GTK_CFLAGS
 and GTK_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
-
 elif test $pkg_failed = untried; then
      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -12857,7 +12919,6 @@ See the pkg-config man page for more details.
 
 To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details" "$LINENO" 5; }
-
 else
 	GTK_CFLAGS=$pkg_cv_GTK_CFLAGS
 	GTK_LIBS=$pkg_cv_GTK_LIBS
@@ -12900,6 +12961,7 @@ if test -n "$DRM_INTEL_CFLAGS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_DRM_INTEL_CFLAGS=`$PKG_CONFIG --cflags "libdrm libdrm_intel" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -12916,6 +12978,7 @@ if test -n "$DRM_INTEL_LIBS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_DRM_INTEL_LIBS=`$PKG_CONFIG --libs "libdrm libdrm_intel" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -12935,9 +12998,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        DRM_INTEL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "libdrm libdrm_intel" 2>&1`
+	        DRM_INTEL_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libdrm libdrm_intel" 2>&1`
         else
-	        DRM_INTEL_PKG_ERRORS=`$PKG_CONFIG --print-errors "libdrm libdrm_intel" 2>&1`
+	        DRM_INTEL_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libdrm libdrm_intel" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$DRM_INTEL_PKG_ERRORS" >&5
@@ -12952,7 +13015,6 @@ installed software in a non-standard prefix.
 Alternatively, you may set the environment variables DRM_INTEL_CFLAGS
 and DRM_INTEL_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
-
 elif test $pkg_failed = untried; then
      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -12968,7 +13030,6 @@ See the pkg-config man page for more details.
 
 To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details" "$LINENO" 5; }
-
 else
 	DRM_INTEL_CFLAGS=$pkg_cv_DRM_INTEL_CFLAGS
 	DRM_INTEL_LIBS=$pkg_cv_DRM_INTEL_LIBS
@@ -13085,6 +13146,7 @@ if test -n "$DRM_RADEON_CFLAGS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_DRM_RADEON_CFLAGS=`$PKG_CONFIG --cflags "libdrm libdrm_radeon" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -13101,6 +13163,7 @@ if test -n "$DRM_RADEON_LIBS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_DRM_RADEON_LIBS=`$PKG_CONFIG --libs "libdrm libdrm_radeon" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -13120,9 +13183,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        DRM_RADEON_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "libdrm libdrm_radeon" 2>&1`
+	        DRM_RADEON_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libdrm libdrm_radeon" 2>&1`
         else
-	        DRM_RADEON_PKG_ERRORS=`$PKG_CONFIG --print-errors "libdrm libdrm_radeon" 2>&1`
+	        DRM_RADEON_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libdrm libdrm_radeon" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$DRM_RADEON_PKG_ERRORS" >&5
@@ -13137,7 +13200,6 @@ installed software in a non-standard prefix.
 Alternatively, you may set the environment variables DRM_RADEON_CFLAGS
 and DRM_RADEON_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
-
 elif test $pkg_failed = untried; then
      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -13153,7 +13215,6 @@ See the pkg-config man page for more details.
 
 To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details" "$LINENO" 5; }
-
 else
 	DRM_RADEON_CFLAGS=$pkg_cv_DRM_RADEON_CFLAGS
 	DRM_RADEON_LIBS=$pkg_cv_DRM_RADEON_LIBS
@@ -13270,6 +13331,7 @@ if test -n "$DRM_NOUVEAU_CFLAGS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_DRM_NOUVEAU_CFLAGS=`$PKG_CONFIG --cflags "libdrm libdrm_nouveau" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -13286,6 +13348,7 @@ if test -n "$DRM_NOUVEAU_LIBS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_DRM_NOUVEAU_LIBS=`$PKG_CONFIG --libs "libdrm libdrm_nouveau" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -13305,9 +13368,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        DRM_NOUVEAU_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "libdrm libdrm_nouveau" 2>&1`
+	        DRM_NOUVEAU_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libdrm libdrm_nouveau" 2>&1`
         else
-	        DRM_NOUVEAU_PKG_ERRORS=`$PKG_CONFIG --print-errors "libdrm libdrm_nouveau" 2>&1`
+	        DRM_NOUVEAU_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libdrm libdrm_nouveau" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$DRM_NOUVEAU_PKG_ERRORS" >&5
@@ -13322,7 +13385,6 @@ installed software in a non-standard prefix.
 Alternatively, you may set the environment variables DRM_NOUVEAU_CFLAGS
 and DRM_NOUVEAU_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
-
 elif test $pkg_failed = untried; then
      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -13338,7 +13400,6 @@ See the pkg-config man page for more details.
 
 To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details" "$LINENO" 5; }
-
 else
 	DRM_NOUVEAU_CFLAGS=$pkg_cv_DRM_NOUVEAU_CFLAGS
 	DRM_NOUVEAU_LIBS=$pkg_cv_DRM_NOUVEAU_LIBS
@@ -13455,6 +13516,7 @@ if test -n "$LIBKMS_CFLAGS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_LIBKMS_CFLAGS=`$PKG_CONFIG --cflags "libdrm libkms" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -13471,6 +13533,7 @@ if test -n "$LIBKMS_LIBS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_LIBKMS_LIBS=`$PKG_CONFIG --libs "libdrm libkms" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -13490,9 +13553,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        LIBKMS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "libdrm libkms" 2>&1`
+	        LIBKMS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libdrm libkms" 2>&1`
         else
-	        LIBKMS_PKG_ERRORS=`$PKG_CONFIG --print-errors "libdrm libkms" 2>&1`
+	        LIBKMS_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libdrm libkms" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$LIBKMS_PKG_ERRORS" >&5
@@ -13507,7 +13570,6 @@ installed software in a non-standard prefix.
 Alternatively, you may set the environment variables LIBKMS_CFLAGS
 and LIBKMS_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
-
 elif test $pkg_failed = untried; then
      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -13523,7 +13585,6 @@ See the pkg-config man page for more details.
 
 To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details" "$LINENO" 5; }
-
 else
 	LIBKMS_CFLAGS=$pkg_cv_LIBKMS_CFLAGS
 	LIBKMS_LIBS=$pkg_cv_LIBKMS_LIBS
@@ -13623,6 +13684,7 @@ if test -n "$DBUS_CFLAGS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_DBUS_CFLAGS=`$PKG_CONFIG --cflags "dbus-1" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -13639,6 +13701,7 @@ if test -n "$DBUS_LIBS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_DBUS_LIBS=`$PKG_CONFIG --libs "dbus-1" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -13658,9 +13721,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        DBUS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "dbus-1" 2>&1`
+	        DBUS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "dbus-1" 2>&1`
         else
-	        DBUS_PKG_ERRORS=`$PKG_CONFIG --print-errors "dbus-1" 2>&1`
+	        DBUS_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "dbus-1" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$DBUS_PKG_ERRORS" >&5
@@ -13675,7 +13738,6 @@ installed software in a non-standard prefix.
 Alternatively, you may set the environment variables DBUS_CFLAGS
 and DBUS_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
-
 elif test $pkg_failed = untried; then
      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -13691,7 +13753,6 @@ See the pkg-config man page for more details.
 
 To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details" "$LINENO" 5; }
-
 else
 	DBUS_CFLAGS=$pkg_cv_DBUS_CFLAGS
 	DBUS_LIBS=$pkg_cv_DBUS_LIBS
@@ -14162,6 +14223,40 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+for ac_header in sys/io.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "sys/io.h" "ac_cv_header_sys_io_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_io_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYS_IO_H 1
+_ACEOF
+
+fi
+
+done
+
+ if test "x$ac_cv_header_sys_io_h" = xyes; then
+  BUILD_VGA16FB_TRUE=
+  BUILD_VGA16FB_FALSE='#'
+else
+  BUILD_VGA16FB_TRUE='#'
+  BUILD_VGA16FB_FALSE=
+fi
+
+
+ac_fn_c_check_decl "$LINENO" "MSG_NOSIGNAL" "ac_cv_have_decl_MSG_NOSIGNAL" " #include <sys/socket.h>
+"
+if test "x$ac_cv_have_decl_MSG_NOSIGNAL" = xyes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_MSG_NOSIGNAL $ac_have_decl
+_ACEOF
+
+
 # Turn on the additional warnings last, so -Werror doesn't affect other tests.
 
 
@@ -14471,7 +14566,7 @@ plymouthconfdir=$sysconfdir/plymouth/
   exec_prefix=$exec_prefix_save
 
 
-ac_config_files="$ac_config_files Makefile src/libply/Makefile src/libply-splash-core/Makefile src/libply-splash-graphics/Makefile src/ply-splash-core.pc src/ply-splash-graphics.pc src/plugins/Makefile src/plugins/renderers/Makefile src/plugins/renderers/frame-buffer/Makefile src/plugins/renderers/drm/Makefile src/plugins/renderers/x11/Makefile src/plugins/splash/Makefile src/plugins/splash/throbgress/Makefile src/plugins/splash/fade-throbber/Makefile src/plugins/splash/text/Makefile src/plugins/splash/details/Makefile src/plugins/splash/space-flares/Makefile src/plugins/splash/two-step/Makefile src/plugins/splash/script/Makefile src/plugins/controls/Makefile src/plugins/controls/label/Makefile src/Makefile src/client/ply-boot-client.pc src/client/Makefile src/viewer/Makefile src/upstart-bridge/Makefile src/tests/Makefile src/libply/tests/Makefile src/client/tests/Makefile themes/Makefile themes/spinfinity/Makefile themes/fade-in/Makefile themes/text/Makefile themes/details/Makefile themes/solar/Makefile themes/glow/Makefile themes/spinner/Makefile themes/script/Makefile images/Makefile scripts/plymouth-generate-initrd scripts/plymouth-populate-initrd scripts/plymouth-set-default-theme scripts/Makefile docs/Makefile"
+ac_config_files="$ac_config_files Makefile src/libply/Makefile src/libply-splash-core/Makefile src/libply-splash-graphics/Makefile src/ply-splash-core.pc src/ply-splash-graphics.pc src/plugins/Makefile src/plugins/renderers/Makefile src/plugins/renderers/frame-buffer/Makefile src/plugins/renderers/drm/Makefile src/plugins/renderers/x11/Makefile src/plugins/renderers/vga16fb/Makefile src/plugins/splash/Makefile src/plugins/splash/throbgress/Makefile src/plugins/splash/fade-throbber/Makefile src/plugins/splash/ubuntu-text/Makefile src/plugins/splash/text/Makefile src/plugins/splash/details/Makefile src/plugins/splash/space-flares/Makefile src/plugins/splash/two-step/Makefile src/plugins/splash/script/Makefile src/plugins/controls/Makefile src/plugins/controls/label/Makefile src/Makefile src/client/ply-boot-client.pc src/client/Makefile src/viewer/Makefile src/upstart-bridge/Makefile src/tests/Makefile src/libply/tests/Makefile src/client/tests/Makefile themes/Makefile themes/spinfinity/Makefile themes/fade-in/Makefile themes/text/Makefile themes/details/Makefile themes/solar/Makefile themes/glow/Makefile themes/spinner/Makefile themes/script/Makefile themes/ubuntu-logo/Makefile themes/ubuntu-text/Makefile themes/kubuntu-text/Makefile images/Makefile scripts/plymouth-generate-initrd scripts/plymouth-populate-initrd scripts/plymouth-set-default-theme scripts/Makefile docs/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -14656,6 +14751,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${INSTALL_FALLBACK_LOGO_TRUE}" && test -z "${INSTALL_FALLBACK_LOGO_FALSE}"; then
   as_fn_error $? "conditional \"INSTALL_FALLBACK_LOGO\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${BUILD_VGA16FB_TRUE}" && test -z "${BUILD_VGA16FB_FALSE}"; then
+  as_fn_error $? "conditional \"BUILD_VGA16FB\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
@@ -15553,9 +15652,11 @@ do
     "src/plugins/renderers/frame-buffer/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/renderers/frame-buffer/Makefile" ;;
     "src/plugins/renderers/drm/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/renderers/drm/Makefile" ;;
     "src/plugins/renderers/x11/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/renderers/x11/Makefile" ;;
+    "src/plugins/renderers/vga16fb/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/renderers/vga16fb/Makefile" ;;
     "src/plugins/splash/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/splash/Makefile" ;;
     "src/plugins/splash/throbgress/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/splash/throbgress/Makefile" ;;
     "src/plugins/splash/fade-throbber/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/splash/fade-throbber/Makefile" ;;
+    "src/plugins/splash/ubuntu-text/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/splash/ubuntu-text/Makefile" ;;
     "src/plugins/splash/text/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/splash/text/Makefile" ;;
     "src/plugins/splash/details/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/splash/details/Makefile" ;;
     "src/plugins/splash/space-flares/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/splash/space-flares/Makefile" ;;
@@ -15580,6 +15681,9 @@ do
     "themes/glow/Makefile") CONFIG_FILES="$CONFIG_FILES themes/glow/Makefile" ;;
     "themes/spinner/Makefile") CONFIG_FILES="$CONFIG_FILES themes/spinner/Makefile" ;;
     "themes/script/Makefile") CONFIG_FILES="$CONFIG_FILES themes/script/Makefile" ;;
+    "themes/ubuntu-logo/Makefile") CONFIG_FILES="$CONFIG_FILES themes/ubuntu-logo/Makefile" ;;
+    "themes/ubuntu-text/Makefile") CONFIG_FILES="$CONFIG_FILES themes/ubuntu-text/Makefile" ;;
+    "themes/kubuntu-text/Makefile") CONFIG_FILES="$CONFIG_FILES themes/kubuntu-text/Makefile" ;;
     "images/Makefile") CONFIG_FILES="$CONFIG_FILES images/Makefile" ;;
     "scripts/plymouth-generate-initrd") CONFIG_FILES="$CONFIG_FILES scripts/plymouth-generate-initrd" ;;
     "scripts/plymouth-populate-initrd") CONFIG_FILES="$CONFIG_FILES scripts/plymouth-populate-initrd" ;;
