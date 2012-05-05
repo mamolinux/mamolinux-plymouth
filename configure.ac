@@ -1,4 +1,4 @@
-AC_INIT([plymouth],[0.8.2],[https://bugs.freedesktop.org/enter_bug.cgi?product=plymouth])
+AC_INIT([plymouth],[0.8.4],[https://bugs.freedesktop.org/enter_bug.cgi?product=plymouth])
 AC_CONFIG_SRCDIR(src/main.c)
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_AUX_DIR(build-tools)
@@ -56,48 +56,158 @@ PKG_CHECK_MODULES(GTK, [gtk+-2.0 >= 2.12.0 ])
 AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_LIBS)
 
-PKG_CHECK_MODULES(DRM, [libdrm libdrm_intel libdrm_radeon libdrm_nouveau])
+AC_ARG_ENABLE(libdrm_intel, AS_HELP_STRING([--enable-libdrm_intel],[enable building with libdrm_intel support]),enable_libdrm_intel=$enableval,enable_libdrm_intel=yes)
+AM_CONDITIONAL(ENABLE_LIBDRM_INTEL,  [test "$enable_libdrm_intel" = yes])
 
-OLD_CFLAGS="$CFLAGS"
-CFLAGS="$CFLAGS $DRM_CFLAGS"
-AC_MSG_CHECKING([if i915_drm.h, radeon_drm.h and nouveau_drm.h are in include path])
-AC_COMPILE_IFELSE(AC_LANG_PROGRAM(
-[[
-  #include <stdint.h>
-  #include <stdlib.h>
-  #include "i915_drm.h"
-  #include "radeon_drm.h"
-  #include "nouveau_drm.h"
-]],[[]]),[found_drm_kernel_headers=yes],[found_drm_kernel_headers=no])
-
-if test "$found_drm_kernel_headers" = "yes"; then
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_RESULT([no])
-  AC_MSG_CHECKING([if we can find them anyway])
-
-  MORE_DRM_CFLAGS="-I`$PKG_CONFIG --variable includedir libdrm`/drm"
-  CFLAGS="$CFLAGS $MORE_DRM_CFLAGS"
+if test x$enable_libdrm_intel = xyes; then
+  PKG_CHECK_MODULES(DRM_INTEL, [libdrm libdrm_intel])
+  OLD_CFLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS $DRM_INTEL_CFLAGS"
+  AC_MSG_CHECKING([if i915_drm.h is in include path])
   AC_COMPILE_IFELSE(AC_LANG_PROGRAM(
   [[
     #include <stdint.h>
     #include <stdlib.h>
     #include "i915_drm.h"
-    #include "radeon_drm.h"
-    #include "nouveau_drm.h"
-  ]],[[]]),[found_drm_kernel_headers=yes],[found_drm_kernel_headers=no])
+  ]],[[]]),[found_drm_intel_kernel_headers=yes],[found_drm_intel_kernel_headers=no])
 
-  if test "$found_drm_kernel_headers" = "yes"; then
+  if test "$found_drm_intel_kernel_headers" = "yes"; then
     AC_MSG_RESULT([yes])
-    DRM_CFLAGS="$DRM_CFLAGS $MORE_DRM_CFLAGS"
   else
     AC_MSG_RESULT([no])
-    AC_MSG_ERROR([Could not find i915_drm.h, radeon_drm.h and/or nouveau_drm.h])
+    AC_MSG_CHECKING([if we can find them anyway])
+
+    MORE_DRM_CFLAGS="-I`$PKG_CONFIG --variable includedir libdrm`/drm"
+    CFLAGS="$CFLAGS $MORE_DRM_CFLAGS"
+    AC_COMPILE_IFELSE(AC_LANG_PROGRAM(
+    [[
+      #include <stdint.h>
+      #include <stdlib.h>
+      #include "i915_drm.h"
+    ]],[[]]),[found_drm_intel_kernel_headers=yes],[found_drm_intel_kernel_headers=no])
+
+    if test "$found_drm_intel_kernel_headers" = "yes"; then
+      AC_MSG_RESULT([yes])
+      DRM_INTEL_CFLAGS="$DRM_INTEL_CFLAGS $MORE_DRM_CFLAGS"
+    else
+      AC_MSG_RESULT([no])
+      AC_MSG_ERROR([Could not find i915_drm.h])
+    fi
   fi
+
+  AC_SUBST(DRM_INTEL_CFLAGS)
+  AC_SUBST(DRM_INTEL_LIBS)
+  AC_DEFINE(PLY_ENABLE_LIBDRM_INTEL, 1, [Enable support for libdrm_intel driver])
 fi
-CFLAGS="$OLD_CFLAGS"
+
+AC_ARG_ENABLE(libdrm_radeon, AS_HELP_STRING([--enable-libdrm_radeon],[enable building with libdrm_radeon support]),enable_libdrm_radeon=$enableval,enable_libdrm_radeon=yes)
+AM_CONDITIONAL(ENABLE_LIBDRM_RADEON,  [test "$enable_libdrm_radeon" = yes])
+
+if test x$enable_libdrm_radeon = xyes; then
+  PKG_CHECK_MODULES(DRM_RADEON, [libdrm libdrm_radeon])
+  OLD_CFLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS $DRM_RADEON_CFLAGS"
+  AC_MSG_CHECKING([if radeon_drm.h is in include path])
+  AC_COMPILE_IFELSE(AC_LANG_PROGRAM(
+  [[
+    #include <stdint.h>
+    #include <stdlib.h>
+    #include "radeon_drm.h"
+  ]],[[]]),[found_drm_radeon_kernel_headers=yes],[found_drm_radeon_kernel_headers=no])
+
+  if test "$found_drm_radeon_kernel_headers" = "yes"; then
+    AC_MSG_RESULT([yes])
+  else
+    AC_MSG_RESULT([no])
+    AC_MSG_CHECKING([if we can find them anyway])
+
+    MORE_DRM_CFLAGS="-I`$PKG_CONFIG --variable includedir libdrm`/drm"
+    CFLAGS="$CFLAGS $MORE_DRM_RADEON_CFLAGS"
+    AC_COMPILE_IFELSE(AC_LANG_PROGRAM(
+    [[
+      #include <stdint.h>
+      #include <stdlib.h>
+      #include "radeon_drm.h"
+    ]],[[]]),[found_drm_radeon_kernel_headers=yes],[found_drm_radeon_kernel_headers=no])
+
+    if test "$found_drm_radeon_kernel_headers" = "yes"; then
+      AC_MSG_RESULT([yes])
+      DRM_RADEON_CFLAGS="$DRM_RADEON_CFLAGS $MORE_DRM_CFLAGS"
+    else
+      AC_MSG_RESULT([no])
+      AC_MSG_ERROR([Could not find radeon_drm.h])
+    fi
+  fi
+
+  AC_SUBST(DRM_RADEON_CFLAGS)
+  AC_SUBST(DRM_RADEON_LIBS)
+  AC_DEFINE(PLY_ENABLE_LIBDRM_RADEON, 1, [Enable support for libdrm_radeon driver])
+fi
+
+AC_ARG_ENABLE(libdrm_nouveau, AS_HELP_STRING([--enable-libdrm_nouveau],[enable building with libdrm_nouveau support]),enable_libdrm_nouveau=$enableval,enable_libdrm_nouveau=yes)
+AM_CONDITIONAL(ENABLE_LIBDRM_NOUVEAU,  [test "$enable_libdrm_nouveau" = yes])
+
+if test x$enable_libdrm_nouveau = xyes; then
+  PKG_CHECK_MODULES(DRM_NOUVEAU, [libdrm libdrm_nouveau])
+  OLD_CFLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS $DRM_NOUVEAU_CFLAGS"
+  AC_MSG_CHECKING([if nouveau_drm.h is in include path])
+  AC_COMPILE_IFELSE(AC_LANG_PROGRAM(
+  [[
+    #include <stdint.h>
+    #include <stdlib.h>
+    #include "nouveau_drm.h"
+  ]],[[]]),[found_drm_nouveau_kernel_headers=yes],[found_drm_nouveau_kernel_headers=no])
+
+  if test "$found_drm_nouveau_kernel_headers" = "yes"; then
+    AC_MSG_RESULT([yes])
+  else
+    AC_MSG_RESULT([no])
+    AC_MSG_CHECKING([if we can find them anyway])
+
+    MORE_DRM_CFLAGS="-I`$PKG_CONFIG --variable includedir libdrm`/drm"
+    CFLAGS="$CFLAGS $MORE_DRM_CFLAGS"
+    AC_COMPILE_IFELSE(AC_LANG_PROGRAM(
+    [[
+      #include <stdint.h>
+      #include <stdlib.h>
+      #include "nouveau_drm.h"
+    ]],[[]]),[found_drm_nouveau_kernel_headers=yes],[found_drm_nouveau_kernel_headers=no])
+
+    if test "$found_drm_nouveau_kernel_headers" = "yes"; then
+      AC_MSG_RESULT([yes])
+      DRM_NOUVEAU_CFLAGS="$DRM_NOUVEAU_CFLAGS $MORE_DRM_CFLAGS"
+    else
+      AC_MSG_RESULT([no])
+      AC_MSG_ERROR([Could not find nouveau_drm.h])
+    fi
+  fi
+
+  AC_SUBST(DRM_NOUVEAU_CFLAGS)
+  AC_SUBST(DRM_NOUVEAU_LIBS)
+  AC_DEFINE(PLY_ENABLE_LIBDRM_NOUVEAU, 1, [Enable support for libdrm_nouveau driver])
+fi
+
+AC_ARG_ENABLE(libkms, AS_HELP_STRING([--enable-libkms],[enable building with libkms support]),enable_libkms=$enableval,enable_libkms=yes)
+AM_CONDITIONAL(ENABLE_LIBKMS,  [test "$enable_libkms" = yes])
+
+if test x$enable_libkms = xyes; then
+  PKG_CHECK_MODULES(LIBKMS, [libdrm libkms])
+  AC_SUBST(LIBKMS_CFLAGS)
+  AC_SUBST(LIBKMS_LIBS)
+  AC_DEFINE(PLY_ENABLE_LIBKMS, 1, [Enable support for libkms abstraction over drm drivers])
+fi
+
+DRM_CFLAGS="$DRM_INTEL_CFLAGS $DRM_RADEON_CFLAGS $DRM_NOUVEAU_CFLAGS $LIBKMS_CFLAG"
+DRM_LIBS="$DRM_INTEL_LIBS $DRM_RADEON_LIBS $DRM_NOUVEAU_LIBS $LIBKMS_LIBS"
 AC_SUBST(DRM_CFLAGS)
 AC_SUBST(DRM_LIBS)
+
+AM_CONDITIONAL(ENABLE_DRM_RENDERER,
+               [test x$enable_libdrm_intel = xyes   \
+                  -o x$enable_libdrm_radeon = xyes  \
+                  -o x$enable_libdrm_nouveau = xyes \
+                  -o x$enable_libkms = xyes])
 
 AC_ARG_ENABLE(tracing, AS_HELP_STRING([--enable-tracing],[enable verbose tracing code]),enable_tracing=$enableval,enable_tracing=yes)
 
@@ -115,28 +225,66 @@ if test x$enable_gdm_transition = xyes; then
   AC_DEFINE(PLY_ENABLE_GDM_TRANSITION, 1, [Enable smooth transition to GDM])
 fi
 
+AC_ARG_ENABLE(upstart-monitoring, AS_HELP_STRING([--enable-upstart-monitoring],[listen for messages on the Upstart D-Bus interface]),enable_upstart_monitoring=$enableval,enable_upstart_monitoring=no)
+if test x$enable_upstart_monitoring = xyes; then
+  PKG_CHECK_MODULES(DBUS, [dbus-1])
+  AC_SUBST(DBUS_CFLAGS)
+  AC_SUBST(DBUS_LIBS)
+  AC_CHECK_HEADERS([ncursesw/term.h ncurses/term.h term.h], [break])
+  AC_CHECK_LIB([ncursesw], [initscr],
+    [CURSES_LIBS="$CURSES_LIBS -lncursesw"],
+    [AC_CHECK_LIB([ncurses], [initscr],
+      [CURSES_LIBS="$CURSES_LIBS -lncurses"],
+      [AC_CHECK_LIB([curses], [initscr],
+        [CURSES_LIBS="$CURSES_LIBS -lcurses"],
+        [AC_MSG_ERROR([no curses library found])])])])
+  AC_SUBST(CURSES_LIBS)
+fi
+AM_CONDITIONAL(ENABLE_UPSTART_MONITORING, [test "$enable_upstart_monitoring" = yes])
+
+AC_ARG_ENABLE(systemd-integration, AS_HELP_STRING([--enable-systemd-integration],[coordinate boot up with systemd]),enable_systemd_integration=$enableval,enable_systemd_integration=no)
+AM_CONDITIONAL(ENABLE_SYSTEMD_INTEGRATION, [test "$enable_systemd_integration" = yes])
+
+if test x$enable_systemd_integration = xyes; then
+  AC_DEFINE(PLY_ENABLE_SYSTEMD_INTEGRATION, 1, [Coordinate boot up with systemd])
+fi
+
 AC_ARG_WITH(system-root-install, AS_HELP_STRING([--with-system-root-install],[Install client in /bin and daemon in /sbin]),with_system_root_install=${withval},with_system_root_install=yes)
 AM_CONDITIONAL(WITH_SYSTEM_ROOT_INSTALL,  [test "$with_system_root_install" = yes])
 
 if test x$with_system_root_install = xyes; then
   plymouthclientdir=/bin
   plymouthdaemondir=/sbin
+  plymouthruntimedir=/run/plymouth
 else
   plymouthclientdir=$bindir
   plymouthdaemondir=$sbindir
+  plymouthruntimedir=$localstatedir/run/plymouth
 fi
 AC_SUBST(plymouthclientdir)
 AC_SUBST(plymouthdaemondir)
+AC_SUBST(plymouthruntimedir)
+
+AS_AC_EXPAND(PLYMOUTH_CLIENT_DIR, $plymouthclientdir)
+AS_AC_EXPAND(PLYMOUTH_DAEMON_DIR, $plymouthdaemondir)
+AS_AC_EXPAND(PLYMOUTH_RUNTIME_DIR, $plymouthruntimedir)
 
 AC_ARG_WITH(rhgb-compat-link, AS_HELP_STRING([--with-rhgb-compat-link],[Install /usr/bin/rhgb-client compatability symlink]),with_rhgb_compat_link=${withval},with_rhgb_compat_link=yes)
 AM_CONDITIONAL(WITH_RHGB_COMPAT_LINK,  [test "$with_rhgb_compat_link" = yes])
 
-AC_ARG_WITH(gdm-autostart-file, AS_HELP_STRING([--with-gdm-autostart-file],[start log viewer from gdm on boot errors]),with_gdm_autostart_file=$withval,with_gdm_autostart_file=yes)
+AC_ARG_WITH(log-viewer, AS_HELP_STRING([--with-log-viewer],[Install plymouth log viewer]),with_log_viewer=${withval},with_log_viewer=no)
+AM_CONDITIONAL(WITH_LOG_VIEWER,  [test "$with_log_viewer" = yes])
 
+if test x$with_log_viewer = xyes; then
+  AC_ARG_WITH(gdm-autostart-file, AS_HELP_STRING([--with-gdm-autostart-file],[start log viewer from gdm on boot errors]),with_gdm_autostart_file=$withval,with_gdm_autostart_file=yes)
+else
+  with_gdm_autostart_file=no
+fi
 AM_CONDITIONAL(START_FROM_GDM,  [test "$with_gdm_autostart_file" = yes])
 
 AC_ARG_WITH(logo, AS_HELP_STRING([--with-logo],[logo used by boot splash plugins]),logofile=${withval},logofile=$datadir/plymouth/bizcom.png)
 AC_SUBST(logofile)
+AS_AC_EXPAND(PLYMOUTH_LOGO_FILE, $logofile)
 
 AM_CONDITIONAL(INSTALL_FALLBACK_LOGO,  [test "$logofile" = $datadir/plymouth/bizcom.png])
 
@@ -278,6 +426,7 @@ AC_CONFIG_FILES([Makefile
            src/client/ply-boot-client.pc
            src/client/Makefile
            src/viewer/Makefile
+           src/upstart-bridge/Makefile
            src/tests/Makefile
            src/libply/tests/Makefile
            src/client/tests/Makefile
@@ -288,6 +437,7 @@ AC_CONFIG_FILES([Makefile
            themes/details/Makefile
            themes/solar/Makefile
            themes/glow/Makefile
+           themes/spinner/Makefile
            themes/script/Makefile
            images/Makefile
 	   scripts/plymouth-generate-initrd

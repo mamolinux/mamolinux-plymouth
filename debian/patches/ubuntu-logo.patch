@@ -3,30 +3,30 @@ Author: Alberto Milone <alberto.milone@canonical.com>
 Forwarded: not-needed
 Last-Update: 2011-01-21
 
-Index: b/configure.ac
+Index: trunk/configure.ac
 ===================================================================
---- a/configure.ac
-+++ b/configure.ac
-@@ -293,6 +293,7 @@
-            themes/solar/Makefile
+--- trunk.orig/configure.ac
++++ trunk/configure.ac
+@@ -443,6 +443,7 @@
             themes/glow/Makefile
+            themes/spinner/Makefile
             themes/script/Makefile
 +           themes/ubuntu-logo/Makefile
             images/Makefile
  	   scripts/plymouth-generate-initrd
  	   scripts/plymouth-populate-initrd
-Index: b/themes/Makefile.am
+Index: trunk/themes/Makefile.am
 ===================================================================
---- a/themes/Makefile.am
-+++ b/themes/Makefile.am
+--- trunk.orig/themes/Makefile.am
++++ trunk/themes/Makefile.am
 @@ -1,2 +1,2 @@
--SUBDIRS = spinfinity fade-in text details solar glow script
-+SUBDIRS = spinfinity fade-in text details solar glow script ubuntu-logo
+-SUBDIRS = spinfinity fade-in text details solar glow script spinner
++SUBDIRS = spinfinity fade-in text details solar glow script spinner ubuntu-logo
  MAINTAINERCLEANFILES = Makefile.in
-Index: b/themes/ubuntu-logo/Makefile.am
+Index: trunk/themes/ubuntu-logo/Makefile.am
 ===================================================================
 --- /dev/null
-+++ b/themes/ubuntu-logo/Makefile.am
++++ trunk/themes/ubuntu-logo/Makefile.am
 @@ -0,0 +1,23 @@
 +themedir = $(datadir)/plymouth/themes/ubuntu-logo
 +nodist_theme_DATA = ubuntu-logo.plymouth
@@ -51,10 +51,10 @@ Index: b/themes/ubuntu-logo/Makefile.am
 +	       $(srcdir)/ubuntu-logo.plymouth.in > ubuntu-logo.plymouth
 +
 +EXTRA_DIST = ubuntu-logo.plymouth.in
-Index: b/themes/ubuntu-logo/ubuntu-logo.plymouth.in
+Index: trunk/themes/ubuntu-logo/ubuntu-logo.plymouth.in
 ===================================================================
 --- /dev/null
-+++ b/themes/ubuntu-logo/ubuntu-logo.plymouth.in
++++ trunk/themes/ubuntu-logo/ubuntu-logo.plymouth.in
 @@ -0,0 +1,8 @@
 +[Plymouth Theme]
 +Name=Ubuntu Logo
@@ -64,10 +64,10 @@ Index: b/themes/ubuntu-logo/ubuntu-logo.plymouth.in
 +[script]
 +ImageDir=@PLYMOUTH_THEME_PATH@/ubuntu-logo
 +ScriptFile=@PLYMOUTH_THEME_PATH@/ubuntu-logo/ubuntu-logo.script
-Index: b/themes/ubuntu-logo/ubuntu-logo.script
+Index: trunk/themes/ubuntu-logo/ubuntu-logo.script
 ===================================================================
 --- /dev/null
-+++ b/themes/ubuntu-logo/ubuntu-logo.script
++++ trunk/themes/ubuntu-logo/ubuntu-logo.script
 @@ -0,0 +1,1058 @@
 +#  ubuntu-logo.script - boot splash plugin
 +# 
@@ -1127,10 +1127,10 @@ Index: b/themes/ubuntu-logo/ubuntu-logo.script
 +}
 +
 +Plymouth.SetQuitFunction(quit_callback);
-Index: b/themes/ubuntu-logo/ubuntu-logo.grub
+Index: trunk/themes/ubuntu-logo/ubuntu-logo.grub
 ===================================================================
 --- /dev/null
-+++ b/themes/ubuntu-logo/ubuntu-logo.grub
++++ trunk/themes/ubuntu-logo/ubuntu-logo.grub
 @@ -0,0 +1,3 @@
 +if background_color 44,0,30; then
 +  clear

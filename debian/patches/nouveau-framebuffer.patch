@@ -11,11 +11,11 @@ Bug-Ubuntu: https://bugs.launchpad.net/bugs/533135
 Forwarded: not-needed
 Last-Update: 2011-03-18
 
-Index: b/src/plugins/renderers/drm/plugin.c
+Index: trunk/src/plugins/renderers/drm/plugin.c
 ===================================================================
---- a/src/plugins/renderers/drm/plugin.c
-+++ b/src/plugins/renderers/drm/plugin.c
-@@ -63,6 +63,10 @@
+--- trunk.orig/src/plugins/renderers/drm/plugin.c
++++ trunk/src/plugins/renderers/drm/plugin.c
+@@ -75,6 +75,10 @@
  
  #define BYTES_PER_PIXEL (4)
  
@@ -26,7 +26,7 @@ Index: b/src/plugins/renderers/drm/plugin.c
  struct _ply_renderer_head
  {
    ply_renderer_backend_t *backend;
-@@ -428,6 +432,38 @@
+@@ -490,6 +494,38 @@
  }
  
  static bool
@@ -65,9 +65,9 @@ Index: b/src/plugins/renderers/drm/plugin.c
  load_driver (ply_renderer_backend_t *backend)
  {
    char *driver_name;
-@@ -457,8 +493,13 @@
-   else if (strcmp (driver_name, "nouveau") == 0
-            || strcmp (driver_name, "lbm-nouveau") == 0)
+@@ -524,8 +560,13 @@
+   if (backend->driver_interface == NULL && (strcmp (driver_name, "nouveau") == 0
+                                             || strcmp (driver_name, "lbm-nouveau") == 0))
      {
 -      backend->driver_interface = ply_renderer_nouveau_driver_get_interface ();
 -      backend->driver_supports_mapping_console = false;
@@ -79,5 +79,5 @@ Index: b/src/plugins/renderers/drm/plugin.c
 +      else
 +        ply_trace("falling back to framebuffer for nouveau to avoid DRM hang");
      }
-   free (driver_name);
+ #endif
  

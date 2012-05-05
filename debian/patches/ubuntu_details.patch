@@ -2,8 +2,8 @@ Index: trunk/src/plugins/splash/details/plugin.c
 ===================================================================
 --- trunk.orig/src/plugins/splash/details/plugin.c
 +++ trunk/src/plugins/splash/details/plugin.c
-@@ -300,6 +300,27 @@
-   plugin->state = PLY_BOOT_SPLASH_DISPLAY_NORMAL;
+@@ -359,6 +359,27 @@
+     }
  }
  
 +/* @shorten_prompt:
@@ -30,7 +30,7 @@ Index: trunk/src/plugins/splash/details/plugin.c
  static void
  display_password (ply_boot_splash_plugin_t *plugin,
                    const char               *prompt,
-@@ -314,10 +335,13 @@
+@@ -373,10 +394,13 @@
                      strlen (CLEAR_LINE_SEQUENCE));
    plugin->state = PLY_BOOT_SPLASH_DISPLAY_PASSWORD_ENTRY;
  

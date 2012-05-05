@@ -56,6 +56,7 @@ typedef struct
   ply_list_t *fd_watches;
   uint32_t is_getting_polled : 1;
   uint32_t is_disconnected : 1;
+  int reference_count;
 } ply_event_source_t;
 
 typedef struct
@@ -319,6 +320,12 @@ ply_fd_watch_free (ply_fd_watch_t *watch)
   free (watch);
 }
 
+static void
+ply_event_source_take_reference (ply_event_source_t *source)
+{
+  source->reference_count++;
+}
+
 static ply_event_source_t *
 ply_event_source_new (int fd)
 {
@@ -331,6 +338,7 @@ ply_event_source_new (int fd)
   source->fd_watches = ply_list_new ();
   source->is_getting_polled = false;
   source->is_disconnected = false;
+  source->reference_count = 0;
 
   return source;
 }
@@ -349,12 +357,27 @@ ply_event_source_free (ply_event_source_t *source)
 }
 
 static void
+ply_event_source_drop_reference (ply_event_source_t *source)
+{
+  if (source == NULL)
+    return;
+
+  source->reference_count--;
+
+  assert (source->reference_count >= 0);
+
+  if (source->reference_count == 0)
+    {
+      ply_event_source_free (source);
+    }
+}
+
+static void
 ply_event_loop_update_source_event_mask (ply_event_loop_t   *loop,
                                          ply_event_source_t *source)
 {
   ply_list_node_t *node;
   struct epoll_event event = { 0 };
-  int status;
 
   assert (loop != NULL);
   assert (source != NULL);
@@ -386,7 +409,12 @@ ply_event_loop_update_source_event_mask (ply_event_loop_t   *loop,
 
   if (source->is_getting_polled)
     {
+      int status;
+
       status = epoll_ctl (loop->epoll_fd, EPOLL_CTL_MOD, source->fd, &event);
+
+      if (status < 0)
+         ply_trace ("failed to modify epoll event mask for fd %d: %m", source->fd);
     }
 }
 
@@ -404,6 +432,7 @@ ply_event_loop_add_destination_for_source (ply_event_loop_t        *loop,
   assert (source != NULL);
 
   destination->source = source;
+  ply_event_source_take_reference (source);
   destination_node = ply_list_append_data (source->destinations, destination);
   assert (destination_node != NULL);
   assert (destination->source == source);
@@ -412,6 +441,7 @@ ply_event_loop_add_destination_for_source (ply_event_loop_t        *loop,
 
   watch = ply_fd_watch_new (destination);
 
+  ply_event_source_take_reference (source);
   ply_list_append_data (source->fd_watches, watch);
 
   return watch;
@@ -449,6 +479,7 @@ ply_event_loop_remove_destination_by_fd_watch (ply_event_loop_t *loop,
   assert (source != NULL);
 
   ply_list_remove_data (source->destinations, destination);
+  ply_event_source_drop_reference (source);
   assert (ply_list_find_node (source->destinations, destination) == NULL);
   ply_event_loop_update_source_event_mask (loop, source);
 }
@@ -601,6 +632,7 @@ ply_event_loop_add_source (ply_event_loop_t    *loop,
 
   source->is_getting_polled = true;
 
+  ply_event_source_take_reference (source);
   ply_list_append_data (loop->sources, source);
 }
 
@@ -609,7 +641,6 @@ ply_event_loop_remove_source_node (ply_event_loop_t *loop,
                                    ply_list_node_t  *source_node)
 {
   ply_event_source_t *source;
-  int status;
 
   source = (ply_event_source_t *) ply_list_node_get_data (source_node);
 
@@ -617,11 +648,17 @@ ply_event_loop_remove_source_node (ply_event_loop_t *loop,
 
   if (source->is_getting_polled)
     {
+      int status;
+
       status = epoll_ctl (loop->epoll_fd, EPOLL_CTL_DEL, source->fd, NULL);
+
+      if (status < 0)
+        ply_trace ("failed to delete fd %d from epoll watch list: %m", source->fd);
       source->is_getting_polled = false;
     }
 
   ply_list_remove_node (loop->sources, source_node);
+  ply_event_source_drop_reference (source);
 }
 
 static void
@@ -647,9 +684,7 @@ ply_event_loop_free_sources (ply_event_loop_t *loop)
   while (node != NULL)
     {
       ply_list_node_t *next_node;
-      ply_event_source_t *source;
 
-      source = (ply_event_source_t *) ply_list_node_get_data (node);
       next_node = ply_list_get_next_node (loop->sources, node);
       ply_event_loop_remove_source_node (loop, node);
       node = next_node;
@@ -749,6 +784,7 @@ ply_event_loop_stop_watching_fd (ply_event_loop_t *loop,
     {
       ply_trace ("source for fd %d is already disconnected", source->fd);
       ply_list_remove_data (source->fd_watches, watch);
+      ply_event_source_drop_reference (source);
       ply_fd_watch_free (watch);
       return;
     }
@@ -757,6 +793,7 @@ ply_event_loop_stop_watching_fd (ply_event_loop_t *loop,
   ply_event_loop_remove_destination_by_fd_watch (loop, watch);
 
   ply_list_remove_data (source->fd_watches, watch);
+  ply_event_source_drop_reference (source);
   ply_fd_watch_free (watch);
   ply_event_destination_free (destination);
 
@@ -764,8 +801,6 @@ ply_event_loop_stop_watching_fd (ply_event_loop_t *loop,
     {
       ply_trace ("no more destinations remaing for fd %d, removing source", source->fd);
       ply_event_loop_remove_source (loop, source);
-      ply_trace ("freeing source for fd %d", source->fd);
-      ply_event_source_free (source);
     }
 }
 
@@ -1083,6 +1118,7 @@ ply_event_loop_free_watches_for_source (ply_event_loop_t   *loop,
       assert (watch != NULL);
       ply_fd_watch_free (watch);
       ply_list_remove_node (source->fd_watches, node);
+      ply_event_source_drop_reference (source);
       node = next_node;
     }
 }
@@ -1091,11 +1127,9 @@ static void
 ply_event_loop_free_timeout_watches (ply_event_loop_t *loop)
 {
   ply_list_node_t *node;
-  double now;
 
   assert (loop != NULL);
 
-  now = ply_get_timestamp ();
   node = ply_list_get_first_node (loop->timeout_watches);
   while (node != NULL)
     {
@@ -1142,6 +1176,7 @@ ply_event_loop_free_destinations_for_source (ply_event_loop_t   *loop,
       ply_event_destination_free (destination);
 
       ply_list_remove_node (source->destinations, node);
+      ply_event_source_drop_reference (source);
       node = next_node;
     }
 }
@@ -1169,9 +1204,6 @@ ply_event_loop_disconnect_source (ply_event_loop_t           *loop,
   ply_trace ("removing source with fd %d from event loop", source->fd);
   ply_event_loop_remove_source (loop, source);
   ply_trace ("done removing source with fd %d from event loop", source->fd);
-
-  ply_trace ("freeing source with fd %d", source->fd);
-  ply_event_source_free (source);
 }
 
 static void
@@ -1223,12 +1255,9 @@ void
 ply_event_loop_process_pending_events (ply_event_loop_t *loop)
 {
   int number_of_received_events, i;
-  struct epoll_event *events = NULL;
+  static struct epoll_event events[PLY_EVENT_LOOP_NUM_EVENT_HANDLERS];
 
   assert (loop != NULL);
-
-  events =
-        alloca (PLY_EVENT_LOOP_NUM_EVENT_HANDLERS * sizeof (struct epoll_event));
 
   memset (events, -1,
           PLY_EVENT_LOOP_NUM_EVENT_HANDLERS * sizeof (struct epoll_event));
@@ -1246,7 +1275,8 @@ ply_event_loop_process_pending_events (ply_event_loop_t *loop)
        }
 
      number_of_received_events = epoll_wait (loop->epoll_fd, events,
-                                             sizeof (events), timeout);
+                                             PLY_EVENT_LOOP_NUM_EVENT_HANDLERS,
+                                             timeout);
 
      ply_event_loop_handle_timeouts (loop);
 
@@ -1261,6 +1291,19 @@ ply_event_loop_process_pending_events (ply_event_loop_t *loop)
     }
   while ((number_of_received_events < 0) && ((errno == EINTR) || (errno == EAGAIN)));
 
+  /* first reference all sources, so they stay alive for the duration of this
+   * iteration of the loop
+   */
+  for (i = 0; i < number_of_received_events; i++)
+    {
+      ply_event_source_t *source;
+      source = (ply_event_source_t *) (events[i].data.ptr);
+
+      ply_event_source_take_reference (source);
+    }
+
+  /* Then process the incoming events
+   */
   for (i = 0; i < number_of_received_events; i++)
     {
       ply_event_source_t *source;
@@ -1292,6 +1335,17 @@ ply_event_loop_process_pending_events (ply_event_loop_t *loop)
 
       if (loop->should_exit)
         break;
+    }
+
+  /* Finally, kill off any unused sources
+   */
+  for (i = 0; i < number_of_received_events; i++)
+    {
+      ply_event_source_t *source;
+
+      source = (ply_event_source_t *) (events[i].data.ptr);
+
+      ply_event_source_drop_reference (source);
     }
 }
 
