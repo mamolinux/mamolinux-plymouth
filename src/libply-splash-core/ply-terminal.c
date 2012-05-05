@@ -651,6 +651,14 @@ ply_terminal_open (ply_terminal_t *terminal)
   return true;
 }
 
+void
+ply_terminal_handle_vt_handoff (ply_terminal_t *terminal, int vt)
+{
+  if (vt == terminal->initial_vt_number)
+    terminal->initial_vt_number = 1;
+}
+
+
 int
 ply_terminal_get_fd (ply_terminal_t *terminal)
 {
