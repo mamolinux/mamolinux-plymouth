@@ -50,72 +50,148 @@ typedef struct
   ply_command_parser_t  *command_parser;
 } state_t;
 
+#ifndef TERMINAL_COLOR_RED
+#define TERMINAL_COLOR_RED 1
+#endif
+
 /* We don't care about the difference between "not a string capability" and
  * "cancelled or absent".
  */
 static const char *
-get_string_capability (const char *capname)
+get_string_capability (const char *name)
 {
   const char *value;
 
-  value = tigetstr (capname);
+  value = tigetstr ((char *) name);
   if (value == (const char *) -1)
     value = NULL;
 
   return value;
 }
 
-static void
-update_status (state_t *state,
-               ply_upstart_monitor_job_properties_t *job,
-               ply_upstart_monitor_instance_properties_t *instance,
-               const char *action, bool ok)
+static bool
+terminal_ignores_new_line_after_80_chars (void)
 {
-  int xenl;
-  const char *hpa;
+  return tigetflag ((char *) "xenl") != 0;
+}
 
+static int
+get_number_of_columns (void)
+{
+  int number_of_columns;
+
+  number_of_columns = tigetnum ((char *) "cols");
+
+  return number_of_columns;
+}
+
+static bool
+can_set_cursor_column (void)
+{
+  const char *capability;
+
+  capability = get_string_capability ("hpa");
+
+  return capability != NULL;
+}
+
+static void
+set_cursor_column (int column)
+{
+  const char *capability;
+  const char *terminal_string;
+
+  capability = get_string_capability ("hpa");
+  terminal_string = tiparm (capability, column);
+  fputs (terminal_string, stdout);
+}
+
+static bool
+can_set_fg_color (void)
+{
+  const char *capability;
+
+  capability = get_string_capability ("setaf");
+
+  return capability != NULL;
+}
+
+static void
+set_fg_color (int color)
+{
+  const char *capability;
+  const char *terminal_string;
+
+  capability = get_string_capability ("setaf");
+  terminal_string = tiparm (capability, color);
+  fputs (terminal_string, stdout);
+}
+
+static void
+unset_fg_color (void)
+{
+  const char *terminal_string;
+
+  terminal_string = get_string_capability ("op");
+
+  if (terminal_string == NULL)
+    return;
+
+  fputs (terminal_string, stdout);
+}
+
+static void
+update_status (state_t                                   *state,
+               ply_upstart_monitor_job_properties_t      *job,
+               ply_upstart_monitor_instance_properties_t *instance,
+               const char                                *action,
+               bool                                       is_okay)
+{
   ply_boot_client_update_daemon (state->client, job->name, NULL, NULL, state);
 
-  if (job->description == NULL || job->description[0] == '\0')
+  if (job->description == NULL)
     return;
 
   printf (" * %s%s%s",
           action ? action : "", action ? " " : "", job->description);
 
-  xenl = tigetflag ("xenl");
-  hpa = get_string_capability ("hpa");
-
-  if (xenl > 0 && hpa)
+  if (terminal_ignores_new_line_after_80_chars () && can_set_cursor_column ())
     {
-      int cols, col;
-      char *hpa_out;
+      int number_of_columns, column;
 
-      cols = tigetnum ("cols");
-      if (cols < 6)
-        cols = 80;
-      col = cols - 7;
+      number_of_columns = get_number_of_columns ();
 
-      hpa_out = tiparm (hpa, col);
-      fputs (hpa_out, stdout);
+      if (number_of_columns < (int) strlen("[fail]"))
+        number_of_columns = 80;
 
-      if (ok)
+      column = number_of_columns - strlen ("[fail]") - 1;
+
+      set_cursor_column (column);
+
+      if (is_okay)
         puts ("[ OK ]");
       else
         {
-          const char *setaf, *op;
-          char *setaf_out = NULL;
+          bool supports_color;
 
-          setaf = get_string_capability ("setaf");
-          if (setaf)
-            setaf_out = tiparm (setaf, 1); /* red */
-          op = get_string_capability ("op");
+          supports_color = can_set_fg_color ();
 
-          printf ("[%sfail%s]\n", setaf_out ? setaf_out : "", op ? op : "");
+          fputs ("[", stdout);
+
+          if (supports_color)
+            set_fg_color (TERMINAL_COLOR_RED);
+
+          fputs ("fail", stdout);
+
+          if (supports_color)
+            unset_fg_color ();
+
+          puts ("]");
         }
     }
   else
     {
-      if (ok)
+      if (is_okay)
         puts ("   ...done.");
       else
         puts ("   ...fail!");
@@ -123,14 +199,14 @@ update_status (state_t *state,
 }
 
 static void
-on_failed (void *data,
-           ply_upstart_monitor_job_properties_t *job,
+on_failed (void                                      *data,
+           ply_upstart_monitor_job_properties_t      *job,
            ply_upstart_monitor_instance_properties_t *instance,
-           int status)
+           int                                        status)
 {
   state_t *state = data;
 
-  if (job->task)
+  if (job->is_task)
     update_status (state, job, instance, NULL, false);
   else
     {
@@ -142,16 +218,15 @@ on_failed (void *data,
 }
 
 static void
-on_state_changed (void *data, const char *old_state,
-                  ply_upstart_monitor_job_properties_t *job,
+on_state_changed (state_t                                   *state,
+                  const char                                *old_state,
+                  ply_upstart_monitor_job_properties_t      *job,
                   ply_upstart_monitor_instance_properties_t *instance)
 {
-  state_t      *state = data;
-
   if (instance->failed)
     return;
 
-  if (job->task)
+  if (job->is_task)
     {
       if (strcmp (instance->state, "waiting") == 0)
         update_status (state, job, instance, NULL, true);
@@ -248,6 +323,7 @@ main (int    argc,
   if (!state.upstart)
     return 1;
   ply_upstart_monitor_add_state_changed_handler (state.upstart,
+                                                 (ply_upstart_monitor_state_changed_handler_t)
                                                  on_state_changed, &state);
   ply_upstart_monitor_add_failed_handler (state.upstart, on_failed, &state);
 

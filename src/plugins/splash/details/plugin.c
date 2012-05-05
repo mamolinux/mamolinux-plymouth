@@ -67,6 +67,8 @@ typedef struct
 } view_t;
 
 ply_boot_splash_plugin_interface_t *ply_boot_splash_plugin_get_interface (void);
+static void detach_from_event_loop (ply_boot_splash_plugin_t *plugin);
+
 struct _ply_boot_splash_plugin
 {
   ply_event_loop_t *loop;
@@ -168,6 +170,14 @@ destroy_plugin (ply_boot_splash_plugin_t *plugin)
   if (plugin == NULL)
     return;
 
+  if (plugin->loop != NULL)
+    {
+      ply_event_loop_stop_watching_for_exit (plugin->loop, (ply_event_loop_exit_handler_t)
+                                             detach_from_event_loop,
+                                             plugin);
+      detach_from_event_loop (plugin);
+    }
+
   free_messages (plugin);
   free_views (plugin);
 
@@ -231,10 +241,7 @@ add_text_display (ply_boot_splash_plugin_t *plugin,
 
   terminal = ply_text_display_get_terminal (view->display);
   if (ply_terminal_open (terminal))
-    {
-      ply_terminal_set_mode (terminal, PLY_TERMINAL_MODE_TEXT);
-      ply_terminal_activate_vt (terminal);
-    }
+    ply_terminal_activate_vt (terminal);
 
   ply_list_append_data (plugin->views, view);
 }
@@ -281,9 +288,12 @@ show_splash_screen (ply_boot_splash_plugin_t *plugin,
                                  detach_from_event_loop,
                                  plugin);
 
-  size = ply_buffer_get_size (boot_buffer);
+  if (boot_buffer)
+    {
+      size = ply_buffer_get_size (boot_buffer);
 
-  write_on_views (plugin, ply_buffer_get_bytes (boot_buffer), size);
+      write_on_views (plugin, ply_buffer_get_bytes (boot_buffer), size);
+    }
 
   return true;
 }
@@ -424,20 +434,13 @@ static void
 display_message (ply_boot_splash_plugin_t *plugin,
                  const char               *message)
 {
-  const char *message_to_display;
-
-  if (!strncmp (message, "keys:", strlen ("keys:")))
-    message_to_display = message + strlen ("keys:");
-  else
-    message_to_display = message;
-
   if (plugin->state == PLY_BOOT_SPLASH_DISPLAY_NORMAL)
     {
-      write_on_views (plugin, message_to_display, strlen (message_to_display));
+      write_on_views (plugin, message, strlen (message));
       write_on_views (plugin, "\r\n", strlen ("\r\n"));
     }
   else
-    ply_list_append_data (plugin->messages, strdup (message_to_display));
+    ply_list_append_data (plugin->messages, strdup (message));
 }
 
 ply_boot_splash_plugin_interface_t *

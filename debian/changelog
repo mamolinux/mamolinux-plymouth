@@ -1,3 +1,26 @@
+plymouth (0.8.4-0ubuntu1) quantal; urgency=low
+
+  * New upstream release.
+    - drop patches originating from or merged upstream: debug-fixes.patch,
+      gcc45-arith-workaround.patch,
+      main-Don-t-watch-for-keyboard-input-if-no-keyboard.patch,
+      upstart-bridge.patch, upstream-*.patch
+    - debian/rules: pass --with-log-viewer to explicitly request its
+      inclusion.
+    - update libplymouth2.symbols.
+  * debian/patches/initramfsless-boot.patch: clean up our failure path when
+    /dev/pts isn't available yet:
+    - don't free a buffer that we might use again later
+    - once we've created the session object, keep it around, instead of
+      freeing it again and leaving a dangling reference to it in the loop
+      exit handler list.
+    it's not clear if this was working before, but it definitely hits an
+    assert now.  LP: #981314.
+  * Build with --disable-libdrm_intel on !x86, to avoid an unnecessary
+    dependency.  LP: #927424.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Sat, 05 May 2012 01:19:02 +0000
+
 plymouth (0.8.2-2ubuntu30) precise; urgency=low
 
   [ Philip Muškovac ]

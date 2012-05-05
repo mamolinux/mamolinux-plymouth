@@ -3,17 +3,17 @@ Author: Robert Hooker <sarvatt@ubuntu.com>
 Forwarded: not-needed
 Last-Update: 2011-03-18
 
-Index: b/src/plugins/renderers/drm/plugin.c
+Index: trunk/src/plugins/renderers/drm/plugin.c
 ===================================================================
---- a/src/plugins/renderers/drm/plugin.c
-+++ b/src/plugins/renderers/drm/plugin.c
-@@ -454,7 +454,8 @@
-       backend->driver_interface = ply_renderer_radeon_driver_get_interface ();
-       backend->driver_supports_mapping_console = false;
+--- trunk.orig/src/plugins/renderers/drm/plugin.c
++++ trunk/src/plugins/renderers/drm/plugin.c
+@@ -521,7 +521,8 @@
      }
--  else if (strcmp (driver_name, "nouveau") == 0)
-+  else if (strcmp (driver_name, "nouveau") == 0
-+           || strcmp (driver_name, "lbm-nouveau") == 0)
+ #endif
+ #ifdef PLY_ENABLE_LIBDRM_NOUVEAU
+-  if (backend->driver_interface == NULL && strcmp (driver_name, "nouveau") == 0)
++  if (backend->driver_interface == NULL && (strcmp (driver_name, "nouveau") == 0
++                                            || strcmp (driver_name, "lbm-nouveau") == 0))
      {
        backend->driver_interface = ply_renderer_nouveau_driver_get_interface ();
        backend->driver_supports_mapping_console = false;

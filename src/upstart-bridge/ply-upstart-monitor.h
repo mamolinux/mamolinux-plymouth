@@ -31,14 +31,14 @@ typedef struct _ply_upstart_monitor ply_upstart_monitor_t;
 typedef struct {
   char *name;
   char *description;
-  bool  task;
+  bool  is_task;
 } ply_upstart_monitor_job_properties_t;
 
 typedef struct {
-  char *name;
-  char *goal;
-  char *state;
-  int   failed;
+  char     *name;
+  char     *goal;
+  char     *state;
+  uint32_t  failed : 1;
 } ply_upstart_monitor_instance_properties_t;
 
 typedef void (* ply_upstart_monitor_state_changed_handler_t) (void                                      *user_data,

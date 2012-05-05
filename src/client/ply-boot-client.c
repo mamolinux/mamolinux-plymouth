@@ -179,11 +179,24 @@ ply_boot_client_connect (ply_boot_client_t *client,
   assert (client->disconnect_handler == NULL);
   assert (client->disconnect_handler_user_data == NULL);
 
-  client->socket_fd = 
-      ply_connect_to_unix_socket (PLY_BOOT_PROTOCOL_SOCKET_PATH + 1, true);
+  client->socket_fd =
+      ply_connect_to_unix_socket (PLY_BOOT_PROTOCOL_TRIMMED_ABSTRACT_SOCKET_PATH,
+                                  PLY_UNIX_SOCKET_TYPE_TRIMMED_ABSTRACT);
 
   if (client->socket_fd < 0)
-    return false;
+    {
+      ply_trace ("could not connect to " PLY_BOOT_PROTOCOL_TRIMMED_ABSTRACT_SOCKET_PATH ": %m");
+      ply_trace ("trying old fallback path " PLY_BOOT_PROTOCOL_OLD_ABSTRACT_SOCKET_PATH);
+
+      client->socket_fd =
+          ply_connect_to_unix_socket (PLY_BOOT_PROTOCOL_OLD_ABSTRACT_SOCKET_PATH,
+                                      PLY_UNIX_SOCKET_TYPE_ABSTRACT);
+      if (client->socket_fd < 0)
+        {
+          ply_trace ("could not connect to " PLY_BOOT_PROTOCOL_OLD_ABSTRACT_SOCKET_PATH ": %m");
+          return false;
+        }
+    }
 
   client->disconnect_handler = disconnect_handler;
   client->disconnect_handler_user_data = user_data;
@@ -298,7 +311,10 @@ ply_boot_client_process_incoming_replies (ply_boot_client_t *client)
       if (size > 0)
         {
           if (!ply_read (client->socket_fd, answer, size))
-            goto out;
+            {
+              free (answer);
+              goto out;
+            }
         }
 
       answer[size] = '\0';
@@ -331,7 +347,7 @@ ply_boot_client_process_incoming_replies (ply_boot_client_t *client)
           goto out;
         }
 
-      array = ply_array_new ();
+      array = ply_array_new (PLY_ARRAY_ELEMENT_TYPE_POINTER);
 
       p = answer;
       q = p;
@@ -339,13 +355,13 @@ ply_boot_client_process_incoming_replies (ply_boot_client_t *client)
         {
           if (*q == '\0')
             {
-              ply_array_add_element (array, strdup (p));
+              ply_array_add_pointer_element (array, strdup (p));
               p = q + 1;
             }
         }
       free (answer);
 
-      answers = (char **) ply_array_steal_elements (array);
+      answers = (char **) ply_array_steal_pointer_elements (array);
       ply_array_free (array);
 
       if (request->handler != NULL)
@@ -572,7 +588,21 @@ ply_boot_client_tell_daemon_to_display_message (ply_boot_client_t               
   assert (client != NULL);
   assert (message != NULL);
 
-  ply_boot_client_queue_request (client, PLY_BOOT_PROTOCOL_REQUEST_TYPE_MESSAGE,
+  ply_boot_client_queue_request (client, PLY_BOOT_PROTOCOL_REQUEST_TYPE_SHOW_MESSAGE,
+                                 message, handler, failed_handler, user_data);
+}
+
+void
+ply_boot_client_tell_daemon_to_hide_message (ply_boot_client_t                  *client,
+                                             const char                         *message,
+                                             ply_boot_client_response_handler_t  handler,
+                                             ply_boot_client_response_handler_t  failed_handler,
+                                             void                               *user_data)
+{
+  assert (client != NULL);
+  assert (message != NULL);
+
+  ply_boot_client_queue_request (client, PLY_BOOT_PROTOCOL_REQUEST_TYPE_HIDE_MESSAGE,
                                  message, handler, failed_handler, user_data);
 }
 

@@ -1,4 +1,4 @@
-/* ply-upstart-monitor.c - Upstart D-Bus listener
+/* ply-upstart-monitor.c - Upstart D-Bus monitor
  *
  * Copyright (C) 2010, 2011 Canonical Ltd.
  *
@@ -39,7 +39,7 @@
 
 typedef struct
 {
-  ply_upstart_monitor_t *upstart;
+  ply_upstart_monitor_t *monitor;
   DBusTimeout           *timeout;
 } ply_upstart_monitor_timeout_t;
 
@@ -54,12 +54,12 @@ struct _ply_upstart_monitor
   void                                        *state_changed_data;
   ply_upstart_monitor_failed_handler_t         failed_handler;
   void                                        *failed_data;
-  int                                          dispatch_eventfd;
+  int                                          dispatch_fd;
 };
 
 typedef struct
 {
-  ply_upstart_monitor_t                *upstart;
+  ply_upstart_monitor_t                *monitor;
   ply_upstart_monitor_job_properties_t  properties;
   ply_hashtable_t                      *instances;
   ply_list_t                           *pending_calls;
@@ -70,8 +70,8 @@ typedef struct
   ply_upstart_monitor_job_t                 *job;
   ply_upstart_monitor_instance_properties_t  properties;
   ply_list_t                                *pending_calls;
-  int                                        pending_state_changed;
-  int                                        pending_failed;
+  uint32_t                                   state_changed : 1;
+  uint32_t                                   call_failed : 1;
 } ply_upstart_monitor_instance_t;
 
 #define UPSTART_SERVICE                 "com.ubuntu.Upstart"
@@ -82,7 +82,8 @@ typedef struct
 
 /* Remove an entry from a hashtable, free the key, and return the data. */
 static void *
-hashtable_remove_and_free_key (ply_hashtable_t *hashtable, const void *key)
+hashtable_remove_and_free_key (ply_hashtable_t *hashtable,
+                               const void      *key)
 {
   void *reply_key, *reply_data;
 
@@ -101,11 +102,11 @@ hashtable_remove_and_free_key (ply_hashtable_t *hashtable, const void *key)
  * imply a kind of coherence: a Properties.GetAll reply received after a
  * StateChanged signal must have been computed entirely after the state
  * change.  Thus, if this function returns false (properties have not been
- * fetched yet), it should be safe to record an event as pending until such
+ * fetched yet), it should be safe to record an event as call until such
  * time as the properties of the instance are known.
  */
 static bool
-instance_initialised (ply_upstart_monitor_instance_t *instance)
+instance_is_initialized (ply_upstart_monitor_instance_t *instance)
 {
   /* Note that the job may not have a description. */
   if (instance->job->properties.name &&
@@ -117,19 +118,19 @@ instance_initialised (ply_upstart_monitor_instance_t *instance)
 }
 
 static void
-instance_properties (DBusPendingCall *pending, void *data)
+on_get_all_instance_properties_finished (DBusPendingCall                *call,
+                                         ply_upstart_monitor_instance_t *instance)
 {
-  ply_upstart_monitor_instance_t *instance = data;
   DBusMessage *reply;
-  DBusMessageIter iter, arrayiter, dictiter, variantiter;
+  DBusMessageIter iter, array_iter, dict_iter, variant_iter;
   const char *key, *name, *goal, *state;
-  ply_upstart_monitor_t *upstart;
+  ply_upstart_monitor_t *monitor;
 
-  assert (pending != NULL);
+  assert (call != NULL);
   assert (instance != NULL);
 
-  reply = dbus_pending_call_steal_reply (pending);
-  if (!reply)
+  reply = dbus_pending_call_steal_reply (call);
+  if (reply == NULL)
     return;
   if (dbus_message_get_type (reply) != DBUS_MESSAGE_TYPE_METHOD_RETURN)
     goto out;
@@ -137,30 +138,30 @@ instance_properties (DBusPendingCall *pending, void *data)
   dbus_message_iter_init (reply, &iter);
   if (dbus_message_iter_get_arg_type (&iter) != DBUS_TYPE_ARRAY)
     goto out;
-  dbus_message_iter_recurse (&iter, &arrayiter);
+  dbus_message_iter_recurse (&iter, &array_iter);
 
-  while (dbus_message_iter_get_arg_type (&arrayiter) == DBUS_TYPE_DICT_ENTRY)
+  while (dbus_message_iter_get_arg_type (&array_iter) == DBUS_TYPE_DICT_ENTRY)
     {
-      dbus_message_iter_recurse (&arrayiter, &dictiter);
+      dbus_message_iter_recurse (&array_iter, &dict_iter);
 
-      if (dbus_message_iter_get_arg_type (&dictiter) != DBUS_TYPE_STRING)
+      if (dbus_message_iter_get_arg_type (&dict_iter) != DBUS_TYPE_STRING)
         goto next_item;
 
-      dbus_message_iter_get_basic (&dictiter, &key);
-      if (!key)
+      dbus_message_iter_get_basic (&dict_iter, &key);
+      if (key == NULL)
         goto next_item;
 
-      dbus_message_iter_next (&dictiter);
-      if (dbus_message_iter_get_arg_type (&dictiter) != DBUS_TYPE_VARIANT)
+      dbus_message_iter_next (&dict_iter);
+      if (dbus_message_iter_get_arg_type (&dict_iter) != DBUS_TYPE_VARIANT)
         goto next_item;
-      dbus_message_iter_recurse (&dictiter, &variantiter);
-      if (dbus_message_iter_get_arg_type (&variantiter) != DBUS_TYPE_STRING)
+      dbus_message_iter_recurse (&dict_iter, &variant_iter);
+      if (dbus_message_iter_get_arg_type (&variant_iter) != DBUS_TYPE_STRING)
         goto next_item;
 
       if (strcmp (key, "name") == 0)
         {
-          dbus_message_iter_get_basic (&variantiter, &name);
-          if (name)
+          dbus_message_iter_get_basic (&variant_iter, &name);
+          if (name != NULL)
             {
               ply_trace ("%s: name = '%s'",
                          instance->job->properties.name, name);
@@ -169,8 +170,8 @@ instance_properties (DBusPendingCall *pending, void *data)
         }
       else if (strcmp (key, "goal") == 0)
         {
-          dbus_message_iter_get_basic (&variantiter, &goal);
-          if (goal)
+          dbus_message_iter_get_basic (&variant_iter, &goal);
+          if (goal != NULL)
             {
               ply_trace ("%s: goal = '%s'",
                          instance->job->properties.name, goal);
@@ -179,8 +180,8 @@ instance_properties (DBusPendingCall *pending, void *data)
         }
       else if (strcmp (key, "state") == 0)
         {
-          dbus_message_iter_get_basic (&variantiter, &state);
-          if (state)
+          dbus_message_iter_get_basic (&variant_iter, &state);
+          if (state != NULL)
             {
               ply_trace ("%s: state = '%s'",
                          instance->job->properties.name, state);
@@ -189,46 +190,46 @@ instance_properties (DBusPendingCall *pending, void *data)
         }
 
 next_item:
-      dbus_message_iter_next (&arrayiter);
+      dbus_message_iter_next (&array_iter);
     }
 
 out:
   dbus_message_unref (reply);
 
-  if (instance_initialised (instance))
+  if (instance_is_initialized (instance))
     {
-      /* Process any pending events. */
-      upstart = instance->job->upstart;
+      /* Process any call events. */
+      monitor = instance->job->monitor;
 
-      if (instance->pending_state_changed && upstart->state_changed_handler)
-        upstart->state_changed_handler (upstart->state_changed_data, NULL,
+      if (instance->state_changed && monitor->state_changed_handler)
+        monitor->state_changed_handler (monitor->state_changed_data, NULL,
                                         &instance->job->properties,
                                         &instance->properties);
-      instance->pending_state_changed = 0;
+      instance->state_changed = false;
 
-      if (instance->pending_failed && upstart->failed_handler)
-        upstart->failed_handler (upstart->failed_data,
+      if (instance->call_failed && monitor->failed_handler)
+        monitor->failed_handler (monitor->failed_data,
                                  &instance->job->properties,
                                  &instance->properties,
                                  instance->properties.failed);
-      instance->pending_failed = 0;
+      instance->call_failed = false;
     }
 }
 
 static void
-job_properties (DBusPendingCall *pending, void *data)
+on_get_all_job_properties_finished (DBusPendingCall           *call,
+                                    ply_upstart_monitor_job_t *job)
 {
-  ply_upstart_monitor_job_t *job = data;
   DBusMessage *reply;
-  DBusMessageIter iter, arrayiter, dictiter, variantiter;
+  DBusMessageIter iter, array_iter, dict_iter, variant_iter;
   const char *key, *name, *description;
   dbus_uint32_t task;
 
-  assert (pending != NULL);
+  assert (call != NULL);
   assert (job != NULL);
 
-  reply = dbus_pending_call_steal_reply (pending);
-  if (!reply)
+  reply = dbus_pending_call_steal_reply (call);
+  if (reply == NULL)
     return;
   if (dbus_message_get_type (reply) != DBUS_MESSAGE_TYPE_METHOD_RETURN)
     goto out;
@@ -236,31 +237,31 @@ job_properties (DBusPendingCall *pending, void *data)
   dbus_message_iter_init (reply, &iter);
   if (dbus_message_iter_get_arg_type (&iter) != DBUS_TYPE_ARRAY)
     goto out;
-  dbus_message_iter_recurse (&iter, &arrayiter);
+  dbus_message_iter_recurse (&iter, &array_iter);
 
-  while (dbus_message_iter_get_arg_type (&arrayiter) == DBUS_TYPE_DICT_ENTRY)
+  while (dbus_message_iter_get_arg_type (&array_iter) == DBUS_TYPE_DICT_ENTRY)
     {
-      dbus_message_iter_recurse (&arrayiter, &dictiter);
+      dbus_message_iter_recurse (&array_iter, &dict_iter);
 
-      if (dbus_message_iter_get_arg_type (&dictiter) != DBUS_TYPE_STRING)
+      if (dbus_message_iter_get_arg_type (&dict_iter) != DBUS_TYPE_STRING)
         goto next_item;
 
-      dbus_message_iter_get_basic (&dictiter, &key);
-      if (!key)
+      dbus_message_iter_get_basic (&dict_iter, &key);
+      if (key == NULL)
         goto next_item;
 
-      dbus_message_iter_next (&dictiter);
-      if (dbus_message_iter_get_arg_type (&dictiter) != DBUS_TYPE_VARIANT)
+      dbus_message_iter_next (&dict_iter);
+      if (dbus_message_iter_get_arg_type (&dict_iter) != DBUS_TYPE_VARIANT)
         goto next_item;
-      dbus_message_iter_recurse (&dictiter, &variantiter);
+      dbus_message_iter_recurse (&dict_iter, &variant_iter);
 
       if (strcmp (key, "name") == 0)
         {
-          if (dbus_message_iter_get_arg_type (&variantiter) !=
+          if (dbus_message_iter_get_arg_type (&variant_iter) !=
               DBUS_TYPE_STRING)
             goto next_item;
-          dbus_message_iter_get_basic (&variantiter, &name);
-          if (name)
+          dbus_message_iter_get_basic (&variant_iter, &name);
+          if (name != NULL)
             {
               ply_trace ("name = '%s'", name);
               job->properties.name = strdup (name);
@@ -268,11 +269,11 @@ job_properties (DBusPendingCall *pending, void *data)
         }
       else if (strcmp (key, "description") == 0)
         {
-          if (dbus_message_iter_get_arg_type (&variantiter) !=
+          if (dbus_message_iter_get_arg_type (&variant_iter) !=
               DBUS_TYPE_STRING)
             goto next_item;
-          dbus_message_iter_get_basic (&variantiter, &description);
-          if (description)
+          dbus_message_iter_get_basic (&variant_iter, &description);
+          if (description != NULL)
             {
               ply_trace ("description = '%s'", description);
               job->properties.description = strdup (description);
@@ -280,16 +281,16 @@ job_properties (DBusPendingCall *pending, void *data)
         }
       else if (strcmp (key, "task") == 0)
         {
-          if (dbus_message_iter_get_arg_type (&variantiter) !=
+          if (dbus_message_iter_get_arg_type (&variant_iter) !=
               DBUS_TYPE_BOOLEAN)
             goto next_item;
-          dbus_message_iter_get_basic (&variantiter, &task);
+          dbus_message_iter_get_basic (&variant_iter, &task);
           ply_trace ("task = %s", task ? "TRUE" : "FALSE");
-          job->properties.task = task ? true : false;
+          job->properties.is_task = task ? true : false;
         }
 
 next_item:
-      dbus_message_iter_next (&arrayiter);
+      dbus_message_iter_next (&array_iter);
     }
 
 out:
@@ -305,18 +306,18 @@ remove_instance_internal (ply_upstart_monitor_job_t *job, const char *path)
   instance = hashtable_remove_and_free_key (job->instances, path);
   if (instance == NULL)
     return;
-  hashtable_remove_and_free_key (job->upstart->all_instances, path);
+  hashtable_remove_and_free_key (job->monitor->all_instances, path);
 
   node = ply_list_get_first_node (instance->pending_calls);
   while (node != NULL)
     {
-      DBusPendingCall *pending;
+      DBusPendingCall *call;
       ply_list_node_t *next_node;
 
-      pending = ply_list_node_get_data (node);
+      call = ply_list_node_get_data (node);
       next_node = ply_list_get_next_node (instance->pending_calls, node);
-      dbus_pending_call_cancel (pending);
-      dbus_pending_call_unref (pending);
+      dbus_pending_call_cancel (call);
+      dbus_pending_call_unref (call);
       node = next_node;
     }
   ply_list_free (instance->pending_calls);
@@ -328,12 +329,13 @@ remove_instance_internal (ply_upstart_monitor_job_t *job, const char *path)
 }
 
 static void
-add_instance (ply_upstart_monitor_job_t *job, const char *path)
+add_instance (ply_upstart_monitor_job_t *job,
+              const char                *path)
 {
   ply_upstart_monitor_instance_t *instance;
   DBusMessage *message;
   const char *interface = UPSTART_INTERFACE_0_6_INSTANCE;
-  DBusPendingCall *pending;
+  DBusPendingCall *call;
 
   ply_trace ("adding instance: %s", path);
 
@@ -344,10 +346,10 @@ add_instance (ply_upstart_monitor_job_t *job, const char *path)
   instance->properties.name = NULL;
   instance->properties.goal = NULL;
   instance->properties.state = NULL;
-  instance->properties.failed = 0;
+  instance->properties.failed = false;
   instance->pending_calls = ply_list_new ();
-  instance->pending_state_changed = 0;
-  instance->pending_failed = 0;
+  instance->state_changed = false;
+  instance->call_failed = false;
 
   /* Keep a hash of instances per job, to make InstanceRemoved handling
    * easy.
@@ -356,7 +358,7 @@ add_instance (ply_upstart_monitor_job_t *job, const char *path)
   /* Keep a separate hash of all instances, to make StateChanged handling
    * easy.
    */
-  ply_hashtable_insert (job->upstart->all_instances, strdup (path), instance);
+  ply_hashtable_insert (job->monitor->all_instances, strdup (path), instance);
 
   /* Ask Upstart for the name, goal, and state properties. */
   ply_trace ("fetching properties of instance %s", path);
@@ -365,19 +367,22 @@ add_instance (ply_upstart_monitor_job_t *job, const char *path)
   dbus_message_append_args (message,
                             DBUS_TYPE_STRING, &interface,
                             DBUS_TYPE_INVALID);
-  dbus_connection_send_with_reply (job->upstart->connection, message,
-                                   &pending, -1);
+  dbus_connection_send_with_reply (job->monitor->connection, message,
+                                   &call, -1);
   dbus_message_unref (message);
-  if (pending)
+  if (call != NULL)
     {
-      dbus_pending_call_set_notify (pending, instance_properties,
+      dbus_pending_call_set_notify (call,
+                                    (DBusPendingCallNotifyFunction)
+                                    on_get_all_instance_properties_finished,
                                     instance, NULL);
-      ply_list_append_data (instance->pending_calls, pending);
+      ply_list_append_data (instance->pending_calls, call);
     }
 }
 
 static void
-remove_instance (ply_upstart_monitor_job_t *job, const char *path)
+remove_instance (ply_upstart_monitor_job_t *job,
+                 const char                *path)
 {
   ply_trace ("removing instance: %s", path);
 
@@ -385,19 +390,19 @@ remove_instance (ply_upstart_monitor_job_t *job, const char *path)
 }
 
 static void
-get_all_instances (DBusPendingCall *pending, void *data)
+on_get_all_instances_finished (DBusPendingCall           *call,
+                               ply_upstart_monitor_job_t *job)
 {
-  ply_upstart_monitor_job_t *job = data;
   DBusMessage *reply;
   DBusError error;
   char **instances;
   int n_instances, i;
 
-  assert (pending != NULL);
+  assert (call != NULL);
   assert (job != NULL);
 
-  reply = dbus_pending_call_steal_reply (pending);
-  if (!reply)
+  reply = dbus_pending_call_steal_reply (call);
+  if (reply == NULL)
     return;
   if (dbus_message_get_type (reply) != DBUS_MESSAGE_TYPE_METHOD_RETURN)
     goto out;
@@ -425,14 +430,14 @@ free_job_instance (void *key, void *data, void *user_data)
 {
   const char *path = key;
   ply_upstart_monitor_instance_t *instance = data;
-  ply_upstart_monitor_t *upstart = user_data;
+  ply_upstart_monitor_t *monitor = user_data;
 
-  assert (upstart != NULL);
+  assert (monitor != NULL);
 
   if (instance == NULL)
     return;
 
-  hashtable_remove_and_free_key (upstart->all_instances, path);
+  hashtable_remove_and_free_key (monitor->all_instances, path);
   free (instance->properties.name);
   free (instance->properties.goal);
   free (instance->properties.state);
@@ -440,58 +445,58 @@ free_job_instance (void *key, void *data, void *user_data)
 }
 
 static void
-remove_job_internal (ply_upstart_monitor_t *upstart, const char *path)
+remove_job_internal (ply_upstart_monitor_t *monitor, const char *path)
 {
   ply_upstart_monitor_job_t *job;
   ply_list_node_t *node;
 
-  job = hashtable_remove_and_free_key (upstart->jobs, path);
+  job = hashtable_remove_and_free_key (monitor->jobs, path);
   if (job == NULL)
     return;
 
   node = ply_list_get_first_node (job->pending_calls);
   while (node != NULL)
     {
-      DBusPendingCall *pending;
+      DBusPendingCall *call;
       ply_list_node_t *next_node;
 
-      pending = ply_list_node_get_data (node);
+      call = ply_list_node_get_data (node);
       next_node = ply_list_get_next_node (job->pending_calls, node);
-      dbus_pending_call_cancel (pending);
-      dbus_pending_call_unref (pending);
+      dbus_pending_call_cancel (call);
+      dbus_pending_call_unref (call);
       node = next_node;
     }
   ply_list_free (job->pending_calls);
 
   free (job->properties.name);
   free (job->properties.description);
-  ply_hashtable_foreach (job->instances, free_job_instance, upstart);
+  ply_hashtable_foreach (job->instances, free_job_instance, monitor);
   ply_hashtable_free (job->instances);
   free (job);
 }
 
 static void
-add_job (ply_upstart_monitor_t *upstart, const char *path)
+add_job (ply_upstart_monitor_t *monitor, const char *path)
 {
   ply_upstart_monitor_job_t *job;
   DBusMessage *message;
   const char *interface = UPSTART_INTERFACE_0_6_JOB;
-  DBusPendingCall *pending;
+  DBusPendingCall *call;
 
   ply_trace ("adding job: %s", path);
 
-  remove_job_internal (upstart, path);
+  remove_job_internal (monitor, path);
 
   job = calloc (1, sizeof (ply_upstart_monitor_job_t));
-  job->upstart = upstart;
+  job->monitor = monitor;
   job->properties.name = NULL;
   job->properties.description = NULL;
-  job->properties.task = false;
+  job->properties.is_task = false;
   job->instances = ply_hashtable_new (ply_hashtable_string_hash,
                                       ply_hashtable_string_compare);
   job->pending_calls = ply_list_new ();
 
-  ply_hashtable_insert (upstart->jobs, strdup (path), job);
+  ply_hashtable_insert (monitor->jobs, strdup (path), job);
 
   /* Ask Upstart for the name and description properties. */
   ply_trace ("fetching properties of job %s", path);
@@ -500,12 +505,16 @@ add_job (ply_upstart_monitor_t *upstart, const char *path)
   dbus_message_append_args (message,
                             DBUS_TYPE_STRING, &interface,
                             DBUS_TYPE_INVALID);
-  dbus_connection_send_with_reply (upstart->connection, message, &pending, -1);
+  dbus_connection_send_with_reply (monitor->connection, message, &call, -1);
   dbus_message_unref (message);
-  if (pending)
+  if (call != NULL)
     {
-      dbus_pending_call_set_notify (pending, job_properties, job, NULL);
-      ply_list_append_data (job->pending_calls, pending);
+      dbus_pending_call_set_notify (call,
+                                    (DBusPendingCallNotifyFunction)
+                                    on_get_all_job_properties_finished,
+                                    job,
+                                    NULL);
+      ply_list_append_data (job->pending_calls, call);
     }
 
   /* Ask Upstart for a list of all instances of this job. */
@@ -513,37 +522,41 @@ add_job (ply_upstart_monitor_t *upstart, const char *path)
   message = dbus_message_new_method_call (UPSTART_SERVICE, path,
                                           UPSTART_INTERFACE_0_6_JOB,
                                           "GetAllInstances");
-  dbus_connection_send_with_reply (upstart->connection, message, &pending, -1);
+  dbus_connection_send_with_reply (monitor->connection, message, &call, -1);
   dbus_message_unref (message);
-  if (pending)
+  if (call != NULL)
     {
-      dbus_pending_call_set_notify (pending, get_all_instances, job, NULL);
-      ply_list_append_data (job->pending_calls, pending);
+      dbus_pending_call_set_notify (call,
+                                    (DBusPendingCallNotifyFunction)
+                                    on_get_all_instances_finished,
+                                    job,
+                                    NULL);
+      ply_list_append_data (job->pending_calls, call);
     }
 }
 
 static void
-remove_job (ply_upstart_monitor_t *upstart, const char *path)
+remove_job (ply_upstart_monitor_t *monitor, const char *path)
 {
   ply_trace ("removing job: %s", path);
 
-  remove_job_internal (upstart, path);
+  remove_job_internal (monitor, path);
 }
 
 static void
-get_all_jobs (DBusPendingCall *pending, void *data)
+on_get_all_jobs_finished (DBusPendingCall       *call,
+                          ply_upstart_monitor_t *monitor)
 {
-  ply_upstart_monitor_t *upstart = data;
   DBusMessage *reply;
   DBusError error;
   char **jobs;
   int n_jobs, i;
 
-  assert (pending != NULL);
-  assert (upstart != NULL);
+  assert (call != NULL);
+  assert (monitor != NULL);
 
-  reply = dbus_pending_call_steal_reply (pending);
-  if (!reply)
+  reply = dbus_pending_call_steal_reply (call);
+  if (reply == NULL)
     return;
   if (dbus_message_get_type (reply) != DBUS_MESSAGE_TYPE_METHOD_RETURN)
     goto out;
@@ -558,7 +571,7 @@ get_all_jobs (DBusPendingCall *pending, void *data)
   dbus_error_free (&error);
 
   for (i = 0; i < n_jobs; ++i)
-    add_job (upstart, jobs[i]);
+    add_job (monitor, jobs[i]);
 
   dbus_free_string_array (jobs);
 
@@ -567,18 +580,18 @@ out:
 }
 
 static void
-get_name_owner (DBusPendingCall *pending, void *data)
+on_get_name_owner_finished (DBusPendingCall       *call,
+                            ply_upstart_monitor_t *monitor)
 {
-  ply_upstart_monitor_t *upstart = data;
   DBusMessage *reply, *message;
   DBusError error;
   const char *owner;
 
-  assert (pending != NULL);
-  assert (upstart != NULL);
+  assert (call != NULL);
+  assert (monitor != NULL);
 
-  reply = dbus_pending_call_steal_reply (pending);
-  if (!reply)
+  reply = dbus_pending_call_steal_reply (call);
+  if (reply == NULL)
     return;
   if (dbus_message_get_type (reply) != DBUS_MESSAGE_TYPE_METHOD_RETURN)
     goto out;
@@ -593,32 +606,36 @@ get_name_owner (DBusPendingCall *pending, void *data)
 
   ply_trace ("owner = '%s'", owner);
 
-  free (upstart->owner);
-  upstart->owner = strdup (owner);
+  free (monitor->owner);
+  monitor->owner = strdup (owner);
 
   ply_trace ("calling GetAllJobs");
   message = dbus_message_new_method_call (UPSTART_SERVICE, UPSTART_PATH,
                                           UPSTART_INTERFACE_0_6,
                                           "GetAllJobs");
-  dbus_connection_send_with_reply (upstart->connection, message, &pending, -1);
+  dbus_connection_send_with_reply (monitor->connection, message, &call, -1);
   dbus_message_unref (message);
-  if (pending)
-    dbus_pending_call_set_notify (pending, get_all_jobs, upstart, NULL);
+  if (call != NULL)
+    dbus_pending_call_set_notify (call,
+                                  (DBusPendingCallNotifyFunction)
+                                  on_get_all_jobs_finished,
+                                  monitor, NULL);
 
 out:
   dbus_message_unref (reply);
 }
 
 static DBusHandlerResult
-name_owner_changed_handler (DBusConnection *connection, DBusMessage *message,
-                            ply_upstart_monitor_t *upstart)
+name_owner_changed_handler (DBusConnection        *connection,
+                            DBusMessage           *message,
+                            ply_upstart_monitor_t *monitor)
 {
   DBusError error;
   const char *name, *old_owner, *new_owner;
 
   assert (connection != NULL);
   assert (message != NULL);
-  assert (upstart != NULL);
+  assert (monitor != NULL);
 
   dbus_error_init (&error);
   if (dbus_message_get_args (message, &error,
@@ -632,16 +649,17 @@ name_owner_changed_handler (DBusConnection *connection, DBusMessage *message,
         ply_trace ("owner changed from '%s' to '%s'", old_owner, new_owner);
       else
         ply_trace ("owner left bus");
-      free (upstart->owner);
-      upstart->owner = new_owner ? strdup (new_owner) : NULL;
+      free (monitor->owner);
+      monitor->owner = new_owner ? strdup (new_owner) : NULL;
     }
 
   return DBUS_HANDLER_RESULT_NOT_YET_HANDLED; /* let other handlers try */
 }
 
 static DBusHandlerResult
-job_added_handler (DBusConnection *connection, DBusMessage *message,
-                   ply_upstart_monitor_t *upstart)
+job_added_handler (DBusConnection        *connection,
+                   DBusMessage           *message,
+                   ply_upstart_monitor_t *monitor)
 {
   DBusError error;
   const char *signal_path;
@@ -651,14 +669,15 @@ job_added_handler (DBusConnection *connection, DBusMessage *message,
   if (dbus_message_get_args (message, &error,
                              DBUS_TYPE_OBJECT_PATH, &signal_path,
                              DBUS_TYPE_INVALID))
-    add_job (upstart, signal_path);
+    add_job (monitor, signal_path);
   dbus_error_free (&error);
   return DBUS_HANDLER_RESULT_HANDLED;
 }
 
 static DBusHandlerResult
-job_removed_handler (DBusConnection *connection, DBusMessage *message,
-                     ply_upstart_monitor_t *upstart)
+job_removed_handler (DBusConnection        *connection,
+                     DBusMessage           *message,
+                     ply_upstart_monitor_t *monitor)
 {
   DBusError error;
   const char *signal_path;
@@ -668,22 +687,22 @@ job_removed_handler (DBusConnection *connection, DBusMessage *message,
   if (dbus_message_get_args (message, &error,
                              DBUS_TYPE_OBJECT_PATH, &signal_path,
                              DBUS_TYPE_INVALID))
-    remove_job (upstart, signal_path);
+    remove_job (monitor, signal_path);
   dbus_error_free (&error);
   return DBUS_HANDLER_RESULT_HANDLED;
 }
 
 static DBusHandlerResult
 instance_added_handler (DBusConnection *connection, DBusMessage *message,
-                        ply_upstart_monitor_t *upstart, const char *path)
+                        ply_upstart_monitor_t *monitor, const char *path)
 {
   DBusError error;
   const char *signal_path;
   ply_upstart_monitor_job_t *job;
 
   ply_trace ("got %s InstanceAdded", path);
-  job = ply_hashtable_lookup (upstart->jobs, (void *) path);
-  if (job)
+  job = ply_hashtable_lookup (monitor->jobs, (void *) path);
+  if (job != NULL)
     {
       dbus_error_init (&error);
       if (dbus_message_get_args (message, &error,
@@ -697,15 +716,15 @@ instance_added_handler (DBusConnection *connection, DBusMessage *message,
 
 static DBusHandlerResult
 instance_removed_handler (DBusConnection *connection, DBusMessage *message,
-                          ply_upstart_monitor_t *upstart, const char *path)
+                          ply_upstart_monitor_t *monitor, const char *path)
 {
   DBusError error;
   const char *signal_path;
   ply_upstart_monitor_job_t *job;
 
   ply_trace ("got %s InstanceRemoved", path);
-  job = ply_hashtable_lookup (upstart->jobs, (void *) path);
-  if (job)
+  job = ply_hashtable_lookup (monitor->jobs, (void *) path);
+  if (job != NULL)
     {
       dbus_error_init (&error);
       if (dbus_message_get_args (message, &error,
@@ -719,7 +738,7 @@ instance_removed_handler (DBusConnection *connection, DBusMessage *message,
 
 static DBusHandlerResult
 goal_changed_handler (DBusConnection *connection, DBusMessage *message,
-                      ply_upstart_monitor_t *upstart, const char *path)
+                      ply_upstart_monitor_t *monitor, const char *path)
 {
   DBusError error;
   const char *goal;
@@ -727,8 +746,8 @@ goal_changed_handler (DBusConnection *connection, DBusMessage *message,
   char *old_goal;
 
   ply_trace ("got %s GoalChanged", path);
-  instance = ply_hashtable_lookup (upstart->all_instances, (void *) path);
-  if (instance)
+  instance = ply_hashtable_lookup (monitor->all_instances, (void *) path);
+  if (instance != NULL)
     {
       dbus_error_init (&error);
       if (dbus_message_get_args (message, &error,
@@ -747,7 +766,7 @@ goal_changed_handler (DBusConnection *connection, DBusMessage *message,
 
 static DBusHandlerResult
 state_changed_handler (DBusConnection *connection, DBusMessage *message,
-                       ply_upstart_monitor_t *upstart, const char *path)
+                       ply_upstart_monitor_t *monitor, const char *path)
 {
   DBusError error;
   const char *state;
@@ -755,8 +774,8 @@ state_changed_handler (DBusConnection *connection, DBusMessage *message,
   char *old_state;
 
   ply_trace ("got %s StateChanged", path);
-  instance = ply_hashtable_lookup (upstart->all_instances, (void *) path);
-  if (instance)
+  instance = ply_hashtable_lookup (monitor->all_instances, (void *) path);
+  if (instance != NULL)
     {
       dbus_error_init (&error);
       if (dbus_message_get_args (message, &error,
@@ -770,18 +789,18 @@ state_changed_handler (DBusConnection *connection, DBusMessage *message,
             {
               /* Clear any old failed information. */
               instance->properties.failed = 0;
-              instance->pending_failed = 0;
+              instance->call_failed = false;
             }
-          if (instance_initialised (instance))
+          if (instance_is_initialized (instance))
             {
-              if (upstart->state_changed_handler)
-                upstart->state_changed_handler (upstart->state_changed_data,
+              if (monitor->state_changed_handler)
+                monitor->state_changed_handler (monitor->state_changed_data,
                                                 old_state,
                                                 &instance->job->properties,
                                                 &instance->properties);
             }
           else
-            instance->pending_state_changed = 1;
+            instance->state_changed = true;
           free (old_state);
         }
       dbus_error_free (&error);
@@ -791,15 +810,15 @@ state_changed_handler (DBusConnection *connection, DBusMessage *message,
 
 static DBusHandlerResult
 failed_handler (DBusConnection *connection, DBusMessage *message,
-                ply_upstart_monitor_t *upstart, const char *path)
+                ply_upstart_monitor_t *monitor, const char *path)
 {
   DBusError error;
   ply_upstart_monitor_instance_t *instance;
   dbus_int32_t failed_status;
 
   ply_trace ("got %s Failed", path);
-  instance = ply_hashtable_lookup (upstart->all_instances, (void *) path);
-  if (instance)
+  instance = ply_hashtable_lookup (monitor->all_instances, (void *) path);
+  if (instance != NULL)
     {
       dbus_error_init (&error);
       if (dbus_message_get_args (message, &error,
@@ -807,16 +826,16 @@ failed_handler (DBusConnection *connection, DBusMessage *message,
                                  DBUS_TYPE_INVALID))
         {
           instance->properties.failed = failed_status;
-          if (instance_initialised (instance))
+          if (instance_is_initialized (instance))
             {
-              if (upstart->failed_handler)
-                upstart->failed_handler (upstart->failed_data,
+              if (monitor->failed_handler)
+                monitor->failed_handler (monitor->failed_data,
                                          &instance->job->properties,
                                          &instance->properties,
                                          (int) failed_status);
             }
           else
-            instance->pending_failed = 1;
+            instance->call_failed = true;
         }
       dbus_error_free (&error);
     }
@@ -826,12 +845,12 @@ failed_handler (DBusConnection *connection, DBusMessage *message,
 static DBusHandlerResult
 message_handler (DBusConnection *connection, DBusMessage *message, void *data)
 {
-  ply_upstart_monitor_t *upstart = data;
+  ply_upstart_monitor_t *monitor = data;
   const char *path;
 
   assert (connection != NULL);
   assert (message != NULL);
-  assert (upstart != NULL);
+  assert (monitor != NULL);
 
   path = dbus_message_get_path (message);
   if (path == NULL)
@@ -841,35 +860,35 @@ message_handler (DBusConnection *connection, DBusMessage *message, void *data)
                               "NameOwnerChanged") &&
       dbus_message_has_path (message, DBUS_PATH_DBUS) &&
       dbus_message_has_sender (message, DBUS_SERVICE_DBUS))
-    return name_owner_changed_handler (connection, message, upstart);
+    return name_owner_changed_handler (connection, message, monitor);
 
   if (dbus_message_is_signal (message, UPSTART_INTERFACE_0_6,
                               "JobAdded"))
-    return job_added_handler (connection, message, upstart);
+    return job_added_handler (connection, message, monitor);
 
   if (dbus_message_is_signal (message, UPSTART_INTERFACE_0_6,
                               "JobRemoved"))
-    return job_removed_handler (connection, message, upstart);
+    return job_removed_handler (connection, message, monitor);
 
   if (dbus_message_is_signal (message, UPSTART_INTERFACE_0_6_JOB,
                               "InstanceAdded"))
-    return instance_added_handler (connection, message, upstart, path);
+    return instance_added_handler (connection, message, monitor, path);
 
   if (dbus_message_is_signal (message, UPSTART_INTERFACE_0_6_JOB,
                               "InstanceRemoved"))
-    return instance_removed_handler (connection, message, upstart, path);
+    return instance_removed_handler (connection, message, monitor, path);
 
   if (dbus_message_is_signal (message, UPSTART_INTERFACE_0_6_INSTANCE,
                               "GoalChanged"))
-    return goal_changed_handler (connection, message, upstart, path);
+    return goal_changed_handler (connection, message, monitor, path);
 
   if (dbus_message_is_signal (message, UPSTART_INTERFACE_0_6_INSTANCE,
                               "StateChanged"))
-    return state_changed_handler (connection, message, upstart, path);
+    return state_changed_handler (connection, message, monitor, path);
 
   if (dbus_message_is_signal (message, UPSTART_INTERFACE_0_6_INSTANCE,
                               "Failed"))
-    return failed_handler (connection, message, upstart, path);
+    return failed_handler (connection, message, monitor, path);
 
   return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
@@ -879,11 +898,11 @@ ply_upstart_monitor_new (ply_event_loop_t *loop)
 {
   DBusError error;
   DBusConnection *connection;
-  ply_upstart_monitor_t *upstart;
+  ply_upstart_monitor_t *monitor;
   char *rule;
   DBusMessage *message;
-  const char *upstart_service = UPSTART_SERVICE;
-  DBusPendingCall *pending;
+  const char *monitor_service = UPSTART_SERVICE;
+  DBusPendingCall *call;
 
   dbus_error_init (&error);
 
@@ -899,23 +918,23 @@ ply_upstart_monitor_new (ply_event_loop_t *loop)
     }
   dbus_error_free (&error);
 
-  upstart = calloc (1, sizeof (ply_upstart_monitor_t));
-  upstart->connection = connection;
-  upstart->loop = NULL;
-  upstart->jobs = ply_hashtable_new (ply_hashtable_string_hash,
+  monitor = calloc (1, sizeof (ply_upstart_monitor_t));
+  monitor->connection = connection;
+  monitor->loop = NULL;
+  monitor->jobs = ply_hashtable_new (ply_hashtable_string_hash,
                                      ply_hashtable_string_compare);
-  upstart->all_instances = ply_hashtable_new (ply_hashtable_string_hash,
+  monitor->all_instances = ply_hashtable_new (ply_hashtable_string_hash,
                                               ply_hashtable_string_compare);
-  upstart->state_changed_handler = NULL;
-  upstart->state_changed_data = NULL;
-  upstart->failed_handler = NULL;
-  upstart->failed_data = NULL;
-  upstart->dispatch_eventfd = -1;
+  monitor->state_changed_handler = NULL;
+  monitor->state_changed_data = NULL;
+  monitor->failed_handler = NULL;
+  monitor->failed_data = NULL;
+  monitor->dispatch_fd = -1;
 
-  if (!dbus_connection_add_filter (connection, message_handler, upstart, NULL))
+  if (!dbus_connection_add_filter (connection, message_handler, monitor, NULL))
     {
       ply_error ("unable to add filter to system bus connection");
-      ply_upstart_monitor_free (upstart);
+      ply_upstart_monitor_free (monitor);
       return NULL;
     }
 
@@ -929,7 +948,7 @@ ply_upstart_monitor_new (ply_event_loop_t *loop)
     {
       ply_error ("unable to add match rule to system bus connection: %s",
                  error.message);
-      ply_upstart_monitor_free (upstart);
+      ply_upstart_monitor_free (monitor);
       dbus_error_free (&error);
       return NULL;
     }
@@ -941,7 +960,7 @@ ply_upstart_monitor_new (ply_event_loop_t *loop)
     {
       ply_error ("unable to add match rule to system bus connection: %s",
                  error.message);
-      ply_upstart_monitor_free (upstart);
+      ply_upstart_monitor_free (monitor);
       dbus_error_free (&error);
       return NULL;
     }
@@ -955,31 +974,35 @@ ply_upstart_monitor_new (ply_event_loop_t *loop)
   message = dbus_message_new_method_call (DBUS_SERVICE_DBUS, DBUS_PATH_DBUS,
                                           DBUS_INTERFACE_DBUS, "GetNameOwner");
   dbus_message_append_args (message,
-                            DBUS_TYPE_STRING, &upstart_service,
+                            DBUS_TYPE_STRING, &monitor_service,
                             DBUS_TYPE_INVALID);
-  dbus_connection_send_with_reply (connection, message, &pending, -1);
+  dbus_connection_send_with_reply (connection, message, &call, -1);
   dbus_message_unref (message);
-  if (pending)
-    dbus_pending_call_set_notify (pending, get_name_owner, upstart, NULL);
+  if (call != NULL)
+    dbus_pending_call_set_notify (call,
+                                  (DBusPendingCallNotifyFunction)
+                                  on_get_name_owner_finished,
+                                  monitor,
+                                  NULL);
 
-  if (loop)
-    ply_upstart_monitor_connect_to_event_loop (upstart, loop);
+  if (loop != NULL)
+    ply_upstart_monitor_connect_to_event_loop (monitor, loop);
 
-  return upstart;
+  return monitor;
 }
 
 void
-ply_upstart_monitor_free (ply_upstart_monitor_t *upstart)
+ply_upstart_monitor_free (ply_upstart_monitor_t *monitor)
 {
-  if (upstart == NULL)
+  if (monitor == NULL)
     return;
 
-  ply_hashtable_free (upstart->all_instances);
-  ply_hashtable_free (upstart->jobs);
-  dbus_connection_unref (upstart->connection);
-  if (upstart->dispatch_eventfd >= 0)
-    close (upstart->dispatch_eventfd);
-  free (upstart);
+  ply_hashtable_free (monitor->all_instances);
+  ply_hashtable_free (monitor->jobs);
+  dbus_connection_unref (monitor->connection);
+  if (monitor->dispatch_fd >= 0)
+    close (monitor->dispatch_fd);
+  free (monitor);
 }
 
 static void
@@ -1005,13 +1028,13 @@ write_watch_handler (void *data, int fd)
 static dbus_bool_t
 add_watch (DBusWatch *watch, void *data)
 {
-  ply_upstart_monitor_t *upstart = data;
+  ply_upstart_monitor_t *monitor = data;
   unsigned int flags;
   int fd;
   ply_event_loop_fd_status_t status;
   ply_fd_watch_t *read_watch_event = NULL, *write_watch_event = NULL;
 
-  assert (upstart != NULL);
+  assert (monitor != NULL);
   assert (watch != NULL);
 
   if (!dbus_watch_get_enabled (watch))
@@ -1025,7 +1048,7 @@ add_watch (DBusWatch *watch, void *data)
   if (flags & DBUS_WATCH_READABLE)
     {
       status = PLY_EVENT_LOOP_FD_STATUS_HAS_DATA;
-      read_watch_event = ply_event_loop_watch_fd (upstart->loop, fd, status,
+      read_watch_event = ply_event_loop_watch_fd (monitor->loop, fd, status,
                                                   read_watch_handler, NULL,
                                                   watch);
       if (read_watch_event == NULL)
@@ -1036,13 +1059,13 @@ add_watch (DBusWatch *watch, void *data)
   if (flags & DBUS_WATCH_WRITABLE)
     {
       status = PLY_EVENT_LOOP_FD_STATUS_CAN_TAKE_DATA;
-      write_watch_event = ply_event_loop_watch_fd (upstart->loop, fd, status,
+      write_watch_event = ply_event_loop_watch_fd (monitor->loop, fd, status,
                                                    write_watch_handler, NULL,
                                                    watch);
       if (write_watch_event == NULL)
         {
           if (read_watch_event != NULL)
-            ply_event_loop_stop_watching_fd (upstart->loop, read_watch_event);
+            ply_event_loop_stop_watching_fd (monitor->loop, read_watch_event);
           return FALSE;
         }
       dbus_watch_set_data (watch, write_watch_event, NULL);
@@ -1054,17 +1077,17 @@ add_watch (DBusWatch *watch, void *data)
 static void
 remove_watch (DBusWatch *watch, void *data)
 {
-  ply_upstart_monitor_t *upstart = data;
+  ply_upstart_monitor_t *monitor = data;
   ply_fd_watch_t *watch_event;
 
-  assert (upstart != NULL);
+  assert (monitor != NULL);
   assert (watch != NULL);
 
   watch_event = dbus_watch_get_data (watch);
   if (watch_event == NULL)
     return;
 
-  ply_event_loop_stop_watching_fd (upstart->loop, watch_event);
+  ply_event_loop_stop_watching_fd (monitor->loop, watch_event);
 
   dbus_watch_set_data (watch, NULL, NULL);
 }
@@ -1079,43 +1102,43 @@ toggled_watch (DBusWatch *watch, void *data)
 }
 
 static ply_upstart_monitor_timeout_t *
-timeout_user_data_new (ply_upstart_monitor_t *upstart, DBusTimeout *timeout)
+timeout_user_data_new (ply_upstart_monitor_t *monitor, DBusTimeout *timeout)
 {
-  ply_upstart_monitor_timeout_t *upstart_timeout;
+  ply_upstart_monitor_timeout_t *monitor_timeout;
 
-  upstart_timeout = calloc (1, sizeof (ply_upstart_monitor_timeout_t));
-  upstart_timeout->upstart = upstart;
-  upstart_timeout->timeout = timeout;
+  monitor_timeout = calloc (1, sizeof (ply_upstart_monitor_timeout_t));
+  monitor_timeout->monitor = monitor;
+  monitor_timeout->timeout = timeout;
 
-  return upstart_timeout;
+  return monitor_timeout;
 }
 
 static void
 timeout_user_data_free (void *data)
 {
-  ply_upstart_monitor_timeout_t *upstart_timeout = data;
+  ply_upstart_monitor_timeout_t *monitor_timeout = data;
 
-  free (upstart_timeout);
+  free (monitor_timeout);
 }
 
 static void
 timeout_handler (void *data, ply_event_loop_t *loop)
 {
-  ply_upstart_monitor_timeout_t *upstart_timeout = data;
+  ply_upstart_monitor_timeout_t *monitor_timeout = data;
 
-  assert (upstart_timeout != NULL);
+  assert (monitor_timeout != NULL);
 
-  dbus_timeout_handle (upstart_timeout->timeout);
+  dbus_timeout_handle (monitor_timeout->timeout);
 }
 
 static dbus_bool_t
 add_timeout (DBusTimeout *timeout, void *data)
 {
-  ply_upstart_monitor_t *upstart = data;
+  ply_upstart_monitor_t *monitor = data;
   int interval;
-  ply_upstart_monitor_timeout_t *upstart_timeout;
+  ply_upstart_monitor_timeout_t *monitor_timeout;
 
-  assert (upstart != NULL);
+  assert (monitor != NULL);
   assert (timeout != NULL);
 
   if (!dbus_timeout_get_enabled (timeout))
@@ -1123,12 +1146,12 @@ add_timeout (DBusTimeout *timeout, void *data)
 
   interval = dbus_timeout_get_interval (timeout) * 1000;
 
-  upstart_timeout = timeout_user_data_new (upstart, timeout);
+  monitor_timeout = timeout_user_data_new (monitor, timeout);
 
-  ply_event_loop_watch_for_timeout (upstart->loop, (double) interval,
-                                    timeout_handler, upstart_timeout);
+  ply_event_loop_watch_for_timeout (monitor->loop, (double) interval,
+                                    timeout_handler, monitor_timeout);
 
-  dbus_timeout_set_data (timeout, upstart_timeout, timeout_user_data_free);
+  dbus_timeout_set_data (timeout, monitor_timeout, timeout_user_data_free);
 
   return TRUE;
 }
@@ -1136,18 +1159,18 @@ add_timeout (DBusTimeout *timeout, void *data)
 static void
 remove_timeout (DBusTimeout *timeout, void *data)
 {
-  ply_upstart_monitor_t *upstart = data;
-  ply_upstart_monitor_timeout_t *upstart_timeout;
+  ply_upstart_monitor_t *monitor = data;
+  ply_upstart_monitor_timeout_t *monitor_timeout;
 
-  assert (upstart != NULL);
+  assert (monitor != NULL);
   assert (timeout != NULL);
 
-  upstart_timeout = dbus_timeout_get_data (timeout);
-  if (upstart_timeout == NULL)
+  monitor_timeout = dbus_timeout_get_data (timeout);
+  if (monitor_timeout == NULL)
     return;
 
-  ply_event_loop_stop_watching_for_timeout (upstart->loop,
-                                            timeout_handler, upstart_timeout);
+  ply_event_loop_stop_watching_for_timeout (monitor->loop,
+                                            timeout_handler, monitor_timeout);
 
   dbus_timeout_set_data (timeout, NULL, NULL);
 }
@@ -1165,114 +1188,114 @@ static void
 dispatch_status (DBusConnection *connection, DBusDispatchStatus new_status,
                  void *data)
 {
-  ply_upstart_monitor_t *upstart = data;
-  uint64_t eventfd_val;
+  ply_upstart_monitor_t *monitor = data;
+  uint64_t event_payload;
 
-  assert (upstart != NULL);
+  assert (monitor != NULL);
 
   if (new_status != DBUS_DISPATCH_DATA_REMAINS)
     return;
 
   /* wake up event loop */
-  eventfd_val = 1;
-  ply_write (upstart->dispatch_eventfd, &eventfd_val, sizeof (eventfd_val));
+  event_payload = 1;
+  ply_write (monitor->dispatch_fd, &event_payload, sizeof (event_payload));
 }
 
 static void
 dispatch (void *data, int fd)
 {
-  ply_upstart_monitor_t *upstart = data;
-  uint64_t eventfd_val;
+  ply_upstart_monitor_t *monitor = data;
+  uint64_t event_payload;
 
-  assert (upstart != NULL);
+  assert (monitor != NULL);
 
   /* reset eventfd to zero */
-  ply_read (fd, &eventfd_val, sizeof (eventfd_val));
+  ply_read (fd, &event_payload, sizeof (event_payload));
 
-  while (dbus_connection_dispatch (upstart->connection) ==
+  while (dbus_connection_dispatch (monitor->connection) ==
          DBUS_DISPATCH_DATA_REMAINS)
     ;
 }
 
 bool
-ply_upstart_monitor_connect_to_event_loop (ply_upstart_monitor_t    *upstart,
+ply_upstart_monitor_connect_to_event_loop (ply_upstart_monitor_t    *monitor,
                                            ply_event_loop_t         *loop)
 {
   ply_fd_watch_t *dispatch_event = NULL;
-  uint64_t eventfd_val;
+  uint64_t event_payload;
 
-  assert (upstart != NULL);
+  assert (monitor != NULL);
 
-  upstart->loop = loop;
-  upstart->dispatch_eventfd = -1;
+  monitor->loop = loop;
+  monitor->dispatch_fd = -1;
 
-  if (!dbus_connection_set_watch_functions (upstart->connection,
+  if (!dbus_connection_set_watch_functions (monitor->connection,
                                             add_watch,
                                             remove_watch,
                                             toggled_watch,
-                                            upstart, NULL))
+                                            monitor, NULL))
     goto err;
 
-  if (!dbus_connection_set_timeout_functions (upstart->connection,
+  if (!dbus_connection_set_timeout_functions (monitor->connection,
                                               add_timeout,
                                               remove_timeout,
                                               toggled_timeout,
-                                              upstart, NULL))
+                                              monitor, NULL))
     goto err;
 
-  upstart->dispatch_eventfd = eventfd (0, EFD_CLOEXEC | EFD_NONBLOCK);
-  if (upstart->dispatch_eventfd < 0)
+  monitor->dispatch_fd = eventfd (0, EFD_CLOEXEC | EFD_NONBLOCK);
+  if (monitor->dispatch_fd < 0)
     goto err;
   /* make sure we wake up to dispatch the first time through */
-  eventfd_val = 1;
-  ply_write (upstart->dispatch_eventfd, &eventfd_val, sizeof (eventfd_val));
+  event_payload = 1;
+  ply_write (monitor->dispatch_fd, &event_payload, sizeof (event_payload));
 
-  dispatch_event = ply_event_loop_watch_fd (upstart->loop,
-                                            upstart->dispatch_eventfd,
+  dispatch_event = ply_event_loop_watch_fd (monitor->loop,
+                                            monitor->dispatch_fd,
                                             PLY_EVENT_LOOP_FD_STATUS_HAS_DATA,
-                                            dispatch, NULL, upstart);
+                                            dispatch, NULL, monitor);
   if (dispatch_event == NULL)
     goto err;
 
-  dbus_connection_set_dispatch_status_function (upstart->connection,
+  dbus_connection_set_dispatch_status_function (monitor->connection,
                                                 dispatch_status,
-                                                upstart, NULL);
+                                                monitor, NULL);
 
   return true;
 
 err:
-  dbus_connection_set_watch_functions (upstart->connection,
+  dbus_connection_set_watch_functions (monitor->connection,
                                        NULL, NULL, NULL, NULL, NULL);
-  dbus_connection_set_timeout_functions (upstart->connection,
+  dbus_connection_set_timeout_functions (monitor->connection,
                                          NULL, NULL, NULL, NULL, NULL);
-  dbus_connection_set_dispatch_status_function (upstart->connection,
+  dbus_connection_set_dispatch_status_function (monitor->connection,
                                                 NULL, NULL, NULL);
   if (dispatch_event != NULL)
-    ply_event_loop_stop_watching_fd (upstart->loop, dispatch_event);
-  if (upstart->dispatch_eventfd >= 0)
+    ply_event_loop_stop_watching_fd (monitor->loop, dispatch_event);
+  if (monitor->dispatch_fd >= 0)
     {
-      close (upstart->dispatch_eventfd);
-      upstart->dispatch_eventfd = -1;
+      close (monitor->dispatch_fd);
+      monitor->dispatch_fd = -1;
     }
-  upstart->loop = NULL;
+  monitor->loop = NULL;
   return false;
 }
 
 void
-ply_upstart_monitor_add_state_changed_handler (ply_upstart_monitor_t                       *upstart,
+ply_upstart_monitor_add_state_changed_handler (ply_upstart_monitor_t                       *monitor,
                                                ply_upstart_monitor_state_changed_handler_t  handler,
                                                void                                        *user_data)
 {
-  upstart->state_changed_handler = handler;
-  upstart->state_changed_data = user_data;
+  monitor->state_changed_handler = handler;
+  monitor->state_changed_data = user_data;
 }
 
 void
-ply_upstart_monitor_add_failed_handler (ply_upstart_monitor_t                *upstart,
+ply_upstart_monitor_add_failed_handler (ply_upstart_monitor_t                *monitor,
                                         ply_upstart_monitor_failed_handler_t  handler,
                                         void                                 *user_data)
 {
-  upstart->failed_handler = handler;
-  upstart->failed_data = user_data;
+  monitor->failed_handler = handler;
+  monitor->failed_data = user_data;
 }
 /* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

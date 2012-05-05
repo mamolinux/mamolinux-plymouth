@@ -1,10 +1,13 @@
 libply.so.2 libplymouth2 #MINVER#
- ply_array_add_element@Base 0.8.0~
+ ply_array_add_pointer_element@Base 0.8.4
+ ply_array_add_uint32_element@Base 0.8.4
  ply_array_free@Base 0.8.0~
- ply_array_get_elements@Base 0.8.0~
+ ply_array_get_pointer_elements@Base 0.8.4
  ply_array_get_size@Base 0.8.0~
+ ply_array_get_uint32_elements@Base 0.8.4
  ply_array_new@Base 0.8.0~
- ply_array_steal_elements@Base 0.8.0~
+ ply_array_steal_pointer_elements@Base 0.8.4
+ ply_array_steal_uint32_elements@Base 0.8.4
  ply_bitarray_count@Base 0.8.0~
  ply_buffer_append_bytes@Base 0.8.0~
  ply_buffer_append_from_fd@Base 0.8.0~
@@ -17,9 +20,11 @@ libply.so.2 libplymouth2 #MINVER#
  ply_buffer_remove_bytes@Base 0.8.0~
  ply_buffer_remove_bytes_at_end@Base 0.8.0~
  ply_buffer_steal_bytes@Base 0.8.0~
+ ply_character_device_exists@Base 0.8.4
  ply_close_all_fds@Base 0.8.0~
  ply_close_module@Base 0.8.0~
  ply_command_parser_add_command@Base 0.8.0~
+ ply_command_parser_add_command_alias@Base 0.8.4
  ply_command_parser_add_options@Base 0.8.0~
  ply_command_parser_free@Base 0.8.0~
  ply_command_parser_get_command_option@Base 0.8.0~
@@ -57,6 +62,8 @@ libply.so.2 libplymouth2 #MINVER#
  ply_file_exists@Base 0.8.0~
  ply_free_string_array@Base 0.8.0~
  ply_get_credentials_from_fd@Base 0.8.0~
+ ply_get_process_command_line@Base 0.8.4
+ ply_get_process_parent_pid@Base 0.8.4
  ply_get_timestamp@Base 0.8.0~
  ply_hashtable_direct_compare@Base 0.8.0~
  ply_hashtable_direct_hash@Base 0.8.0~
@@ -70,13 +77,13 @@ libply.so.2 libplymouth2 #MINVER#
  ply_hashtable_resize@Base 0.8.0~
  ply_hashtable_string_compare@Base 0.8.0~
  ply_hashtable_string_hash@Base 0.8.0~
+ ply_key_file_foreach_entry@Base 0.8.3
  ply_key_file_free@Base 0.8.0~
  ply_key_file_get_value@Base 0.8.0~
  ply_key_file_has_key@Base 0.8.0~
  ply_key_file_load@Base 0.8.0~
  ply_key_file_new@Base 0.8.0~
  ply_list_append_data@Base 0.8.0~
- ply_list_directory@Base 0.8.0~
  ply_list_find_node@Base 0.8.0~
  ply_list_free@Base 0.8.0~
  ply_list_get_first_node@Base 0.8.0~
@@ -87,7 +94,6 @@ libply.so.2 libplymouth2 #MINVER#
  ply_list_insert_data@Base 0.8.0~
  ply_list_new@Base 0.8.0~
  ply_list_node_get_data@Base 0.8.0~
- ply_list_node_set_data@Base 0.8.0~
  ply_list_prepend_data@Base 0.8.0~
  ply_list_remove_all_nodes@Base 0.8.0~
  ply_list_remove_data@Base 0.8.0~
@@ -114,6 +120,7 @@ libply.so.2 libplymouth2 #MINVER#
  ply_logger_toggle_logging@Base 0.8.0~
  ply_logger_toggle_tracing@Base 0.8.0~
  ply_module_look_up_function@Base 0.8.0~
+ ply_open_built_in_module@Base 0.8.4
  ply_open_module@Base 0.8.0~
  ply_open_unidirectional_pipe@Base 0.8.0~
  ply_progress_free@Base 0.8.0~
@@ -180,6 +187,7 @@ libply-boot-client.so.2 libplymouth2 #MINVER#
  ply_boot_client_tell_daemon_to_change_root@Base 0.8.0~-13~ppa1
  ply_boot_client_tell_daemon_to_deactivate@Base 0.8.0~-13~ppa1
  ply_boot_client_tell_daemon_to_display_message@Base 0.8.0~-13~ppa1
+ ply_boot_client_tell_daemon_to_hide_message@Base 0.8.4
  ply_boot_client_tell_daemon_to_hide_splash@Base 0.8.0~-13~ppa1
  ply_boot_client_tell_daemon_to_progress_pause@Base 0.8.0~-13~ppa1
  ply_boot_client_tell_daemon_to_progress_unpause@Base 0.8.0~-13~ppa1
@@ -199,7 +207,9 @@ libply-splash-core.so.2 libplymouth2 #MINVER#
  ply_boot_splash_display_question@Base 0.8.0~-13~ppa1
  ply_boot_splash_free@Base 0.8.0~-13~ppa1
  ply_boot_splash_hide@Base 0.8.0~-13~ppa1
+ ply_boot_splash_hide_message@Base 0.8.4
  ply_boot_splash_load@Base 0.8.0~-13~ppa1
+ ply_boot_splash_load_built_in@Base 0.8.4
  ply_boot_splash_new@Base 0.8.0~-13~ppa1
  ply_boot_splash_remove_pixel_display@Base 0.8.0~-13~ppa1
  ply_boot_splash_remove_text_display@Base 0.8.0~-13~ppa1
@@ -227,14 +237,20 @@ libply-splash-core.so.2 libplymouth2 #MINVER#
  ply_pixel_buffer_fill_with_argb32_data_at_opacity@Base 0.8.0~-13~ppa1
  ply_pixel_buffer_fill_with_argb32_data_at_opacity_with_clip@Base 0.8.0~-13~ppa1
  ply_pixel_buffer_fill_with_argb32_data_with_clip@Base 0.8.0~-13~ppa1
+ ply_pixel_buffer_fill_with_buffer@Base 0.8.3
+ ply_pixel_buffer_fill_with_buffer_at_opacity@Base 0.8.3
+ ply_pixel_buffer_fill_with_buffer_at_opacity_with_clip@Base 0.8.3
+ ply_pixel_buffer_fill_with_buffer_with_clip@Base 0.8.3
  ply_pixel_buffer_fill_with_color@Base 0.8.0~-13~ppa1
  ply_pixel_buffer_fill_with_gradient@Base 0.8.0~-13~ppa1
  ply_pixel_buffer_fill_with_hex_color@Base 0.8.0~-13~ppa1
  ply_pixel_buffer_fill_with_hex_color_at_opacity@Base 0.8.0~-13~ppa1
  ply_pixel_buffer_free@Base 0.8.0~-13~ppa1
  ply_pixel_buffer_get_argb32_data@Base 0.8.0~-13~ppa1
+ ply_pixel_buffer_get_height@Base 0.8.3
  ply_pixel_buffer_get_size@Base 0.8.0~-13~ppa1
  ply_pixel_buffer_get_updated_areas@Base 0.8.0~-13~ppa1
+ ply_pixel_buffer_get_width@Base 0.8.3
  ply_pixel_buffer_new@Base 0.8.0~-13~ppa1
  ply_pixel_buffer_pop_clip_area@Base 0.8.0~-13~ppa1
  ply_pixel_buffer_push_clip_area@Base 0.8.0~-13~ppa1
@@ -285,9 +301,11 @@ libply-splash-core.so.2 libplymouth2 #MINVER#
  ply_terminal_set_mode@Base 0.8.0~-13~ppa1
  ply_terminal_set_unbuffered_input@Base 0.8.0~-13~ppa1
  ply_terminal_stop_watching_for_active_vt_change@Base 0.8.0~-18
+ ply_terminal_stop_watching_for_input@Base 0.8.4
  ply_terminal_stop_watching_for_vt_changes@Base 0.8.0~-13~ppa1
  ply_terminal_supports_color@Base 0.8.0~-13~ppa1
  ply_terminal_watch_for_active_vt_change@Base 0.8.0~-18
+ ply_terminal_watch_for_input@Base 0.8.4
  ply_terminal_watch_for_vt_changes@Base 0.8.0~-13~ppa1
  ply_terminal_write@Base 0.8.0~-13~ppa1
  ply_text_display_attach_to_event_loop@Base 0.8.0~-13~ppa1
@@ -345,9 +363,11 @@ libply-splash-graphics.so.2 libplymouth2 #MINVER#
  ply_entry_remove_bullet@Base 0.8.0~-13~ppa1
  ply_entry_set_bullet_count@Base 0.8.0~-13~ppa1
  ply_entry_set_text@Base 0.8.0~-13~ppa1
+ ply_entry_set_text_color@Base 0.8.3
  ply_entry_show@Base 0.8.0~-13~ppa1
  ply_image_convert_to_pixel_buffer@Base 0.8.0~-13~ppa1
  ply_image_free@Base 0.8.0~-13~ppa1
+ ply_image_get_buffer@Base 0.8.3
  ply_image_get_data@Base 0.8.0~-13~ppa1
  ply_image_get_height@Base 0.8.0~-13~ppa1
  ply_image_get_width@Base 0.8.0~-13~ppa1
@@ -364,6 +384,7 @@ libply-splash-graphics.so.2 libplymouth2 #MINVER#
  ply_label_is_hidden@Base 0.8.0~-13~ppa1
  ply_label_new@Base 0.8.0~-13~ppa1
  ply_label_set_color@Base 0.8.0~-13~ppa1
+ ply_label_set_font@Base 0.8.4
  ply_label_set_text@Base 0.8.0~-13~ppa1
  ply_label_show@Base 0.8.0~-13~ppa1
  ply_progress_animation_draw@Base 0.8.0~-13~ppa1
