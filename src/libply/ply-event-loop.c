@@ -1299,6 +1299,10 @@ ply_event_loop_process_pending_events (ply_event_loop_t *loop)
       ply_event_source_t *source;
       source = (ply_event_source_t *) (events[i].data.ptr);
 
+      /* ignore events that reference a now invalid source */
+      if (!ply_list_find_node (loop->sources, source))
+        continue;
+
       ply_event_source_take_reference (source);
     }
 
@@ -1312,6 +1316,10 @@ ply_event_loop_process_pending_events (ply_event_loop_t *loop)
 
       source = (ply_event_source_t *) (events[i].data.ptr);
       status = ply_event_loop_get_fd_status_from_poll_mask (events[i].events);
+
+      /* ignore events that reference a now invalid source */
+      if (!ply_list_find_node (loop->sources, source))
+        continue;
 
       is_disconnected = false;
       if ((events[i].events & EPOLLHUP) || (events[i].events & EPOLLERR))
@@ -1344,6 +1352,10 @@ ply_event_loop_process_pending_events (ply_event_loop_t *loop)
       ply_event_source_t *source;
 
       source = (ply_event_source_t *) (events[i].data.ptr);
+
+      /* ignore events that reference a now invalid source */
+      if (!ply_list_find_node (loop->sources, source))
+        continue;
 
       ply_event_source_drop_reference (source);
     }
