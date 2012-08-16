@@ -7,7 +7,6 @@ lbm-nouveau.patch
 nouveau-framebuffer.patch
 ubuntu-logo.patch
 ubuntu-text.patch
-kubuntu-text.patch
 avoid-sigpipe.patch
 tty1-after-boot.patch
 invalid-event-source-workaround.patch

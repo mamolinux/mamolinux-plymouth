@@ -19,7 +19,7 @@ Index: trunk/themes/Makefile.in
  top_builddir = @top_builddir@
  top_srcdir = @top_srcdir@
 -SUBDIRS = spinfinity fade-in text details solar glow script spinner
-+SUBDIRS = spinfinity fade-in text details solar glow script spinner ubuntu-logo ubuntu-text kubuntu-text
++SUBDIRS = spinfinity fade-in text details solar glow script spinner ubuntu-logo ubuntu-text
  MAINTAINERCLEANFILES = Makefile.in
  all: all-recursive
  
@@ -1710,7 +1710,7 @@ Index: trunk/configure
  
  
 -ac_config_files="$ac_config_files Makefile src/libply/Makefile src/libply-splash-core/Makefile src/libply-splash-graphics/Makefile src/ply-splash-core.pc src/ply-splash-graphics.pc src/plugins/Makefile src/plugins/renderers/Makefile src/plugins/renderers/frame-buffer/Makefile src/plugins/renderers/drm/Makefile src/plugins/renderers/x11/Makefile src/plugins/splash/Makefile src/plugins/splash/throbgress/Makefile src/plugins/splash/fade-throbber/Makefile src/plugins/splash/text/Makefile src/plugins/splash/details/Makefile src/plugins/splash/space-flares/Makefile src/plugins/splash/two-step/Makefile src/plugins/splash/script/Makefile src/plugins/controls/Makefile src/plugins/controls/label/Makefile src/Makefile src/client/ply-boot-client.pc src/client/Makefile src/viewer/Makefile src/upstart-bridge/Makefile src/tests/Makefile src/libply/tests/Makefile src/client/tests/Makefile themes/Makefile themes/spinfinity/Makefile themes/fade-in/Makefile themes/text/Makefile themes/details/Makefile themes/solar/Makefile themes/glow/Makefile themes/spinner/Makefile themes/script/Makefile images/Makefile scripts/plymouth-generate-initrd scripts/plymouth-populate-initrd scripts/plymouth-set-default-theme scripts/Makefile docs/Makefile"
-+ac_config_files="$ac_config_files Makefile src/libply/Makefile src/libply-splash-core/Makefile src/libply-splash-graphics/Makefile src/ply-splash-core.pc src/ply-splash-graphics.pc src/plugins/Makefile src/plugins/renderers/Makefile src/plugins/renderers/frame-buffer/Makefile src/plugins/renderers/drm/Makefile src/plugins/renderers/x11/Makefile src/plugins/renderers/vga16fb/Makefile src/plugins/splash/Makefile src/plugins/splash/throbgress/Makefile src/plugins/splash/fade-throbber/Makefile src/plugins/splash/ubuntu-text/Makefile src/plugins/splash/text/Makefile src/plugins/splash/details/Makefile src/plugins/splash/space-flares/Makefile src/plugins/splash/two-step/Makefile src/plugins/splash/script/Makefile src/plugins/controls/Makefile src/plugins/controls/label/Makefile src/Makefile src/client/ply-boot-client.pc src/client/Makefile src/viewer/Makefile src/upstart-bridge/Makefile src/tests/Makefile src/libply/tests/Makefile src/client/tests/Makefile themes/Makefile themes/spinfinity/Makefile themes/fade-in/Makefile themes/text/Makefile themes/details/Makefile themes/solar/Makefile themes/glow/Makefile themes/spinner/Makefile themes/script/Makefile themes/ubuntu-logo/Makefile themes/ubuntu-text/Makefile themes/kubuntu-text/Makefile images/Makefile scripts/plymouth-generate-initrd scripts/plymouth-populate-initrd scripts/plymouth-set-default-theme scripts/Makefile docs/Makefile"
++ac_config_files="$ac_config_files Makefile src/libply/Makefile src/libply-splash-core/Makefile src/libply-splash-graphics/Makefile src/ply-splash-core.pc src/ply-splash-graphics.pc src/plugins/Makefile src/plugins/renderers/Makefile src/plugins/renderers/frame-buffer/Makefile src/plugins/renderers/drm/Makefile src/plugins/renderers/x11/Makefile src/plugins/renderers/vga16fb/Makefile src/plugins/splash/Makefile src/plugins/splash/throbgress/Makefile src/plugins/splash/fade-throbber/Makefile src/plugins/splash/ubuntu-text/Makefile src/plugins/splash/text/Makefile src/plugins/splash/details/Makefile src/plugins/splash/space-flares/Makefile src/plugins/splash/two-step/Makefile src/plugins/splash/script/Makefile src/plugins/controls/Makefile src/plugins/controls/label/Makefile src/Makefile src/client/ply-boot-client.pc src/client/Makefile src/viewer/Makefile src/upstart-bridge/Makefile src/tests/Makefile src/libply/tests/Makefile src/client/tests/Makefile themes/Makefile themes/spinfinity/Makefile themes/fade-in/Makefile themes/text/Makefile themes/details/Makefile themes/solar/Makefile themes/glow/Makefile themes/spinner/Makefile themes/script/Makefile themes/ubuntu-logo/Makefile themes/ubuntu-text/Makefile images/Makefile scripts/plymouth-generate-initrd scripts/plymouth-populate-initrd scripts/plymouth-set-default-theme scripts/Makefile docs/Makefile"
  
  cat >confcache <<\_ACEOF
  # This file is a shell script that caches the results of configure
@@ -1737,13 +1737,12 @@ Index: trunk/configure
      "src/plugins/splash/text/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/splash/text/Makefile" ;;
      "src/plugins/splash/details/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/splash/details/Makefile" ;;
      "src/plugins/splash/space-flares/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/splash/space-flares/Makefile" ;;
-@@ -15580,6 +15881,9 @@
+@@ -15580,6 +15881,8 @@
      "themes/glow/Makefile") CONFIG_FILES="$CONFIG_FILES themes/glow/Makefile" ;;
      "themes/spinner/Makefile") CONFIG_FILES="$CONFIG_FILES themes/spinner/Makefile" ;;
      "themes/script/Makefile") CONFIG_FILES="$CONFIG_FILES themes/script/Makefile" ;;
 +    "themes/ubuntu-logo/Makefile") CONFIG_FILES="$CONFIG_FILES themes/ubuntu-logo/Makefile" ;;
 +    "themes/ubuntu-text/Makefile") CONFIG_FILES="$CONFIG_FILES themes/ubuntu-text/Makefile" ;;
-+    "themes/kubuntu-text/Makefile") CONFIG_FILES="$CONFIG_FILES themes/kubuntu-text/Makefile" ;;
      "images/Makefile") CONFIG_FILES="$CONFIG_FILES images/Makefile" ;;
      "scripts/plymouth-generate-initrd") CONFIG_FILES="$CONFIG_FILES scripts/plymouth-generate-initrd" ;;
      "scripts/plymouth-populate-initrd") CONFIG_FILES="$CONFIG_FILES scripts/plymouth-populate-initrd" ;;
