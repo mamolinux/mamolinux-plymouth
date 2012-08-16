@@ -449,7 +449,6 @@ AC_CONFIG_FILES([Makefile
            themes/script/Makefile
            themes/ubuntu-logo/Makefile
            themes/ubuntu-text/Makefile
-           themes/kubuntu-text/Makefile
            images/Makefile
 	   scripts/plymouth-generate-initrd
 	   scripts/plymouth-populate-initrd

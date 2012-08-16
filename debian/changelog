@@ -1,3 +1,10 @@
+plymouth (0.8.4-0ubuntu3) quantal; urgency=low
+
+  * Drop kubuntu-text, moved to kubuntu-default-settings (LP: #1005512)
+  * Refresh autoreconf.patch to pick up the removal of the above theme.
+
+ -- Adam Conrad <adconrad@ubuntu.com>  Thu, 16 Aug 2012 01:41:26 -0600
+
 plymouth (0.8.4-0ubuntu2) quantal; urgency=low
 
   * debian/patches/upstream-add-generic-driver-to-drm-renderer-plugin.patch:
