@@ -11,4 +11,6 @@ kubuntu-text.patch
 avoid-sigpipe.patch
 tty1-after-boot.patch
 invalid-event-source-workaround.patch
+upstream-add-generic-driver-to-drm-renderer-plugin.patch
+update-libdrm-nouveau-library-dependency.patch
 autoreconf.patch

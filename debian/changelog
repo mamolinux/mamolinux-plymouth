@@ -1,3 +1,17 @@
+plymouth (0.8.4-0ubuntu2) quantal; urgency=low
+
+  * debian/patches/upstream-add-generic-driver-to-drm-renderer-plugin.patch:
+    - Add the generic driver to the drm render plugin, which is the only one
+      supported on latest upstream, working also for omap. Not yet disabling
+      the others, as they can still be used in case the generic one fails,
+      which keeps plymouth safe for x86 (LP: #1018907)
+  * debian/patches/update-libdrm-nouveau-library-dependency.patch:
+    - Old nouveau driver is now called libdrm_nouveau1 at the latest libdrm
+      package (>= 2.4.38)
+  * Refresh autoreconf.patch.
+
+ -- Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>  Thu, 16 Aug 2012 01:53:54 -0300
+
 plymouth (0.8.4-0ubuntu1) quantal; urgency=low
 
   * New upstream release.
