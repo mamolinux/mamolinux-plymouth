@@ -97,6 +97,8 @@ am__DEPENDENCIES_1 =
 @ENABLE_DRM_RENDERER_TRUE@	$(am__DEPENDENCIES_2)
 am__drm_la_SOURCES_DIST = $(srcdir)/plugin.c \
 	$(srcdir)/ply-renderer-driver.h \
+	$(srcdir)/ply-renderer-generic-driver.h \
+	$(srcdir)/ply-renderer-generic-driver.c \
 	$(srcdir)/ply-renderer-i915-driver.h \
 	$(srcdir)/ply-renderer-i915-driver.c \
 	$(srcdir)/ply-renderer-radeon-driver.h \
@@ -110,6 +112,7 @@ am__drm_la_SOURCES_DIST = $(srcdir)/plugin.c \
 @ENABLE_DRM_RENDERER_TRUE@@ENABLE_LIBDRM_NOUVEAU_TRUE@am__objects_3 = drm_la-ply-renderer-nouveau-driver.lo
 @ENABLE_DRM_RENDERER_TRUE@@ENABLE_LIBKMS_TRUE@am__objects_4 = drm_la-ply-renderer-libkms-driver.lo
 @ENABLE_DRM_RENDERER_TRUE@am_drm_la_OBJECTS = drm_la-plugin.lo \
+@ENABLE_DRM_RENDERER_TRUE@	drm_la-ply-renderer-generic-driver.lo \
 @ENABLE_DRM_RENDERER_TRUE@	$(am__objects_1) $(am__objects_2) \
 @ENABLE_DRM_RENDERER_TRUE@	$(am__objects_3) $(am__objects_4)
 drm_la_OBJECTS = $(am_drm_la_OBJECTS)
@@ -331,6 +334,8 @@ top_srcdir = @top_srcdir@
 @ENABLE_DRM_RENDERER_TRUE@	$(am__append_4)
 @ENABLE_DRM_RENDERER_TRUE@drm_la_SOURCES = $(srcdir)/plugin.c \
 @ENABLE_DRM_RENDERER_TRUE@	$(srcdir)/ply-renderer-driver.h \
+@ENABLE_DRM_RENDERER_TRUE@	$(srcdir)/ply-renderer-generic-driver.h \
+@ENABLE_DRM_RENDERER_TRUE@	$(srcdir)/ply-renderer-generic-driver.c \
 @ENABLE_DRM_RENDERER_TRUE@	$(am__append_1) $(am__append_2) \
 @ENABLE_DRM_RENDERER_TRUE@	$(am__append_3) $(am__append_6)
 MAINTAINERCLEANFILES = Makefile.in
@@ -409,6 +414,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/drm_la-plugin.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/drm_la-ply-renderer-generic-driver.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/drm_la-ply-renderer-i915-driver.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/drm_la-ply-renderer-libkms-driver.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/drm_la-ply-renderer-nouveau-driver.Plo@am__quote@
@@ -441,6 +447,13 @@ drm_la-plugin.lo: $(srcdir)/plugin.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/plugin.c' object='drm_la-plugin.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(drm_la_CFLAGS) $(CFLAGS) -c -o drm_la-plugin.lo `test -f '$(srcdir)/plugin.c' || echo '$(srcdir)/'`$(srcdir)/plugin.c
+
+drm_la-ply-renderer-generic-driver.lo: $(srcdir)/ply-renderer-generic-driver.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(drm_la_CFLAGS) $(CFLAGS) -MT drm_la-ply-renderer-generic-driver.lo -MD -MP -MF $(DEPDIR)/drm_la-ply-renderer-generic-driver.Tpo -c -o drm_la-ply-renderer-generic-driver.lo `test -f '$(srcdir)/ply-renderer-generic-driver.c' || echo '$(srcdir)/'`$(srcdir)/ply-renderer-generic-driver.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/drm_la-ply-renderer-generic-driver.Tpo $(DEPDIR)/drm_la-ply-renderer-generic-driver.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/ply-renderer-generic-driver.c' object='drm_la-ply-renderer-generic-driver.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(drm_la_CFLAGS) $(CFLAGS) -c -o drm_la-ply-renderer-generic-driver.lo `test -f '$(srcdir)/ply-renderer-generic-driver.c' || echo '$(srcdir)/'`$(srcdir)/ply-renderer-generic-driver.c
 
 drm_la-ply-renderer-i915-driver.lo: $(srcdir)/ply-renderer-i915-driver.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(drm_la_CFLAGS) $(CFLAGS) -MT drm_la-ply-renderer-i915-driver.lo -MD -MP -MF $(DEPDIR)/drm_la-ply-renderer-i915-driver.Tpo -c -o drm_la-ply-renderer-i915-driver.lo `test -f '$(srcdir)/ply-renderer-i915-driver.c' || echo '$(srcdir)/'`$(srcdir)/ply-renderer-i915-driver.c
