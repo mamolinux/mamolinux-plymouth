@@ -1277,9 +1277,6 @@ ply_event_loop_process_pending_events (ply_event_loop_t *loop)
      number_of_received_events = epoll_wait (loop->epoll_fd, events,
                                              PLY_EVENT_LOOP_NUM_EVENT_HANDLERS,
                                              timeout);
-
-     ply_event_loop_handle_timeouts (loop);
-
      if (number_of_received_events < 0)
        {
          if (errno != EINTR && errno != EAGAIN)
@@ -1288,23 +1285,24 @@ ply_event_loop_process_pending_events (ply_event_loop_t *loop)
              return;
            }
        }
+     else
+       {
+         /* Reference all sources, so they stay alive for the duration of this
+          * iteration of the loop.
+          */
+         for (i = 0; i < number_of_received_events; i++)
+           {
+             ply_event_source_t *source;
+             source = (ply_event_source_t *) (events[i].data.ptr);
+
+             ply_event_source_take_reference (source);
+           }
+       }
+
+     /* First handle timeouts */
+     ply_event_loop_handle_timeouts (loop);
     }
-  while ((number_of_received_events < 0) && ((errno == EINTR) || (errno == EAGAIN)));
-
-  /* first reference all sources, so they stay alive for the duration of this
-   * iteration of the loop
-   */
-  for (i = 0; i < number_of_received_events; i++)
-    {
-      ply_event_source_t *source;
-      source = (ply_event_source_t *) (events[i].data.ptr);
-
-      /* ignore events that reference a now invalid source */
-      if (!ply_list_find_node (loop->sources, source))
-        continue;
-
-      ply_event_source_take_reference (source);
-    }
+  while (number_of_received_events < 0);
 
   /* Then process the incoming events
    */
@@ -1316,10 +1314,6 @@ ply_event_loop_process_pending_events (ply_event_loop_t *loop)
 
       source = (ply_event_source_t *) (events[i].data.ptr);
       status = ply_event_loop_get_fd_status_from_poll_mask (events[i].events);
-
-      /* ignore events that reference a now invalid source */
-      if (!ply_list_find_node (loop->sources, source))
-        continue;
 
       is_disconnected = false;
       if ((events[i].events & EPOLLHUP) || (events[i].events & EPOLLERR))
@@ -1352,10 +1346,6 @@ ply_event_loop_process_pending_events (ply_event_loop_t *loop)
       ply_event_source_t *source;
 
       source = (ply_event_source_t *) (events[i].data.ptr);
-
-      /* ignore events that reference a now invalid source */
-      if (!ply_list_find_node (loop->sources, source))
-        continue;
 
       ply_event_source_drop_reference (source);
     }

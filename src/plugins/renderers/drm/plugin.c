@@ -138,6 +138,10 @@ static void ply_renderer_head_redraw (ply_renderer_backend_t *backend,
                                       ply_renderer_head_t    *head);
 static bool open_input_source (ply_renderer_backend_t      *backend,
                                ply_renderer_input_source_t *input_source);
+static bool reset_scan_out_buffer_if_needed (ply_renderer_backend_t *backend,
+                                             ply_renderer_head_t    *head);
+static void flush_head (ply_renderer_backend_t *backend,
+                        ply_renderer_head_t    *head);
 
 static bool
 ply_renderer_head_add_connector (ply_renderer_head_t *head,
@@ -234,6 +238,9 @@ ply_renderer_head_set_scan_out_buffer (ply_renderer_backend_t *backend,
 
   mode = &head->connector0->modes[head->connector0_mode_index];
 
+  ply_trace ("Setting scan out buffer of %ldx%ld head to our buffer",
+             head->area.width, head->area.height);
+
   /* Tell the controller to use the allocated scan out buffer on each connectors
   */
   if (drmModeSetCrtc (backend->device_fd, head->controller_id, buffer_id,
@@ -251,6 +258,8 @@ static bool
 ply_renderer_head_map (ply_renderer_backend_t *backend,
                        ply_renderer_head_t    *head)
 {
+  bool scan_out_set;
+
   assert (backend != NULL);
   assert (backend->device_fd >= 0);
   assert (backend->driver_interface != NULL);
@@ -282,10 +291,8 @@ ply_renderer_head_map (ply_renderer_backend_t *backend,
    */
   ply_renderer_head_redraw (backend, head);
 
-  ply_trace ("Setting scan out buffer of %ldx%ld head to our buffer",
-             head->area.width, head->area.height);
-  if (!ply_renderer_head_set_scan_out_buffer (backend, head,
-                                              head->scan_out_buffer_id))
+  scan_out_set = reset_scan_out_buffer_if_needed (backend, head);
+  if (!scan_out_set && backend->is_active)
     {
       backend->driver_interface->destroy_buffer (backend->driver,
                                                  head->scan_out_buffer_id);
@@ -464,8 +471,16 @@ activate (ply_renderer_backend_t *backend)
       next_node = ply_list_get_next_node (backend->heads, node);
 
       if (head->scan_out_buffer_id != 0)
-        ply_renderer_head_set_scan_out_buffer (backend, head,
-                                               head->scan_out_buffer_id);
+        {
+          /* Flush out any pending drawing to the buffer
+           */
+          flush_head (backend, head);
+
+          /* Then send the buffer to the monitor
+           */
+          ply_renderer_head_set_scan_out_buffer (backend, head,
+                                                 head->scan_out_buffer_id);
+        }
 
       node = next_node;
     }
@@ -548,7 +563,7 @@ load_driver (ply_renderer_backend_t *backend)
  * since it can map the kernel console, which gives us the ability to do
  * a more seamless transition when plymouth quits before X starts
  */
-#if defined(PLY_ENABLE_GDM_TRANSITION) && defined(PLY_ENABLE_LIBDRM_INTEL)
+#if defined(PLY_ENABLE_DEPRECATED_GDM_TRANSITION) && defined(PLY_ENABLE_LIBDRM_INTEL)
   if (backend->driver_interface == NULL && strcmp (driver_name, "i915") == 0)
     {
       backend->driver_interface = ply_renderer_i915_driver_get_interface ();
@@ -889,7 +904,7 @@ create_heads_for_active_connectors (ply_renderer_backend_t *backend)
 
   ply_hashtable_free (heads_by_controller_id);
 
-#ifdef PLY_ENABLE_GDM_TRANSITION
+#ifdef PLY_ENABLE_DEPRECATED_GDM_TRANSITION
   /* If the driver doesn't support mapping the fb console
    * then we can't get a smooth crossfade transition to
    * the display manager unless we use the /dev/fb interface
@@ -923,6 +938,45 @@ create_heads_for_active_connectors (ply_renderer_backend_t *backend)
 }
 
 static bool
+has_32bpp_support (ply_renderer_backend_t *backend)
+{
+    uint32_t buffer_id;
+    unsigned long row_stride;
+    uint32_t min_width;
+    uint32_t min_height;
+
+    min_width = backend->resources->min_width;
+    min_height = backend->resources->min_height;
+
+    /* Some drivers set min_width/min_height to 0,
+     * but 0x0 sized buffers don't work.
+     */
+    if (min_width == 0)
+      min_width = 1;
+
+    if (min_height == 0)
+      min_height = 1;
+
+    buffer_id = backend->driver_interface->create_buffer (backend->driver,
+                                                          min_width,
+                                                          min_height,
+                                                          &row_stride);
+
+    if (buffer_id == 0)
+      {
+        ply_trace ("Could not create minimal (%ux%u) 32bpp dummy buffer",
+                    backend->resources->min_width,
+                    backend->resources->min_height);
+        return false;
+      }
+
+    backend->driver_interface->destroy_buffer (backend->driver,
+                                               buffer_id);
+
+    return true;
+}
+
+static bool
 query_device (ply_renderer_backend_t *backend)
 {
   assert (backend != NULL);
@@ -939,6 +993,12 @@ query_device (ply_renderer_backend_t *backend)
   if (!create_heads_for_active_connectors (backend))
     {
       ply_trace ("Could not initialize heads");
+      return false;
+    }
+
+  if (!has_32bpp_support (backend))
+    {
+      ply_trace ("Device doesn't support 32bpp framebuffer");
       return false;
     }
 
@@ -1091,28 +1151,31 @@ unmap_from_device (ply_renderer_backend_t *backend)
     }
 }
 
-static void
+static bool
 reset_scan_out_buffer_if_needed (ply_renderer_backend_t *backend,
                                  ply_renderer_head_t    *head)
 {
   drmModeCrtc *controller;
+  bool did_reset = false;
 
   if (!ply_terminal_is_active (backend->terminal))
-    return;
+    return false;
 
   controller = drmModeGetCrtc (backend->device_fd, head->controller_id);
 
   if (controller == NULL)
-    return;
+    return false;
 
   if (controller->buffer_id != head->scan_out_buffer_id)
     {
-      ply_trace ("Something stole the monitor");
       ply_renderer_head_set_scan_out_buffer (backend, head,
                                              head->scan_out_buffer_id);
+      did_reset = true;
     }
 
   drmModeFreeCrtc (controller);
+
+  return did_reset;
 }
 
 static void
@@ -1150,7 +1213,10 @@ flush_head (ply_renderer_backend_t *backend,
 
       next_node = ply_list_get_next_node (areas_to_flush, node);
 
-      reset_scan_out_buffer_if_needed (backend, head);
+      if (reset_scan_out_buffer_if_needed (backend, head))
+        ply_trace ("Needed to reset scan out buffer on %ldx%ld renderer head",
+                   head->area.width, head->area.height);
+
       ply_renderer_head_flush_area (head, area_to_flush, map_address);
 
       node = next_node;

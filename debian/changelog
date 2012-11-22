@@ -1,3 +1,20 @@
+plymouth (0.8.8-0ubuntu1) raring; urgency=low
+
+  [ Colin Watson ]
+  * Make descriptions of non-task Upstart jobs be noun phrases in sentence
+    case, so that they look right in plymouth-upstart-bridge output.
+
+  [ Dmitrijs Ledkovs ]
+  * New upstream release:
+    - drop, applied upstream upstream-add-generic-driver-to-drm-renderer-plugin.patch
+    - drop, applied upstream invalid-event-source-workaround.patch
+    - drop, raring has recent enough drm update-libdrm-nouveau-library-dependency.patch
+    - rebase tty1-after-boot.patch
+    - rebase misc-changes.patch
+  * Update symbols.
+
+ -- Dmitrijs Ledkovs <dmitrij.ledkov@ubuntu.com>  Thu, 22 Nov 2012 12:16:46 +0000
+
 plymouth (0.8.4-0ubuntu3) quantal; urgency=low
 
   * Drop kubuntu-text, moved to kubuntu-default-settings (LP: #1005512)

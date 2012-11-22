@@ -134,7 +134,8 @@ static void stop_animation (ply_boot_splash_plugin_t *plugin,
 static void detach_from_event_loop (ply_boot_splash_plugin_t *plugin);
 static void display_message (ply_boot_splash_plugin_t *plugin,
                              const char               *message);
-
+static void become_idle (ply_boot_splash_plugin_t *plugin,
+                         ply_trigger_t            *idle_trigger);
 
 static view_t *
 view_new (ply_boot_splash_plugin_t *plugin,
@@ -160,8 +161,6 @@ view_new (ply_boot_splash_plugin_t *plugin,
 
   view->label = ply_label_new ();
   view->message_label = ply_label_new ();
-  ply_label_set_text (view->message_label, "");
-  ply_label_show (view->message_label, view->display, 10, 10);
 
   return view;
 }
@@ -404,25 +403,11 @@ view_start_progress_animation (view_t *view)
       ply_pixel_display_draw_area (view->display, x, y, width, height);
     }
 
+  /* We don't really know how long shutdown will so
+   * don't show the progress animation
+   */
   if (plugin->mode == PLY_BOOT_SPLASH_MODE_SHUTDOWN)
-    {
-      if (view->throbber != NULL)
-        {
-          ply_trigger_t *throbber_trigger;
-          throbber_trigger = ply_trigger_new (NULL);
-          ply_trigger_add_handler (throbber_trigger,
-                                   (ply_trigger_handler_t)
-                                   on_view_throbber_stopped,
-                                   view);
-          ply_throbber_stop (view->throbber, throbber_trigger);
-        }
-      else
-        {
-          view_start_end_animation (view, NULL);
-        }
-
-      return;
-    }
+    return;
 
   if (view->progress_animation != NULL)
     {
@@ -444,18 +429,17 @@ view_show_prompt (view_t     *view,
   ply_boot_splash_plugin_t *plugin;
   int x, y;
   int entry_width, entry_height;
+  unsigned long screen_width, screen_height;
 
   assert (view != NULL);
 
   plugin = view->plugin;
 
+  screen_width = ply_pixel_display_get_width (view->display);
+  screen_height = ply_pixel_display_get_height (view->display);
+
   if (ply_entry_is_hidden (view->entry))
     {
-      unsigned long screen_width, screen_height;
-
-      screen_width = ply_pixel_display_get_width (view->display);
-      screen_height = ply_pixel_display_get_height (view->display);
-
       view->box_area.width = ply_image_get_width (plugin->box_image);
       view->box_area.height = ply_image_get_height (plugin->box_image);
       view->box_area.x = screen_width / 2.0 - view->box_area.width / 2.0;
@@ -480,7 +464,12 @@ view_show_prompt (view_t     *view,
     {
       ply_label_set_text (view->label, prompt);
 
-      x = view->box_area.x + view->lock_area.width / 2;
+      /* We center the prompt in the middle and use 80% of the horizontal space */
+      int label_width = screen_width * 100 / 80;
+      ply_label_set_alignment (view->label, PLY_LABEL_ALIGN_CENTER);
+      ply_label_set_width (view->label, label_width);
+
+      x = (screen_width - label_width) / 2;
       y = view->box_area.y + view->box_area.height;
 
       ply_label_show (view->label, view->display, x, y);
@@ -740,6 +729,13 @@ start_progress_animation (ply_boot_splash_plugin_t *plugin)
     }
 
   plugin->is_animating = true;
+
+  /* We don't really know how long shutdown will, take
+   * but it's normally really fast, so just jump to
+   * the end animation
+   */
+  if (plugin->mode == PLY_BOOT_SPLASH_MODE_SHUTDOWN)
+    become_idle (plugin, NULL);
 }
 
 static void
@@ -784,13 +780,6 @@ stop_animation (ply_boot_splash_plugin_t *plugin,
 
   if (trigger != NULL)
     ply_trigger_pull (trigger, NULL);
-}
-
-static void
-on_interrupt (ply_boot_splash_plugin_t *plugin)
-{
-  ply_event_loop_exit (plugin->loop, 1);
-  stop_animation (plugin, NULL);
 }
 
 static void
@@ -1018,11 +1007,6 @@ show_splash_screen (ply_boot_splash_plugin_t *plugin,
                                  detach_from_event_loop,
                                  plugin);
 
-  ply_event_loop_watch_signal (plugin->loop,
-                               SIGINT,
-                               (ply_event_handler_t)
-                               on_interrupt, plugin);
-
   ply_trace ("starting boot animations");
   start_progress_animation (plugin);
 
@@ -1077,7 +1061,11 @@ on_boot_progress (ply_boot_splash_plugin_t *plugin,
                   double                    duration,
                   double                    percent_done)
 {
+  if (plugin->mode == PLY_BOOT_SPLASH_MODE_UPDATES)
+    return;
 
+  if (plugin->state != PLY_BOOT_SPLASH_DISPLAY_NORMAL)
+    return;
 
   if (percent_done >= SHOW_ANIMATION_PERCENT)
     {
@@ -1259,10 +1247,34 @@ show_message (ply_boot_splash_plugin_t *plugin,
       next_node = ply_list_get_next_node (plugin->views, node);
       
       ply_label_set_text (view->message_label, message);
+      ply_label_show (view->message_label, view->display, 10, 10);
       
       ply_pixel_display_draw_area (view->display, 10, 10,
                                    ply_label_get_width (view->message_label),
                                    ply_label_get_height(view->message_label));
+      node = next_node;
+    }
+}
+
+static void
+system_update (ply_boot_splash_plugin_t *plugin,
+               int                       progress)
+{
+  ply_list_node_t *node;
+
+  if (plugin->mode != PLY_BOOT_SPLASH_MODE_UPDATES)
+    return;
+
+  node = ply_list_get_first_node (plugin->views);
+  while (node != NULL)
+    {
+      ply_list_node_t *next_node;
+      view_t *view;
+
+      view = ply_list_node_get_data (node);
+      next_node = ply_list_get_next_node (plugin->views, node);
+      ply_progress_animation_set_percent_done (view->progress_animation,
+                                               (double) progress / 100.f);
       node = next_node;
     }
 }
@@ -1336,6 +1348,7 @@ ply_boot_splash_plugin_get_interface (void)
       .display_password = display_password,
       .display_question = display_question,
       .display_message = display_message,
+      .system_update = system_update,
     };
 
   return &plugin_interface;

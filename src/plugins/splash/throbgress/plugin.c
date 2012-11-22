@@ -79,6 +79,7 @@ typedef struct
   ply_throbber_t *throbber;
   ply_progress_bar_t *progress_bar;
   ply_label_t *label;
+  ply_label_t *message_label;
   ply_rectangle_t box_area, lock_area, logo_area, bar_area;
 } view_t;
 
@@ -102,10 +103,14 @@ struct _ply_boot_splash_plugin
   uint32_t root_is_mounted : 1;
   uint32_t is_visible : 1;
   uint32_t is_animating : 1;
+  uint32_t is_idle : 1;
 };
 
 ply_boot_splash_plugin_interface_t * ply_boot_splash_plugin_get_interface (void);
 static void detach_from_event_loop (ply_boot_splash_plugin_t *plugin);
+
+static void become_idle (ply_boot_splash_plugin_t *plugin,
+                         ply_trigger_t            *idle_trigger);
 
 static view_t *
 view_new (ply_boot_splash_plugin_t *plugin,
@@ -122,6 +127,7 @@ view_new (ply_boot_splash_plugin_t *plugin,
                                      "throbber-");
   view->progress_bar = ply_progress_bar_new ();
   view->label = ply_label_new ();
+  view->message_label = ply_label_new ();
 
   return view;
 }
@@ -134,6 +140,7 @@ view_free (view_t *view)
   ply_throbber_free (view->throbber);
   ply_progress_bar_free (view->progress_bar);
   ply_label_free (view->label);
+  ply_label_free (view->message_label);
 
   free (view);
 }
@@ -298,6 +305,8 @@ view_start_animation (view_t *view)
 
   if (plugin->mode == PLY_BOOT_SPLASH_MODE_SHUTDOWN)
     return;
+
+  plugin->is_idle = false;
 
   width = ply_throbber_get_width (view->throbber);
   height = ply_throbber_get_height (view->throbber);
@@ -516,6 +525,9 @@ start_animation (ply_boot_splash_plugin_t *plugin)
     }
 
   plugin->is_animating = true;
+
+  if (plugin->mode == PLY_BOOT_SPLASH_MODE_SHUTDOWN)
+    plugin->is_idle = true;
 }
 
 static void
@@ -551,13 +563,6 @@ stop_animation (ply_boot_splash_plugin_t *plugin,
 
   if (trigger != NULL)
     ply_trigger_pull (trigger, NULL);
-}
-
-static void
-on_interrupt (ply_boot_splash_plugin_t *plugin)
-{
-  ply_event_loop_exit (plugin->loop, 1);
-  stop_animation (plugin, NULL);
 }
 
 static void
@@ -603,6 +608,9 @@ on_draw (view_t                   *view,
       ply_progress_bar_draw_area (view->progress_bar,
                                   pixel_buffer, x, y, width, height);
     }
+  ply_label_draw_area (view->message_label,
+                       pixel_buffer,
+                       x, y, width, height);
 }
 
 static void
@@ -682,11 +690,6 @@ show_splash_screen (ply_boot_splash_plugin_t *plugin,
                                  detach_from_event_loop,
                                  plugin);
 
-  ply_event_loop_watch_signal (plugin->loop,
-                               SIGINT,
-                               (ply_event_handler_t) 
-                               on_interrupt, plugin);
-
   ply_trace ("starting boot animation");
   start_animation (plugin);
 
@@ -709,6 +712,9 @@ on_boot_progress (ply_boot_splash_plugin_t *plugin,
 {
   ply_list_node_t *node;
   double total_duration;
+
+  if (plugin->mode == PLY_BOOT_SPLASH_MODE_UPDATES)
+    return;
 
   total_duration = duration / percent_done;
 
@@ -808,7 +814,14 @@ static void
 become_idle (ply_boot_splash_plugin_t *plugin,
              ply_trigger_t            *idle_trigger)
 {
+  if (plugin->is_idle)
+    {
+      ply_trigger_pull (idle_trigger, NULL);
+      return;
+    }
+
   stop_animation (plugin, idle_trigger);
+  plugin->is_idle = true;
 }
 
 static void
@@ -827,6 +840,30 @@ hide_prompt (ply_boot_splash_plugin_t *plugin)
 
       view_hide_prompt (view);
 
+      node = next_node;
+    }
+}
+
+static void
+show_message (ply_boot_splash_plugin_t *plugin,
+              const char               *message)
+{
+  ply_trace ("Showing message '%s'", message);
+  ply_list_node_t *node;
+  node = ply_list_get_first_node (plugin->views);
+  while (node != NULL)
+    {
+      ply_list_node_t *next_node;
+      view_t *view;
+
+      view = ply_list_node_get_data (node);
+      next_node = ply_list_get_next_node (plugin->views, node);
+      ply_label_set_text (view->message_label, message);
+      ply_label_show (view->message_label, view->display, 10, 10);
+
+      ply_pixel_display_draw_area (view->display, 10, 10,
+                                   ply_label_get_width (view->message_label),
+                                   ply_label_get_height(view->message_label));
       node = next_node;
     }
 }
@@ -874,6 +911,36 @@ display_question (ply_boot_splash_plugin_t *plugin,
   unpause_views (plugin);
 }
 
+static void
+display_message (ply_boot_splash_plugin_t *plugin,
+                 const char               *message)
+{
+  show_message (plugin, message);
+}
+
+static void
+system_update (ply_boot_splash_plugin_t *plugin,
+               int                       progress)
+{
+  ply_list_node_t *node;
+
+  if (plugin->mode != PLY_BOOT_SPLASH_MODE_UPDATES)
+    return;
+
+  node = ply_list_get_first_node (plugin->views);
+  while (node != NULL)
+    {
+      ply_list_node_t *next_node;
+      view_t *view;
+
+      view = ply_list_node_get_data (node);
+      next_node = ply_list_get_next_node (plugin->views, node);
+      ply_progress_bar_set_percent_done (view->progress_bar, (double) progress / 100.f);
+      ply_progress_bar_draw (view->progress_bar);
+      node = next_node;
+    }
+}
+
 ply_boot_splash_plugin_interface_t *
 ply_boot_splash_plugin_get_interface (void)
 {
@@ -892,6 +959,8 @@ ply_boot_splash_plugin_get_interface (void)
       .display_normal = display_normal,
       .display_password = display_password,
       .display_question = display_question,      
+      .display_message = display_message,
+      .system_update = system_update,
     };
 
   return &plugin_interface;
