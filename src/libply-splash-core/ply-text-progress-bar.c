@@ -102,13 +102,15 @@ get_os_string (void)
   char *buf, *pos, *pos2;
   struct stat sbuf;
 
+  buf = NULL;
+
   fd = open (RELEASE_FILE, O_RDONLY);
   if (fd == -1)
-    return;
+    goto out;
 
   if (fstat (fd, &sbuf) == -1) {
     close (fd);
-    return;
+    goto out;
   }
 
   buf = calloc (sbuf.st_size + 1, sizeof(char));
@@ -135,6 +137,14 @@ get_os_string (void)
           if (pos2 != NULL)
             *pos2 = '\0';
 
+          if ((*pos == '\"' && pos2[-1] == '\"') ||
+              (*pos == '\'' && pos2[-1] == '\''))
+            {
+              pos++;
+              pos2--;
+
+              *pos2 = '\0';
+            }
           asprintf (&os_string, " %s", pos);
         }
       goto out;
@@ -158,6 +168,9 @@ get_os_string (void)
 
 out:
   free (buf);
+
+  if (os_string == NULL)
+    os_string = strdup ("");
 }
 
 void

@@ -3,7 +3,7 @@
 # This helper process receives Upstart state changes over D-Bus and sends
 # corresponding messages to Plymouth.
 
-description	"Bridge Upstart state changes into Plymouth"
+description	"bridge from Upstart state changes to Plymouth"
 
 start on (started dbus
           or runlevel [06])

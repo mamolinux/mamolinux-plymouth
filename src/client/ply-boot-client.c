@@ -548,6 +548,32 @@ ply_boot_client_update_daemon (ply_boot_client_t                  *client,
 }
 
 void
+ply_boot_client_change_mode (ply_boot_client_t                  *client,
+                             const char                         *new_mode,
+                             ply_boot_client_response_handler_t  handler,
+                             ply_boot_client_response_handler_t  failed_handler,
+                             void                               *user_data)
+{
+  assert (client != NULL);
+
+  ply_boot_client_queue_request (client, PLY_BOOT_PROTOCOL_REQUEST_TYPE_CHANGE_MODE,
+                                 new_mode, handler, failed_handler, user_data);
+}
+
+void
+ply_boot_client_system_update (ply_boot_client_t                  *client,
+                               const char                         *progress,
+                               ply_boot_client_response_handler_t  handler,
+                               ply_boot_client_response_handler_t  failed_handler,
+                               void                               *user_data)
+{
+  assert (client != NULL);
+
+  ply_boot_client_queue_request (client, PLY_BOOT_PROTOCOL_REQUEST_TYPE_SYSTEM_UPDATE,
+                                 progress, handler, failed_handler, user_data);
+}
+
+void
 ply_boot_client_tell_daemon_to_change_root (ply_boot_client_t                  *client,
                                             const char                         *root_dir,
                                             ply_boot_client_response_handler_t  handler,
@@ -774,6 +800,17 @@ ply_boot_client_tell_daemon_about_error (ply_boot_client_t                  *cli
 {
   ply_boot_client_queue_request (client, PLY_BOOT_PROTOCOL_REQUEST_TYPE_ERROR,
                                  NULL, handler, failed_handler, user_data);
+}
+
+void
+ply_boot_client_flush (ply_boot_client_t *client)
+{
+  assert (client != NULL);
+
+  while (ply_list_get_length (client->requests_to_send) > 0)
+    {
+      ply_event_loop_process_pending_events (client->loop);
+    }
 }
 
 void

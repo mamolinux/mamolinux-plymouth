@@ -176,12 +176,14 @@ libply-boot-client.so.2 libplymouth2 #MINVER#
  ply_boot_client_ask_daemon_to_ignore_keystroke@Base 0.8.0~-13~ppa1
  ply_boot_client_ask_daemon_to_watch_for_keystroke@Base 0.8.0~-13~ppa1
  ply_boot_client_attach_to_event_loop@Base 0.8.0~-13~ppa1
+ ply_boot_client_change_mode@Base 0.8.8-0ubuntu1
  ply_boot_client_connect@Base 0.8.0~-13~ppa1
  ply_boot_client_disconnect@Base 0.8.0~-13~ppa1
  ply_boot_client_flush@Base 0.8.1-3
  ply_boot_client_free@Base 0.8.0~-13~ppa1
  ply_boot_client_new@Base 0.8.0~-13~ppa1
  ply_boot_client_ping_daemon@Base 0.8.0~-13~ppa1
+ ply_boot_client_system_update@Base 0.8.8-0ubuntu1
  ply_boot_client_tell_daemon_about_error@Base 0.8.0~-13~ppa1
  ply_boot_client_tell_daemon_system_is_initialized@Base 0.8.0~-13~ppa1
  ply_boot_client_tell_daemon_to_change_root@Base 0.8.0~-13~ppa1
@@ -216,6 +218,7 @@ libply-splash-core.so.2 libplymouth2 #MINVER#
  ply_boot_splash_root_mounted@Base 0.8.0~-13~ppa1
  ply_boot_splash_set_keyboard@Base 0.8.0~-13~ppa1
  ply_boot_splash_show@Base 0.8.0~-13~ppa1
+ ply_boot_splash_system_update@Base 0.8.8-0ubuntu1
  ply_boot_splash_unload@Base 0.8.0~-13~ppa1
  ply_boot_splash_unset_keyboard@Base 0.8.0~-13~ppa1
  ply_boot_splash_update_output@Base 0.8.0~-13~ppa1
@@ -383,9 +386,11 @@ libply-splash-graphics.so.2 libplymouth2 #MINVER#
  ply_label_hide@Base 0.8.0~-13~ppa1
  ply_label_is_hidden@Base 0.8.0~-13~ppa1
  ply_label_new@Base 0.8.0~-13~ppa1
+ ply_label_set_alignment@Base 0.8.8-0ubuntu1
  ply_label_set_color@Base 0.8.0~-13~ppa1
  ply_label_set_font@Base 0.8.4
  ply_label_set_text@Base 0.8.0~-13~ppa1
+ ply_label_set_width@Base 0.8.8-0ubuntu1
  ply_label_show@Base 0.8.0~-13~ppa1
  ply_progress_animation_draw@Base 0.8.0~-13~ppa1
  ply_progress_animation_draw_area@Base 0.8.0~-13~ppa1

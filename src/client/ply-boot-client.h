@@ -58,6 +58,16 @@ void ply_boot_client_update_daemon (ply_boot_client_t                  *client,
                                     ply_boot_client_response_handler_t  handler,
                                     ply_boot_client_response_handler_t  failed_handler,
                                     void                               *user_data);
+void ply_boot_client_change_mode (ply_boot_client_t                  *client,
+                                  const char                         *new_mode,
+                                  ply_boot_client_response_handler_t  handler,
+                                  ply_boot_client_response_handler_t  failed_handler,
+                                  void                               *user_data);
+void ply_boot_client_system_update (ply_boot_client_t                  *client,
+                                    const char                         *progress,
+                                    ply_boot_client_response_handler_t  handler,
+                                    ply_boot_client_response_handler_t  failed_handler,
+                                    void                               *user_data);
 void ply_boot_client_tell_daemon_to_change_root (ply_boot_client_t                  *client,
                                                  const char                         *chroot_dir,
                                                  ply_boot_client_response_handler_t  handler,
@@ -134,6 +144,7 @@ void ply_boot_client_ask_daemon_has_active_vt (ply_boot_client_t                
                                                ply_boot_client_response_handler_t  handler,
                                                ply_boot_client_response_handler_t  failed_handler,
                                                void                               *user_data);
+void ply_boot_client_flush (ply_boot_client_t *client);
 void ply_boot_client_disconnect (ply_boot_client_t *client);
 void ply_boot_client_attach_to_event_loop (ply_boot_client_t *client,
                                            ply_event_loop_t  *loop);

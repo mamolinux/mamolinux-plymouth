@@ -61,7 +61,8 @@
 
 typedef enum {
   PLY_MODE_BOOT,
-  PLY_MODE_SHUTDOWN
+  PLY_MODE_SHUTDOWN,
+  PLY_MODE_UPDATES
 } ply_mode_t;
 
 typedef struct 
@@ -178,6 +179,51 @@ on_update (state_t     *state,
   if (state->boot_splash != NULL)
     ply_boot_splash_update_status (state->boot_splash,
                                    status);
+}
+
+static void
+on_change_mode (state_t     *state,
+                const char  *mode)
+{
+  if (state->boot_splash == NULL)
+    {
+      ply_trace ("no splash set");
+      return;
+    }
+
+  ply_trace ("updating mode to '%s'", mode);
+  if (strcmp (mode, "boot-up") == 0)
+    state->mode = PLY_BOOT_SPLASH_MODE_BOOT_UP;
+  else if (strcmp (mode, "shutdown") == 0)
+    state->mode = PLY_BOOT_SPLASH_MODE_SHUTDOWN;
+  else if (strcmp (mode, "updates") == 0)
+    state->mode = PLY_BOOT_SPLASH_MODE_UPDATES;
+  else
+    return;
+
+  if (!ply_boot_splash_show (state->boot_splash, state->mode))
+    {
+      ply_trace ("failed to update splash");
+      return;
+    }
+}
+
+static void
+on_system_update (state_t     *state,
+                  int          progress)
+{
+  if (state->boot_splash == NULL)
+    {
+      ply_trace ("no splash set");
+      return;
+    }
+
+  ply_trace ("setting system update to '%i'", progress);
+  if (!ply_boot_splash_system_update (state->boot_splash, progress))
+    {
+      ply_trace ("failed to update splash");
+      return;
+    }
 }
 
 static void
@@ -451,9 +497,13 @@ static void
 on_display_message (state_t       *state,
                     const char    *message)
 {
-  ply_trace ("displaying message %s", message);
   if (state->boot_splash != NULL)
-    ply_boot_splash_display_message (state->boot_splash, message);
+    {
+        ply_trace ("displaying message %s", message);
+        ply_boot_splash_display_message (state->boot_splash, message);
+    }
+  else
+    ply_trace ("not displaying message %s as no splash", message);
   ply_list_append_data (state->messages, strdup(message));
 }
 
@@ -565,6 +615,9 @@ get_cache_file_for_mode (ply_mode_t mode)
     case PLY_MODE_SHUTDOWN:
       filename = SHUTDOWN_DURATION_FILE;
       break;
+    case PLY_MODE_UPDATES:
+      filename = NULL;
+      break;
     default:
       fprintf (stderr, "Unhandled case in %s line %d\n", __FILE__, __LINE__);
       abort ();
@@ -586,6 +639,7 @@ get_log_file_for_mode (ply_mode_t mode)
       filename = PLYMOUTH_LOG_DIRECTORY "/boot.log";
       break;
     case PLY_MODE_SHUTDOWN:
+    case PLY_MODE_UPDATES:
       filename = _PATH_DEVNULL;
       break;
     default:
@@ -609,6 +663,7 @@ get_log_spool_file_for_mode (ply_mode_t mode)
       filename = PLYMOUTH_SPOOL_DIRECTORY "/boot.log";
       break;
     case PLY_MODE_SHUTDOWN:
+    case PLY_MODE_UPDATES:
       filename = NULL;
       break;
     default:
@@ -973,7 +1028,7 @@ on_hide_splash (state_t *state)
   dump_details_and_quit_splash (state);
 }
 
-#ifdef PLY_ENABLE_GDM_TRANSITION
+#ifdef PLY_ENABLE_DEPRECATED_GDM_TRANSITION
 static void
 tell_gdm_to_transition (void)
 {
@@ -997,7 +1052,7 @@ quit_program (state_t *state)
       pid_file = NULL;
     }
 
-#ifdef PLY_ENABLE_GDM_TRANSITION
+#ifdef PLY_ENABLE_DEPRECATED_GDM_TRANSITION
   if (state->should_retain_splash &&
       state->mode == PLY_MODE_BOOT)
     {
@@ -1218,6 +1273,8 @@ start_boot_server (state_t *state)
   ply_boot_server_t *server;
 
   server = ply_boot_server_new ((ply_boot_server_update_handler_t) on_update,
+                                (ply_boot_server_change_mode_handler_t) on_change_mode,
+                                (ply_boot_server_system_update_handler_t) on_system_update,
                                 (ply_boot_server_ask_for_password_handler_t) on_ask_for_password,
                                 (ply_boot_server_ask_question_handler_t) on_ask_question,
                                 (ply_boot_server_display_message_handler_t) on_display_message,
@@ -1498,11 +1555,7 @@ add_default_displays_and_keyboard (state_t *state)
 
   state->local_console_terminal = ply_terminal_new (state->default_tty);
 
-  /* force frame-buffer plugin for shutdown so it sticks around after getting killed */
-  if (state->mode == PLY_MODE_SHUTDOWN)
-    renderer = ply_renderer_new (PLYMOUTH_PLUGIN_PATH "renderers/frame-buffer.so", NULL, state->local_console_terminal);
-  else
-    renderer = ply_renderer_new (NULL, NULL, state->local_console_terminal);
+  renderer = ply_renderer_new (NULL, NULL, state->local_console_terminal);
 
   if (!ply_renderer_open (renderer))
     {
@@ -1804,23 +1857,24 @@ check_verbosity (state_t *state)
       if (stream != NULL)
         {
           char *end;
+          char *stream_copy;
 
-          stream = strdup (stream);
-          end = stream + strcspn (stream, " \n");
+          stream_copy = strdup (stream);
+          end = stream_copy + strcspn (stream_copy, " \n");
           *end = '\0';
 
-          ply_trace ("streaming debug output to %s instead of screen", stream);
-          fd = open (stream, O_RDWR | O_NOCTTY | O_CREAT, 0600);
+          ply_trace ("streaming debug output to %s instead of screen", stream_copy);
+          fd = open (stream_copy, O_RDWR | O_NOCTTY | O_CREAT, 0600);
 
           if (fd < 0)
             {
-              ply_trace ("could not stream output to %s: %m", stream);
+              ply_trace ("could not stream output to %s: %m", stream_copy);
             }
           else
             {
               ply_logger_set_output_fd (ply_logger_get_error_default (), fd);
             }
-          free (stream);
+          free (stream_copy);
         }
     }
   else
@@ -1872,15 +1926,16 @@ add_display_and_keyboard_for_console (const char *console,
   add_display_and_keyboard_for_terminal (state, terminal);
 }
 
-static bool
+static int
 add_consoles_from_file (state_t         *state,
                         ply_hashtable_t *consoles,
                         const char      *path)
 {
   int fd;
   char contents[512] = "";
-  const char *remaining_command_line;
-  char *console;
+  ssize_t contents_length;
+  int num_consoles;
+  const char *remaining_file_contents;
 
   ply_trace ("opening %s", path);
   fd = open (path, O_RDONLY);
@@ -1888,60 +1943,83 @@ add_consoles_from_file (state_t         *state,
   if (fd < 0)
     {
       ply_trace ("couldn't open it: %m");
-      return false;
+      return 0;
     }
 
   ply_trace ("reading file");
-  if (read (fd, contents, sizeof (contents)))
+  contents_length = read (fd, contents, sizeof (contents));
+
+  if (contents_length <= 0)
     {
       ply_trace ("couldn't read it: %m");
       close (fd);
-      return false;
+      return 0;
     }
   close (fd);
 
-  remaining_command_line = contents;
+  remaining_file_contents = contents;
+  num_consoles = 0;
 
-  console = NULL;
-  while (remaining_command_line != '\0')
+  while (remaining_file_contents < contents + contents_length)
     {
-      char *end;
+      char *console;
       size_t console_length;
       char *console_device;
 
-      state->should_force_details = true;
+      /* Advance past any leading whitespace */
+      remaining_file_contents += strspn (remaining_file_contents, " \n\t\v");
 
-      console = strdup (remaining_command_line);
+      if (*remaining_file_contents == '\0')
+        {
+          /* There's nothing left after the whitespace, we're done */
+          break;
+        }
 
-      end = strpbrk (console, " \n\t\v");
+      /* Find trailing whitespace and NUL terminate.  If strcspn
+       * doesn't find whitespace, it gives us the length of the string
+       * until the next NUL byte, which we'll just overwrite with
+       * another NUL byte anyway. */
+      console_length = strcspn (remaining_file_contents, " \n\t\v");
+      console = strndup (remaining_file_contents, console_length);
 
-      if (end != NULL)
-        *end = '\0';
-
-      console_length = strlen (console);
+      /* If this console is anything besides tty0, then the user is sort
+       * of a weird case (uses a serial console or whatever) and they
+       * most likely don't want a graphical splash, so force details.
+       */
+      if (strcmp (console, "tty0") != 0)
+        state->should_force_details = true;
 
       asprintf (&console_device, "/dev/%s", console);
+
       free (console);
-      console = NULL;
 
       ply_trace ("console %s found!", console_device);
       ply_hashtable_insert (consoles, console_device, console_device);
-      remaining_command_line += console_length;
+      num_consoles++;
+
+      /* Move past the parsed console string, and the whitespace we
+       * may have found above.  If we found a NUL above and not whitespace,
+       * then we're going to jump past the end of the buffer and the loop
+       * will terminate
+       */
+      remaining_file_contents += console_length + 1;
     }
 
-  return true;
+  return num_consoles;
 }
 
-static void
+static int
 add_consoles_from_kernel_command_line (state_t         *state,
                                        ply_hashtable_t *consoles)
 {
   const char *console_string;
   const char *remaining_command_line;
   char *console;
+  int num_consoles;
 
   remaining_command_line = state->kernel_command_line;
 
+  num_consoles = 0;
   console = NULL;
   while ((console_string = command_line_get_string_after_prefix (remaining_command_line,
                                                                  "console=")) != NULL)
@@ -1977,8 +2055,11 @@ add_consoles_from_kernel_command_line (state_t         *state,
 
       ply_trace ("console %s found!", console_device);
       ply_hashtable_insert (consoles, console_device, console_device);
+      num_consoles++;
       remaining_command_line += console_length;
     }
+
+  return num_consoles;
 }
 
 static void
@@ -1988,33 +2069,47 @@ check_for_consoles (state_t    *state,
 {
   char *console;
   ply_hashtable_t *consoles;
+  int num_consoles;
+  bool ignore_serial_consoles;
 
   ply_trace ("checking for consoles%s",
              should_add_displays? " and adding displays": "");
 
   consoles = ply_hashtable_new (ply_hashtable_string_hash,
                                 ply_hashtable_string_compare);
+  ignore_serial_consoles = command_line_has_argument (state->kernel_command_line, "plymouth.ignore-serial-consoles");
 
-  if (!add_consoles_from_file (state,
-                               consoles,
-                               "/sys/class/tty/console/active"))
+  num_consoles = 0;
+
+  if (!ignore_serial_consoles)
     {
-      ply_trace ("falling back to kernel command line");
-      add_consoles_from_kernel_command_line (state, consoles);
+      num_consoles = add_consoles_from_file (state, consoles, "/sys/class/tty/console/active");
+
+      if (num_consoles == 0)
+        {
+          ply_trace ("falling back to kernel command line");
+          num_consoles = add_consoles_from_kernel_command_line (state, consoles);
+        }
+    }
+  else
+    {
+      ply_trace ("ignoring all consoles but default console because of plymouth.ignore-serial-consoles");
     }
 
   console = ply_hashtable_remove (consoles, (void *) "/dev/tty0");
   if (console != NULL)
     {
       free (console);
-      ply_hashtable_insert (consoles, (void *) default_tty, (char *) default_tty);
+      console = strdup (default_tty);
+      ply_hashtable_insert (consoles, console, console);
     }
 
   console = ply_hashtable_remove (consoles, (void *) "/dev/tty");
   if (console != NULL)
     {
       free (console);
-      ply_hashtable_insert (consoles, (void *) default_tty, (void *) default_tty);
+      console = strdup (default_tty);
+      ply_hashtable_insert (consoles, console, console);
     }
 
   free (state->kernel_console_tty);
@@ -2025,10 +2120,18 @@ check_for_consoles (state_t    *state,
 
   if (should_add_displays)
     {
-      ply_hashtable_foreach (consoles,
-                             (ply_hashtable_foreach_func_t *)
-                             add_display_and_keyboard_for_console,
-                             state);
+      /* Do a full graphical splash if there's no weird serial console
+       * stuff going on, otherwise just prepare text splashes
+       */
+      if ((num_consoles == 0) ||
+          ((num_consoles == 1) &&
+           (ply_hashtable_lookup (consoles, (void *) default_tty) != NULL)))
+        add_default_displays_and_keyboard (state);
+      else
+        ply_hashtable_foreach (consoles,
+                               (ply_hashtable_foreach_func_t *)
+                               add_display_and_keyboard_for_console,
+                               state);
     }
 
   ply_hashtable_foreach (consoles, (ply_hashtable_foreach_func_t *) free, NULL);
@@ -2036,8 +2139,6 @@ check_for_consoles (state_t    *state,
 
   ply_trace ("After processing serial consoles there are now %d text displays",
              ply_list_get_length (state->text_displays));
-  if (should_add_displays && ply_list_get_length (state->text_displays) == 0)
-    add_default_displays_and_keyboard (state);
 }
 
 static bool
@@ -2307,6 +2408,8 @@ main (int    argc,
     {
       if (strcmp (mode_string, "shutdown") == 0)
         state.mode = PLY_MODE_SHUTDOWN;
+      else if (strcmp (mode_string, "updates") == 0)
+        state.mode = PLY_MODE_UPDATES;
       else
         state.mode = PLY_MODE_BOOT;
 
@@ -2369,6 +2472,24 @@ main (int    argc,
       return EX_OSERR;
     }
 
+  /* Make the first byte in argv be '@' so that we can survive systemd's killing
+   * spree when going from initrd to /, and so we stay alive all the way until
+   * the power is killed at shutdown.
+   * http://www.freedesktop.org/wiki/Software/systemd/RootStorageDaemons
+   */
+  argv[0][0] = '@';
+
+  state.boot_server = start_boot_server (&state);
+
+  if (state.boot_server == NULL)
+    {
+      ply_trace ("plymouthd is already running");
+
+      if (daemon_handle != NULL)
+        ply_detach_daemon (daemon_handle, EX_OK);
+      return EX_OK;
+    }
+
   state.boot_buffer = ply_buffer_new ();
 
   if (attach_to_session)
@@ -2381,19 +2502,6 @@ main (int    argc,
             ply_detach_daemon (daemon_handle, EX_UNAVAILABLE);
           return EX_UNAVAILABLE;
         }
-    }
-
-  state.boot_server = start_boot_server (&state);
-
-  if (state.boot_server == NULL)
-    {
-      ply_trace ("could not log bootup: %m");
-
-      detach_from_running_session (&state);
-
-      if (daemon_handle != NULL)
-        ply_detach_daemon (daemon_handle, EX_UNAVAILABLE);
-      return EX_UNAVAILABLE;
     }
 
   state.progress = ply_progress_new ();

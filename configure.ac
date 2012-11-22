@@ -1,9 +1,10 @@
-AC_INIT([plymouth],[0.8.4],[https://bugs.freedesktop.org/enter_bug.cgi?product=plymouth])
+AC_INIT([plymouth],[0.8.8],[https://bugs.freedesktop.org/enter_bug.cgi?product=plymouth])
 AC_CONFIG_SRCDIR(src/main.c)
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_AUX_DIR(build-tools)
 
 AC_USE_SYSTEM_EXTENSIONS
+AC_SYS_LARGEFILE
 AC_PROG_AWK
 AC_PROG_CC
 AM_PROG_CC_C_O
@@ -18,7 +19,7 @@ PKG_PROG_PKG_CONFIG
 LT_INIT
 
 ## increment if the interface has additions, changes, removals.
-LT_CURRENT=2
+LT_CURRENT=3
 
 ## increment any time the source changes; set to
 ##  0 if you increment CURRENT
@@ -27,7 +28,7 @@ LT_REVISION=0
 ## increment if any interfaces have been added; set to 0
 ## if any interfaces have been changed or removed. removal has
 ## precedence over adding, so set to 0 if both happened.
-LT_AGE=0
+LT_AGE=1
 
 AC_SUBST(LT_CURRENT)
 AC_SUBST(LT_REVISION)
@@ -52,11 +53,16 @@ if test x$enable_pango = xyes; then
   AC_SUBST(PANGO_LIBS)
 fi
 
-PKG_CHECK_MODULES(GTK, [gtk+-2.0 >= 2.12.0 ])
-AC_SUBST(GTK_CFLAGS)
-AC_SUBST(GTK_LIBS)
+AC_ARG_ENABLE(gtk, AS_HELP_STRING([--enable-gtk],[enable building with gtk, disabled there is no log viewer or x11 redenderer]),enable_gtk=$enableval,enable_gtk=yes)
+AM_CONDITIONAL(ENABLE_GTK,  [test "$enable_gtk" = yes])
 
-AC_ARG_ENABLE(libdrm_intel, AS_HELP_STRING([--enable-libdrm_intel],[enable building with libdrm_intel support]),enable_libdrm_intel=$enableval,enable_libdrm_intel=yes)
+if test x$enable_gtk = xyes; then
+  PKG_CHECK_MODULES(GTK, [gtk+-2.0 >= 2.12.0 ])
+  AC_SUBST(GTK_CFLAGS)
+  AC_SUBST(GTK_LIBS)
+fi
+
+AC_ARG_ENABLE(libdrm_intel, AS_HELP_STRING([--enable-libdrm_intel],[enable building with libdrm_intel support]),enable_libdrm_intel=$enableval,enable_libdrm_intel=no)
 AM_CONDITIONAL(ENABLE_LIBDRM_INTEL,  [test "$enable_libdrm_intel" = yes])
 
 if test x$enable_libdrm_intel = xyes; then
@@ -100,7 +106,7 @@ if test x$enable_libdrm_intel = xyes; then
   AC_DEFINE(PLY_ENABLE_LIBDRM_INTEL, 1, [Enable support for libdrm_intel driver])
 fi
 
-AC_ARG_ENABLE(libdrm_radeon, AS_HELP_STRING([--enable-libdrm_radeon],[enable building with libdrm_radeon support]),enable_libdrm_radeon=$enableval,enable_libdrm_radeon=yes)
+AC_ARG_ENABLE(libdrm_radeon, AS_HELP_STRING([--enable-libdrm_radeon],[enable building with libdrm_radeon support]),enable_libdrm_radeon=$enableval,enable_libdrm_radeon=no)
 AM_CONDITIONAL(ENABLE_LIBDRM_RADEON,  [test "$enable_libdrm_radeon" = yes])
 
 if test x$enable_libdrm_radeon = xyes; then
@@ -144,7 +150,7 @@ if test x$enable_libdrm_radeon = xyes; then
   AC_DEFINE(PLY_ENABLE_LIBDRM_RADEON, 1, [Enable support for libdrm_radeon driver])
 fi
 
-AC_ARG_ENABLE(libdrm_nouveau, AS_HELP_STRING([--enable-libdrm_nouveau],[enable building with libdrm_nouveau support]),enable_libdrm_nouveau=$enableval,enable_libdrm_nouveau=yes)
+AC_ARG_ENABLE(libdrm_nouveau, AS_HELP_STRING([--enable-libdrm_nouveau],[enable building with libdrm_nouveau support]),enable_libdrm_nouveau=$enableval,enable_libdrm_nouveau=no)
 AM_CONDITIONAL(ENABLE_LIBDRM_NOUVEAU,  [test "$enable_libdrm_nouveau" = yes])
 
 if test x$enable_libdrm_nouveau = xyes; then
@@ -188,7 +194,7 @@ if test x$enable_libdrm_nouveau = xyes; then
   AC_DEFINE(PLY_ENABLE_LIBDRM_NOUVEAU, 1, [Enable support for libdrm_nouveau driver])
 fi
 
-AC_ARG_ENABLE(libkms, AS_HELP_STRING([--enable-libkms],[enable building with libkms support]),enable_libkms=$enableval,enable_libkms=yes)
+AC_ARG_ENABLE(libkms, AS_HELP_STRING([--enable-libkms],[enable building with libkms support]),enable_libkms=$enableval,enable_libkms=no)
 AM_CONDITIONAL(ENABLE_LIBKMS,  [test "$enable_libkms" = yes])
 
 if test x$enable_libkms = xyes; then
@@ -198,16 +204,17 @@ if test x$enable_libkms = xyes; then
   AC_DEFINE(PLY_ENABLE_LIBKMS, 1, [Enable support for libkms abstraction over drm drivers])
 fi
 
-DRM_CFLAGS="$DRM_INTEL_CFLAGS $DRM_RADEON_CFLAGS $DRM_NOUVEAU_CFLAGS $LIBKMS_CFLAG"
-DRM_LIBS="$DRM_INTEL_LIBS $DRM_RADEON_LIBS $DRM_NOUVEAU_LIBS $LIBKMS_LIBS"
+AC_ARG_ENABLE(drm, AS_HELP_STRING([--enable-drm-renderer],[enable building drm kms support]),enable_drm_renderer=$enableval,enable_drm_renderer=yes)
+AM_CONDITIONAL(ENABLE_DRM_RENDERER,  [test "$enable_drm_renderer" = yes])
+
+if test x$enable_drm_renderer = xyes; then
+  PKG_CHECK_MODULES(DRM, [libdrm])
+fi
+
+DRM_CFLAGS="$DRM_CFLAGS $DRM_INTEL_CFLAGS $DRM_RADEON_CFLAGS $DRM_NOUVEAU_CFLAGS $LIBKMS_CFLAG"
+DRM_LIBS="$DRM_LIBS $DRM_INTEL_LIBS $DRM_RADEON_LIBS $DRM_NOUVEAU_LIBS $LIBKMS_LIBS"
 AC_SUBST(DRM_CFLAGS)
 AC_SUBST(DRM_LIBS)
-
-AM_CONDITIONAL(ENABLE_DRM_RENDERER,
-               [test x$enable_libdrm_intel = xyes   \
-                  -o x$enable_libdrm_radeon = xyes  \
-                  -o x$enable_libdrm_nouveau = xyes \
-                  -o x$enable_libkms = xyes])
 
 AC_ARG_ENABLE(tracing, AS_HELP_STRING([--enable-tracing],[enable verbose tracing code]),enable_tracing=$enableval,enable_tracing=yes)
 
@@ -222,7 +229,7 @@ AM_CONDITIONAL(ENABLE_TESTS,  [test "$enable_tests" = yes])
 AC_ARG_ENABLE(gdm-transition, AS_HELP_STRING([--enable-gdm-transition],[enable smooth transition to gdm]),enable_gdm_transition=$enableval,enable_gdm_transition=no)
 
 if test x$enable_gdm_transition = xyes; then
-  AC_DEFINE(PLY_ENABLE_GDM_TRANSITION, 1, [Enable smooth transition to GDM])
+  AC_DEFINE(PLY_ENABLE_DEPRECATED_GDM_TRANSITION, 1, [Enable deprecated smooth transition to GDM])
 fi
 
 AC_ARG_ENABLE(upstart-monitoring, AS_HELP_STRING([--enable-upstart-monitoring],[listen for messages on the Upstart D-Bus interface]),enable_upstart_monitoring=$enableval,enable_upstart_monitoring=no)
@@ -247,6 +254,8 @@ AM_CONDITIONAL(ENABLE_SYSTEMD_INTEGRATION, [test "$enable_systemd_integration" =
 
 if test x$enable_systemd_integration = xyes; then
   AC_DEFINE(PLY_ENABLE_SYSTEMD_INTEGRATION, 1, [Coordinate boot up with systemd])
+  SYSTEMD_UNIT_DIR=/lib/systemd/system
+  AC_SUBST(SYSTEMD_UNIT_DIR)
 fi
 
 AC_ARG_WITH(system-root-install, AS_HELP_STRING([--with-system-root-install],[Install client in /bin and daemon in /sbin]),with_system_root_install=${withval},with_system_root_install=yes)
@@ -276,6 +285,9 @@ AC_ARG_WITH(log-viewer, AS_HELP_STRING([--with-log-viewer],[Install plymouth log
 AM_CONDITIONAL(WITH_LOG_VIEWER,  [test "$with_log_viewer" = yes])
 
 if test x$with_log_viewer = xyes; then
+  if test x$enable_gtk = xno; then
+    AC_MSG_ERROR([log viewer enabled bug gtk disabled])
+  fi
   AC_ARG_WITH(gdm-autostart-file, AS_HELP_STRING([--with-gdm-autostart-file],[start log viewer from gdm on boot errors]),with_gdm_autostart_file=$withval,with_gdm_autostart_file=yes)
 else
   with_gdm_autostart_file=no
@@ -297,7 +309,7 @@ AC_SUBST(background_start_color)
 AC_ARG_WITH(background-end-color-stop, AS_HELP_STRING([--with-background-end-color-stop],[first color end in background gradients used by boot splash plugins]),background_end_color=${withval},background_end_color=0x3a362f)
 AC_SUBST(background_end_color)
 
-AC_ARG_WITH(release-file, AS_HELP_STRING([--with-release-file=<path_to_release_file>],[Release File to use to detect distribution (by default /etc/system-reelase)]),RELEASE_FILE=${withval},RELEASE_FILE=/etc/system-release)
+AC_ARG_WITH(release-file, AS_HELP_STRING([--with-release-file=<path_to_release_file>],[Release File to use to detect distribution (by default /etc/system-release)]),RELEASE_FILE=${withval},RELEASE_FILE=/etc/system-release)
 
 AC_SUBST(RELEASE_FILE)
 AC_DEFINE_UNQUOTED(RELEASE_FILE, "$RELEASE_FILE", [Release file path])
@@ -444,6 +456,18 @@ AC_CONFIG_FILES([Makefile
 	   scripts/plymouth-populate-initrd
 	   scripts/plymouth-set-default-theme
            scripts/Makefile
+           systemd-units/plymouth-halt.service
+           systemd-units/plymouth-kexec.service
+           systemd-units/plymouth-poweroff.service
+           systemd-units/plymouth-quit.service
+           systemd-units/plymouth-quit-wait.service
+           systemd-units/plymouth-read-write.service
+           systemd-units/plymouth-reboot.service
+           systemd-units/plymouth-start.service
+           systemd-units/plymouth-switch-root.service
+           systemd-units/systemd-ask-password-plymouth.path
+           systemd-units/systemd-ask-password-plymouth.service
+           systemd-units/Makefile
            docs/Makefile
 ])
 AC_OUTPUT

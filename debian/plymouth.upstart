@@ -5,7 +5,7 @@
 # the initramfs so the pre-start script, script and post-start script
 # parts are actually not run.  These are normally run on shutdown instead.
 
-description	"Userspace bootsplash utility"
+description	"userspace bootsplash utility"
 
 start on (starting mountall
           or (runlevel [016]

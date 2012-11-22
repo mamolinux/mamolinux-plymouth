@@ -7,11 +7,9 @@ Description: Undocumented changes
  patch series.
 Last-Update: 2011-01-21
 
-Index: quantal/src/main.c
-===================================================================
---- quantal.orig/src/main.c
-+++ quantal/src/main.c
-@@ -121,6 +121,7 @@
+--- a/src/main.c
++++ b/src/main.c
+@@ -122,6 +122,7 @@
    const char *default_tty;
  
    int number_of_errors;
@@ -19,7 +17,7 @@ Index: quantal/src/main.c
  } state_t;
  
  static ply_boot_splash_t *start_boot_splash (state_t    *state,
-@@ -173,14 +174,34 @@
+@@ -174,8 +175,9 @@
             const char  *status)
  {
    ply_trace ("updating status to '%s'", status);
@@ -31,6 +29,7 @@ Index: quantal/src/main.c
    if (state->boot_splash != NULL)
      ply_boot_splash_update_status (state->boot_splash,
                                     status);
+@@ -227,6 +229,25 @@
  }
  
  static void
@@ -56,7 +55,7 @@ Index: quantal/src/main.c
  show_messages (state_t *state)
  {
    if (state->boot_splash == NULL)
-@@ -389,7 +410,7 @@
+@@ -435,7 +456,7 @@
        ply_trace ("Could not start default splash screen,"
                   "showing text splash screen");
        state->boot_splash = start_boot_splash (state,
@@ -65,7 +64,7 @@ Index: quantal/src/main.c
                                                false);
      }
  
-@@ -398,12 +419,15 @@
+@@ -444,12 +465,15 @@
        ply_trace ("Could not start text splash screen,"
                   "showing built-in fallback");
        state->boot_splash = start_boot_splash (state,
@@ -83,17 +82,20 @@ Index: quantal/src/main.c
  }
  
  static void
-@@ -454,7 +478,8 @@
-   ply_trace ("displaying message %s", message);
-   if (state->boot_splash != NULL)
-     ply_boot_splash_display_message (state->boot_splash, message);
+@@ -503,8 +527,10 @@
+         ply_boot_splash_display_message (state->boot_splash, message);
+     }
+   else
+-    ply_trace ("not displaying message %s as no splash", message);
 -  ply_list_append_data (state->messages, strdup(message));
-+  else
-+    ply_list_append_data (state->messages, strdup(message));
++    {
++        ply_trace ("not displaying message %s as no splash", message);
++        ply_list_append_data (state->messages, strdup(message));
++    }
  }
  
  static void
-@@ -666,6 +691,7 @@
+@@ -721,6 +747,7 @@
        if (state->number_of_errors > 0)
          spool_error (state);
      }
@@ -101,7 +103,7 @@ Index: quantal/src/main.c
  }
  
  static void
-@@ -1449,6 +1475,10 @@
+@@ -1506,6 +1533,10 @@
    ply_text_display_t *display;
    ply_keyboard_t *keyboard;
  
@@ -112,7 +114,7 @@ Index: quantal/src/main.c
    keyboard = ply_keyboard_new_for_terminal (terminal);
    display = ply_text_display_new (terminal);
  
-@@ -2108,6 +2138,7 @@
+@@ -2209,6 +2240,7 @@
    state->entry_buffer = ply_buffer_new();
    state->pixel_displays = ply_list_new ();
    state->text_displays = ply_list_new ();
@@ -120,11 +122,9 @@ Index: quantal/src/main.c
    state->messages = ply_list_new ();
    state->keyboard = NULL;
  
-Index: quantal/src/plugins/splash/script/script-lib-image.c
-===================================================================
---- quantal.orig/src/plugins/splash/script/script-lib-image.c
-+++ quantal/src/plugins/splash/script/script-lib-image.c
-@@ -171,7 +171,7 @@
+--- a/src/plugins/splash/script/script-lib-image.c
++++ b/src/plugins/splash/script/script-lib-image.c
+@@ -173,7 +173,7 @@
  
    alpha_obj = script_obj_hash_peek_element (state->local, "alpha");
  
@@ -133,10 +133,8 @@ Index: quantal/src/plugins/splash/script/script-lib-image.c
      {
        alpha = CLAMP(script_obj_as_number (alpha_obj), 0, 1);
      }
-Index: quantal/src/plugins/splash/script/script-lib-sprite.c
-===================================================================
---- quantal.orig/src/plugins/splash/script/script-lib-sprite.c
-+++ quantal/src/plugins/splash/script/script-lib-sprite.c
+--- a/src/plugins/splash/script/script-lib-sprite.c
++++ b/src/plugins/splash/script/script-lib-sprite.c
 @@ -399,6 +399,45 @@
    return script_return_obj_null ();
  }
@@ -196,11 +194,9 @@ Index: quantal/src/plugins/splash/script/script-lib-sprite.c
                                "SetBackgroundTopColor",
                                sprite_window_set_background_top_color,
                                data,
-Index: quantal/src/plugins/splash/script/plugin.c
-===================================================================
---- quantal.orig/src/plugins/splash/script/plugin.c
-+++ quantal/src/plugins/splash/script/plugin.c
-@@ -479,6 +479,8 @@
+--- a/src/plugins/splash/script/plugin.c
++++ b/src/plugins/splash/script/plugin.c
+@@ -467,6 +467,8 @@
  become_idle (ply_boot_splash_plugin_t *plugin,
               ply_trigger_t            *idle_trigger)
  {
@@ -209,11 +205,9 @@ Index: quantal/src/plugins/splash/script/plugin.c
    ply_trigger_pull (idle_trigger, NULL);
  }
  
-Index: quantal/src/plugins/splash/text/plugin.c
-===================================================================
---- quantal.orig/src/plugins/splash/text/plugin.c
-+++ quantal/src/plugins/splash/text/plugin.c
-@@ -484,7 +484,10 @@
+--- a/src/plugins/splash/text/plugin.c
++++ b/src/plugins/splash/text/plugin.c
+@@ -481,7 +481,10 @@
  
    terminal = ply_text_display_get_terminal (view->display);
    if (ply_terminal_open (terminal))
@@ -225,10 +219,8 @@ Index: quantal/src/plugins/splash/text/plugin.c
  
    ply_text_display_set_draw_handler (view->display,
                                       (ply_text_display_draw_handler_t)
-Index: quantal/src/libply-splash-core/ply-pixel-display.h
-===================================================================
---- quantal.orig/src/libply-splash-core/ply-pixel-display.h
-+++ quantal/src/libply-splash-core/ply-pixel-display.h
+--- a/src/libply-splash-core/ply-pixel-display.h
++++ b/src/libply-splash-core/ply-pixel-display.h
 @@ -48,6 +48,7 @@
  
  unsigned long ply_pixel_display_get_width  (ply_pixel_display_t *display);
@@ -237,10 +229,8 @@ Index: quantal/src/libply-splash-core/ply-pixel-display.h
  
  void ply_pixel_display_set_draw_handler (ply_pixel_display_t              *display,
                                           ply_pixel_display_draw_handler_t  draw_handler,
-Index: quantal/src/libply-splash-core/ply-renderer.c
-===================================================================
---- quantal.orig/src/libply-splash-core/ply-renderer.c
-+++ quantal/src/libply-splash-core/ply-renderer.c
+--- a/src/libply-splash-core/ply-renderer.c
++++ b/src/libply-splash-core/ply-renderer.c
 @@ -328,6 +328,21 @@
                                                            head);
  }
@@ -263,10 +253,8 @@ Index: quantal/src/libply-splash-core/ply-renderer.c
  void
  ply_renderer_flush_head (ply_renderer_t      *renderer,
                           ply_renderer_head_t *head)
-Index: quantal/src/libply-splash-core/ply-renderer.h
-===================================================================
---- quantal.orig/src/libply-splash-core/ply-renderer.h
-+++ quantal/src/libply-splash-core/ply-renderer.h
+--- a/src/libply-splash-core/ply-renderer.h
++++ b/src/libply-splash-core/ply-renderer.h
 @@ -51,6 +51,8 @@
  ply_list_t *ply_renderer_get_heads (ply_renderer_t *renderer);
  ply_pixel_buffer_t *ply_renderer_get_buffer_for_head (ply_renderer_t      *renderer,
@@ -276,10 +264,8 @@ Index: quantal/src/libply-splash-core/ply-renderer.h
  
  void ply_renderer_flush_head (ply_renderer_t      *renderer,
                                ply_renderer_head_t *head);
-Index: quantal/src/libply-splash-core/ply-pixel-display.c
-===================================================================
---- quantal.orig/src/libply-splash-core/ply-pixel-display.c
-+++ quantal/src/libply-splash-core/ply-pixel-display.c
+--- a/src/libply-splash-core/ply-pixel-display.c
++++ b/src/libply-splash-core/ply-pixel-display.c
 @@ -51,6 +51,7 @@
  
    unsigned long width;
@@ -311,10 +297,8 @@ Index: quantal/src/libply-splash-core/ply-pixel-display.c
  static void
  ply_pixel_display_flush (ply_pixel_display_t *display)
  {
-Index: quantal/src/libply-splash-core/ply-renderer-plugin.h
-===================================================================
---- quantal.orig/src/libply-splash-core/ply-renderer-plugin.h
-+++ quantal/src/libply-splash-core/ply-renderer-plugin.h
+--- a/src/libply-splash-core/ply-renderer-plugin.h
++++ b/src/libply-splash-core/ply-renderer-plugin.h
 @@ -54,6 +54,8 @@
  
    ply_pixel_buffer_t * (* get_buffer_for_head) (ply_renderer_backend_t *backend,
@@ -324,10 +308,8 @@ Index: quantal/src/libply-splash-core/ply-renderer-plugin.h
  
    ply_renderer_input_source_t * (* get_input_source) (ply_renderer_backend_t *backend);
    bool                 (* open_input_source) (ply_renderer_backend_t *backend,
-Index: quantal/src/client/ply-boot-client.c
-===================================================================
---- quantal.orig/src/client/ply-boot-client.c
-+++ quantal/src/client/ply-boot-client.c
+--- a/src/client/ply-boot-client.c
++++ b/src/client/ply-boot-client.c
 @@ -269,15 +269,32 @@
        return;
      }
@@ -367,41 +349,9 @@ Index: quantal/src/client/ply-boot-client.c
    if (memcmp (byte, PLY_BOOT_PROTOCOL_RESPONSE_TYPE_ACK, sizeof (uint8_t)) == 0)
      {
        if (request->handler != NULL)
-@@ -777,6 +794,17 @@
- }
- 
- void
-+ply_boot_client_flush (ply_boot_client_t *client)
-+{
-+  assert (client != NULL);
-+
-+  while (ply_list_get_length (client->requests_to_send) > 0)
-+    {
-+      ply_event_loop_process_pending_events (client->loop);
-+    }
-+}
-+
-+void
- ply_boot_client_disconnect (ply_boot_client_t *client)
- {
-   assert (client != NULL);
-Index: quantal/src/client/ply-boot-client.h
-===================================================================
---- quantal.orig/src/client/ply-boot-client.h
-+++ quantal/src/client/ply-boot-client.h
-@@ -134,6 +134,7 @@
-                                                ply_boot_client_response_handler_t  handler,
-                                                ply_boot_client_response_handler_t  failed_handler,
-                                                void                               *user_data);
-+void ply_boot_client_flush (ply_boot_client_t *client);
- void ply_boot_client_disconnect (ply_boot_client_t *client);
- void ply_boot_client_attach_to_event_loop (ply_boot_client_t *client,
-                                            ply_event_loop_t  *loop);
-Index: quantal/src/plugins/renderers/frame-buffer/plugin.c
-===================================================================
---- quantal.orig/src/plugins/renderers/frame-buffer/plugin.c
-+++ quantal/src/plugins/renderers/frame-buffer/plugin.c
-@@ -643,6 +643,16 @@
+--- a/src/plugins/renderers/frame-buffer/plugin.c
++++ b/src/plugins/renderers/frame-buffer/plugin.c
+@@ -644,6 +644,16 @@
    return backend->head.pixel_buffer;
  }
  
@@ -418,7 +368,7 @@ Index: quantal/src/plugins/renderers/frame-buffer/plugin.c
  static bool
  has_input_source (ply_renderer_backend_t      *backend,
                    ply_renderer_input_source_t *input_source)
-@@ -736,6 +746,7 @@
+@@ -737,6 +747,7 @@
        .flush_head = flush_head,
        .get_heads = get_heads,
        .get_buffer_for_head = get_buffer_for_head,
