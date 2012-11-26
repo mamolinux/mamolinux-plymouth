@@ -1,3 +1,10 @@
+plymouth (0.8.8-0ubuntu2) raring; urgency=low
+
+  * Fix dependency s/libdrm-nouveau1a/libdrm-nouveau2/g. Thanks Colin for
+    spotting.
+
+ -- Dmitrijs Ledkovs <dmitrij.ledkov@ubuntu.com>  Mon, 26 Nov 2012 01:40:54 +0000
+
 plymouth (0.8.8-0ubuntu1) raring; urgency=low
 
   [ Colin Watson ]
