@@ -2,7 +2,7 @@ Source: plymouth
 Section: x11
 Priority: optional
 Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
-Build-Depends: debhelper (>= 7.3.15ubuntu3), libpng12-dev, libcairo2-dev, libgtk2.0-dev, libpango1.0-dev, autotools-dev, libdrm-dev, libdbus-1-dev, libncursesw5-dev, dpkg-dev (>= 1.16.0~ubuntu4)
+Build-Depends: debhelper (>= 9), dh-exec (>= 0.3), libpng12-dev, libcairo2-dev, libgtk2.0-dev, libpango1.0-dev, autotools-dev, libdrm-dev, libdbus-1-dev, libncursesw5-dev, dpkg-dev (>= 1.16.0~ubuntu4)
 Standards-Version: 3.8.3.0
 Vcs-Bzr: lp:ubuntu/plymouth
 
@@ -43,7 +43,9 @@ Description: graphical boot animation and logger - label control
 
 Package: libplymouth2
 Architecture: any
+Multi-Arch: same
 Section: libs
+Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Replaces: plymouth (<< 0.7.0+git20090207-0ubuntu0.1~ppa4)
 Breaks: mountall (<< 2.8), casper (= 1.227)
@@ -56,6 +58,7 @@ Description: graphical boot animation and logger - shared libraries
 
 Package: libplymouth-dev
 Architecture: any
+Multi-Arch: same
 Section: libdevel
 Depends: ${shlibs:Depends}, ${misc:Depends}, libplymouth2 (= ${binary:Version})
 Replaces: plymouth (<< 0.7.0+git20090207-0ubuntu0.1~ppa4)

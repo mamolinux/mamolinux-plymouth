@@ -1,3 +1,9 @@
+plymouth (0.8.8-0ubuntu3) raring; urgency=low
+
+  * Convert libplymouth2 and libplymouth-dev to multiarch.
+
+ -- Colin Watson <cjwatson@ubuntu.com>  Mon, 03 Dec 2012 15:14:00 +0000
+
 plymouth (0.8.8-0ubuntu2) raring; urgency=low
 
   * Fix dependency s/libdrm-nouveau1a/libdrm-nouveau2/g. Thanks Colin for
