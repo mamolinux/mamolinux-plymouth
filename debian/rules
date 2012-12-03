@@ -21,7 +21,7 @@ endif
 # This renderer is only available on architectures that are sufficiently
 # PC-like
 ifneq (,$(filter $(DEB_HOST_ARCH),amd64 armel i386 ia64))
-	VGA_RENDERER=lib/plymouth/renderers/vga16fb.so
+	VGA_RENDERER=lib/$(DEB_HOST_MULTIARCH)/plymouth/renderers/vga16fb.so
 endif	
 
 # Don't depend on the intel driver on non-intel architectures
@@ -31,7 +31,7 @@ endif
 
 override_dh_auto_configure:
 	dh_auto_configure -- CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
-		--libdir=/lib \
+		--libdir=/lib/$(DEB_HOST_MULTIARCH) \
 		--datadir=/lib \
 		--enable-tracing \
 		--disable-tests \
@@ -84,4 +84,4 @@ override_dh_fixperms:
 
 # Don't generate shlibs for plugins (ideally these wouldn't have a SONAME)
 override_dh_makeshlibs:
-	dh_makeshlibs -X/lib/plymouth/
+	dh_makeshlibs -X/lib/$(DEB_HOST_MULTIARCH)/plymouth/
