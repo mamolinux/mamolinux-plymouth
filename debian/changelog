@@ -1,3 +1,9 @@
+plymouth (0.8.8-0ubuntu4) raring; urgency=low
+
+  * Drop the dependency on hardware-specific libdrm modules. 
+
+ -- Adam Conrad <adconrad@ubuntu.com>  Mon, 10 Dec 2012 16:50:24 -0700
+
 plymouth (0.8.8-0ubuntu3) raring; urgency=low
 
   * Convert libplymouth2 and libplymouth-dev to multiarch.
