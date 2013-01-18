@@ -19,4 +19,6 @@ upstream-terminal-no-ISTRIP.patch
 main-Don-t-watch-for-keyboard-input-if-no-keyboard.patch 
 tty1-after-boot.patch
 invalid-event-source-workaround.patch
+plymouth-optional-drm.patch
+plymouth-old-nouveau.patch
 autoreconf.patch
