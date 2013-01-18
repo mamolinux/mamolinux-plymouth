@@ -80,6 +80,15 @@
 /* Enable smooth transition to GDM */
 #undef PLY_ENABLE_GDM_TRANSITION
 
+/* Enable support for libdrm_intel driver */
+#undef PLY_ENABLE_LIBDRM_INTEL
+
+/* Enable support for libdrm_nouveau driver */
+#undef PLY_ENABLE_LIBDRM_NOUVEAU
+
+/* Enable support for libdrm_radeon driver */
+#undef PLY_ENABLE_LIBDRM_RADEON
+
 /* Build in verbose debug tracing spew */
 #undef PLY_ENABLE_TRACING
 

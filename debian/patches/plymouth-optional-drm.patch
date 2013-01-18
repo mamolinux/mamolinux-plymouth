@@ -1,0 +1,302 @@
+diff --git a/configure.ac b/configure.ac
+index de0e00d..7e83c20 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -56,49 +56,148 @@ PKG_CHECK_MODULES(GTK, [gtk+-2.0 >= 2.12.0 ])
+ AC_SUBST(GTK_CFLAGS)
+ AC_SUBST(GTK_LIBS)
+ 
+-PKG_CHECK_MODULES(DRM, [libdrm libdrm_intel libdrm_radeon libdrm_nouveau])
+-
+-OLD_CFLAGS="$CFLAGS"
+-CFLAGS="$CFLAGS $DRM_CFLAGS"
+-AC_MSG_CHECKING([if i915_drm.h, radeon_drm.h and nouveau_drm.h are in include path])
+-AC_COMPILE_IFELSE(AC_LANG_PROGRAM(
+-[[
+-  #include <stdint.h>
+-  #include <stdlib.h>
+-  #include "i915_drm.h"
+-  #include "radeon_drm.h"
+-  #include "nouveau_drm.h"
+-]],[[]]),[found_drm_kernel_headers=yes],[found_drm_kernel_headers=no])
+-
+-if test "$found_drm_kernel_headers" = "yes"; then
+-  AC_MSG_RESULT([yes])
+-else
+-  AC_MSG_RESULT([no])
+-  AC_MSG_CHECKING([if we can find them anyway])
+-
+-  MORE_DRM_CFLAGS="-I`$PKG_CONFIG --variable includedir libdrm`/drm"
+-  CFLAGS="$CFLAGS $MORE_DRM_CFLAGS"
++AC_ARG_ENABLE(libdrm_intel, AS_HELP_STRING([--enable-libdrm_intel],[enable building with libdrm_intel support]),enable_libdrm_intel=$enableval,enable_libdrm_intel=yes)
++AM_CONDITIONAL(ENABLE_LIBDRM_INTEL,  [test "$enable_libdrm_intel" = yes])
++
++if test x$enable_libdrm_intel = xyes; then
++  PKG_CHECK_MODULES(DRM_INTEL, [libdrm libdrm_intel])
++  OLD_CFLAGS="$CFLAGS"
++  CFLAGS="$CFLAGS $DRM_INTEL_CFLAGS"
++  AC_MSG_CHECKING([if i915_drm.h is in include path])
+   AC_COMPILE_IFELSE(AC_LANG_PROGRAM(
+   [[
+     #include <stdint.h>
+     #include <stdlib.h>
+     #include "i915_drm.h"
++  ]],[[]]),[found_drm_intel_kernel_headers=yes],[found_drm_intel_kernel_headers=no])
++
++  if test "$found_drm_intel_kernel_headers" = "yes"; then
++    AC_MSG_RESULT([yes])
++  else
++    AC_MSG_RESULT([no])
++    AC_MSG_CHECKING([if we can find them anyway])
++
++    MORE_DRM_CFLAGS="-I`$PKG_CONFIG --variable includedir libdrm`/drm"
++    CFLAGS="$CFLAGS $MORE_DRM_CFLAGS"
++    AC_COMPILE_IFELSE(AC_LANG_PROGRAM(
++    [[
++      #include <stdint.h>
++      #include <stdlib.h>
++      #include "i915_drm.h"
++    ]],[[]]),[found_drm_intel_kernel_headers=yes],[found_drm_intel_kernel_headers=no])
++
++    if test "$found_drm_intel_kernel_headers" = "yes"; then
++      AC_MSG_RESULT([yes])
++      DRM_INTEL_CFLAGS="$DRM_INTEL_CFLAGS $MORE_DRM_CFLAGS"
++    else
++      AC_MSG_RESULT([no])
++      AC_MSG_ERROR([Could not find i915_drm.h])
++    fi
++  fi
++
++  AC_SUBST(DRM_INTEL_CFLAGS)
++  AC_SUBST(DRM_INTEL_LIBS)
++  AC_DEFINE(PLY_ENABLE_LIBDRM_INTEL, 1, [Enable support for libdrm_intel driver])
++fi
++
++AC_ARG_ENABLE(libdrm_radeon, AS_HELP_STRING([--enable-libdrm_radeon],[enable building with libdrm_radeon support]),enable_libdrm_radeon=$enableval,enable_libdrm_radeon=yes)
++AM_CONDITIONAL(ENABLE_LIBDRM_RADEON,  [test "$enable_libdrm_radeon" = yes])
++
++if test x$enable_libdrm_radeon = xyes; then
++  PKG_CHECK_MODULES(DRM_RADEON, [libdrm libdrm_radeon])
++  OLD_CFLAGS="$CFLAGS"
++  CFLAGS="$CFLAGS $DRM_RADEON_CFLAGS"
++  AC_MSG_CHECKING([if radeon_drm.h is in include path])
++  AC_COMPILE_IFELSE(AC_LANG_PROGRAM(
++  [[
++    #include <stdint.h>
++    #include <stdlib.h>
+     #include "radeon_drm.h"
++  ]],[[]]),[found_drm_radeon_kernel_headers=yes],[found_drm_radeon_kernel_headers=no])
++
++  if test "$found_drm_radeon_kernel_headers" = "yes"; then
++    AC_MSG_RESULT([yes])
++  else
++    AC_MSG_RESULT([no])
++    AC_MSG_CHECKING([if we can find them anyway])
++
++    MORE_DRM_CFLAGS="-I`$PKG_CONFIG --variable includedir libdrm`/drm"
++    CFLAGS="$CFLAGS $MORE_DRM_RADEON_CFLAGS"
++    AC_COMPILE_IFELSE(AC_LANG_PROGRAM(
++    [[
++      #include <stdint.h>
++      #include <stdlib.h>
++      #include "radeon_drm.h"
++    ]],[[]]),[found_drm_radeon_kernel_headers=yes],[found_drm_radeon_kernel_headers=no])
++
++    if test "$found_drm_radeon_kernel_headers" = "yes"; then
++      AC_MSG_RESULT([yes])
++      DRM_RADEON_CFLAGS="$DRM_RADEON_CFLAGS $MORE_DRM_CFLAGS"
++    else
++      AC_MSG_RESULT([no])
++      AC_MSG_ERROR([Could not find radeon_drm.h])
++    fi
++  fi
++
++  AC_SUBST(DRM_RADEON_CFLAGS)
++  AC_SUBST(DRM_RADEON_LIBS)
++  AC_DEFINE(PLY_ENABLE_LIBDRM_RADEON, 1, [Enable support for libdrm_radeon driver])
++fi
++
++AC_ARG_ENABLE(libdrm_nouveau, AS_HELP_STRING([--enable-libdrm_nouveau],[enable building with libdrm_nouveau support]),enable_libdrm_nouveau=$enableval,enable_libdrm_nouveau=yes)
++AM_CONDITIONAL(ENABLE_LIBDRM_NOUVEAU,  [test "$enable_libdrm_nouveau" = yes])
++
++if test x$enable_libdrm_nouveau = xyes; then
++  PKG_CHECK_MODULES(DRM_NOUVEAU, [libdrm libdrm_nouveau])
++  OLD_CFLAGS="$CFLAGS"
++  CFLAGS="$CFLAGS $DRM_NOUVEAU_CFLAGS"
++  AC_MSG_CHECKING([if nouveau_drm.h is in include path])
++  AC_COMPILE_IFELSE(AC_LANG_PROGRAM(
++  [[
++    #include <stdint.h>
++    #include <stdlib.h>
+     #include "nouveau_drm.h"
+-  ]],[[]]),[found_drm_kernel_headers=yes],[found_drm_kernel_headers=no])
++  ]],[[]]),[found_drm_nouveau_kernel_headers=yes],[found_drm_nouveau_kernel_headers=no])
+ 
+-  if test "$found_drm_kernel_headers" = "yes"; then
++  if test "$found_drm_nouveau_kernel_headers" = "yes"; then
+     AC_MSG_RESULT([yes])
+-    DRM_CFLAGS="$DRM_CFLAGS $MORE_DRM_CFLAGS"
+   else
+     AC_MSG_RESULT([no])
+-    AC_MSG_ERROR([Could not find i915_drm.h, radeon_drm.h and/or nouveau_drm.h])
++    AC_MSG_CHECKING([if we can find them anyway])
++
++    MORE_DRM_CFLAGS="-I`$PKG_CONFIG --variable includedir libdrm`/drm"
++    CFLAGS="$CFLAGS $MORE_DRM_CFLAGS"
++    AC_COMPILE_IFELSE(AC_LANG_PROGRAM(
++    [[
++      #include <stdint.h>
++      #include <stdlib.h>
++      #include "nouveau_drm.h"
++    ]],[[]]),[found_drm_nouveau_kernel_headers=yes],[found_drm_nouveau_kernel_headers=no])
++
++    if test "$found_drm_nouveau_kernel_headers" = "yes"; then
++      AC_MSG_RESULT([yes])
++      DRM_NOUVEAU_CFLAGS="$DRM_NOUVEAU_CFLAGS $MORE_DRM_CFLAGS"
++    else
++      AC_MSG_RESULT([no])
++      AC_MSG_ERROR([Could not find nouveau_drm.h])
++    fi
+   fi
++
++  AC_SUBST(DRM_NOUVEAU_CFLAGS)
++  AC_SUBST(DRM_NOUVEAU_LIBS)
++  AC_DEFINE(PLY_ENABLE_LIBDRM_NOUVEAU, 1, [Enable support for libdrm_nouveau driver])
+ fi
+-CFLAGS="$OLD_CFLAGS"
++
++DRM_CFLAGS="$DRM_INTEL_CFLAGS $DRM_RADEON_CFLAGS $DRM_NOUVEAU_CFLAGS"
++DRM_LIBS="$DRM_INTEL_LIBS $DRM_RADEON_LIBS $DRM_NOUVEAU_LIBS"
+ AC_SUBST(DRM_CFLAGS)
+ AC_SUBST(DRM_LIBS)
+ 
++AM_CONDITIONAL(ENABLE_DRM_RENDERER,
++               [test x$enable_libdrm_intel = xyes   \
++                  -o x$enable_libdrm_radeon = xyes  \
++                  -o x$enable_libdrm_nouveau = xyes])
++
+ AC_ARG_ENABLE(tracing, AS_HELP_STRING([--enable-tracing],[enable verbose tracing code]),enable_tracing=$enableval,enable_tracing=yes)
+ 
+ if test x$enable_tracing = xyes; then
+diff --git a/scripts/plymouth-populate-initrd.in b/scripts/plymouth-populate-initrd.in
+index 7f0c341..3ea08c0 100755
+--- a/scripts/plymouth-populate-initrd.in
++++ b/scripts/plymouth-populate-initrd.in
+@@ -97,7 +97,7 @@ fi
+ 
+ inst ${PLYMOUTH_PLUGIN_PATH}/${PLYMOUTH_MODULE_NAME}.so $INITRDDIR
+ 
+-inst ${PLYMOUTH_PLUGIN_PATH}/renderers/drm.so $INITRDDIR
++[ -f "${PLYMOUTH_PLUGIN_PATH}/renderers/drm.so" ] && inst ${PLYMOUTH_PLUGIN_PATH}/renderers/drm.so $INITRDDIR
+ inst ${PLYMOUTH_PLUGIN_PATH}/renderers/frame-buffer.so $INITRDDIR
+ 
+ if [ -d ${PLYMOUTH_DATADIR}/plymouth/themes/${PLYMOUTH_THEME_NAME} ]; then
+diff --git a/src/plugins/renderers/Makefile.am b/src/plugins/renderers/Makefile.am
+index 575a6c1..5217e3a 100644
+--- a/src/plugins/renderers/Makefile.am
++++ b/src/plugins/renderers/Makefile.am
+@@ -1,4 +1,5 @@
+-SUBDIRS = frame-buffer drm x11
++SUBDIRS = frame-buffer x11 drm
++
+ if BUILD_VGA16FB
+ SUBDIRS += vga16fb
+ endif
+diff --git a/src/plugins/renderers/drm/Makefile.am b/src/plugins/renderers/drm/Makefile.am
+index ce7c04f..536360e 100644
+--- a/src/plugins/renderers/drm/Makefile.am
++++ b/src/plugins/renderers/drm/Makefile.am
+@@ -1,3 +1,4 @@
++if ENABLE_DRM_RENDERER
+ INCLUDES = -I$(top_srcdir)                                                    \
+            -I$(srcdir)/../../../libply                                        \
+            -I$(srcdir)/../../../libply-splash-core                            \
+@@ -16,12 +17,23 @@ drm_la_LIBADD = $(PLYMOUTH_LIBS) $(DRM_LIBS)                                  \
+                          ../../../libply/libply.la                            \
+                          ../../../libply-splash-core/libply-splash-core.la
+ drm_la_SOURCES = $(srcdir)/plugin.c                                           \
+-		 $(srcdir)/ply-renderer-driver.h                              \
+-		 $(srcdir)/ply-renderer-i915-driver.h                         \
+-		 $(srcdir)/ply-renderer-i915-driver.c                         \
+-		 $(srcdir)/ply-renderer-radeon-driver.h                       \
+-		 $(srcdir)/ply-renderer-radeon-driver.c                       \
+-		 $(srcdir)/ply-renderer-nouveau-driver.h                      \
+-		 $(srcdir)/ply-renderer-nouveau-driver.c
++		 $(srcdir)/ply-renderer-driver.h
++
++if ENABLE_LIBDRM_INTEL
++drm_la_SOURCES += $(srcdir)/ply-renderer-i915-driver.h                        \
++                  $(srcdir)/ply-renderer-i915-driver.c
++endif
++
++if ENABLE_LIBDRM_RADEON
++drm_la_SOURCES += $(srcdir)/ply-renderer-radeon-driver.h                      \
++                  $(srcdir)/ply-renderer-radeon-driver.c
++endif
++
++if ENABLE_LIBDRM_NOUVEAU
++drm_la_SOURCES += $(srcdir)/ply-renderer-nouveau-driver.h                     \
++                  $(srcdir)/ply-renderer-nouveau-driver.c
++endif
++
++endif
+ 
+ MAINTAINERCLEANFILES = Makefile.in
+diff --git a/src/plugins/renderers/drm/plugin.c b/src/plugins/renderers/drm/plugin.c
+index 616506b..0c9844f 100644
+--- a/src/plugins/renderers/drm/plugin.c
++++ b/src/plugins/renderers/drm/plugin.c
+@@ -57,9 +57,15 @@
+ #include "ply-renderer.h"
+ #include "ply-renderer-plugin.h"
+ #include "ply-renderer-driver.h"
++#ifdef PLY_ENABLE_LIBDRM_INTEL
+ #include "ply-renderer-i915-driver.h"
++#endif
++#ifdef PLY_ENABLE_LIBDRM_RADEON
+ #include "ply-renderer-radeon-driver.h"
++#endif
++#ifdef PLY_ENABLE_LIBDRM_NOUVEAU
+ #include "ply-renderer-nouveau-driver.h"
++#endif
+ 
+ #define BYTES_PER_PIXEL (4)
+ 
+@@ -480,18 +486,25 @@ load_driver (ply_renderer_backend_t *backend)
+       return false;
+     }
+ 
+-  if (strcmp (driver_name, "i915") == 0)
++  backend->driver_interface = NULL;
++#ifdef PLY_ENABLE_LIBDRM_INTEL
++  if (backend->driver_interface == NULL && strcmp (driver_name, "i915") == 0)
+     {
+       backend->driver_interface = ply_renderer_i915_driver_get_interface ();
+       backend->driver_supports_mapping_console = true;
+     }
+-  else if (strcmp (driver_name, "radeon") == 0)
++#endif
++#ifdef PLY_ENABLE_LIBDRM_RADEON
++  if (backend->driver_interface == NULL && strcmp (driver_name, "radeon") == 0)
+     {
+       backend->driver_interface = ply_renderer_radeon_driver_get_interface ();
+       backend->driver_supports_mapping_console = false;
+     }
+-  else if (strcmp (driver_name, "nouveau") == 0
+-           || strcmp (driver_name, "lbm-nouveau") == 0)
++#endif
++#ifdef PLY_ENABLE_LIBDRM_NOUVEAU
++  if (backend->driver_interface == NULL && (
++           strcmp (driver_name, "nouveau") == 0 ||
++           strcmp (driver_name, "lbm-nouveau") == 0))
+     {
+       if (nouveau_force_drm ())
+         {
+@@ -501,6 +514,7 @@ load_driver (ply_renderer_backend_t *backend)
+       else
+         ply_trace("falling back to framebuffer for nouveau to avoid DRM hang");
+     }
++#endif
+   free (driver_name);
+ 
+   if (backend->driver_interface == NULL)

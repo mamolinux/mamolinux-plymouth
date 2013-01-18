@@ -1,0 +1,11 @@
+--- a/configure.ac
++++ b/configure.ac
+@@ -148,7 +148,7 @@
+ AM_CONDITIONAL(ENABLE_LIBDRM_NOUVEAU,  [test "$enable_libdrm_nouveau" = yes])
+ 
+ if test x$enable_libdrm_nouveau = xyes; then
+-  PKG_CHECK_MODULES(DRM_NOUVEAU, [libdrm libdrm_nouveau])
++  PKG_CHECK_MODULES(DRM_NOUVEAU, [libdrm libdrm_nouveau1])
+   OLD_CFLAGS="$CFLAGS"
+   CFLAGS="$CFLAGS $DRM_NOUVEAU_CFLAGS"
+   AC_MSG_CHECKING([if nouveau_drm.h is in include path])

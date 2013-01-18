@@ -1,3 +1,14 @@
+plymouth (0.8.2-2ubuntu31) precise-proposed; urgency=low
+
+  * debian/patches/plymouth-optional-drm.patch: backport patch to disable
+    intel dependency on !x86 (LP: #927424)
+  * drop dependency drm-intel1 on !x86
+  * debian/patches/plymouth-old-nouveau.patch: updated to use libdrm_nouveau1,
+    needed for building on the updated libdrm.
+  * debian/patches/autoreconf.patch: refreshed for above patches
+
+ -- Maarten Lankhorst <maarten.lankhorst@ubuntu.com>  Fri, 18 Jan 2013 17:59:35 +0100
+
 plymouth (0.8.2-2ubuntu30) precise; urgency=low
 
   [ Philip Muškovac ]

@@ -21,7 +21,13 @@ endif
 # PC-like
 ifneq (,$(filter $(DEB_HOST_ARCH),amd64 armel i386 ia64))
 	VGA_RENDERER=lib/plymouth/renderers/vga16fb.so
-endif	
+endif
+
+ifneq (,$(filter $(DEB_HOST_ARCH),amd64 i386))
+	INTEL_CONFFLAGS=--enable-libdrm_intel
+else
+	INTEL_CONFFLAGS=--disable-libdrm_intel
+endif
 
 override_dh_auto_configure:
 	dh_auto_configure -- CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
@@ -41,7 +47,8 @@ override_dh_auto_configure:
 		--with-background-end-color-stop=0x2c001e \
 		--with-boot-tty=/dev/tty7 \
 		--with-shutdown-tty=/dev/tty7 \
-		--enable-upstart-monitoring
+		--enable-upstart-monitoring \
+		$(INTEL_CONFFLAGS)
 
 override_dh_auto_install:
 	dh_auto_install
