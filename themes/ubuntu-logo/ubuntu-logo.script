@@ -21,6 +21,9 @@
 #
 #  Based on the example provided with the "script plugin" written by:
 #              Charlie Brej   <cbrej@cs.man.ac.uk>
+#
+#  Question stuff written by: Markus Waas <mail@markuswaas.de>
+#
 # 
 
 # Set the text colour in (rgb / 256)
@@ -161,10 +164,10 @@ fun StringToInteger (str) {
 # Previous background colour
 # #300a24 --> 0.19, 0.04, 0.14
 # New background colour
-# #2c001e --> 0.17, 0.00, 0.12
+# #2c001e --> 0.16, 0.00, 0.12
 #
-Window.SetBackgroundTopColor (0.17, 0.00, 0.12);     # Nice colour on top of the screen fading to
-Window.SetBackgroundBottomColor (0.17, 0.00, 0.12);  # an equally nice colour on the bottom
+Window.SetBackgroundTopColor (0.16, 0.00, 0.12);     # Nice colour on top of the screen fading to
+Window.SetBackgroundBottomColor (0.16, 0.00, 0.12);  # an equally nice colour on the bottom
 
 bits_per_pixel = Window.GetBitsPerPixel ();
 if (bits_per_pixel == 4) {
@@ -172,11 +175,13 @@ if (bits_per_pixel == 4) {
     progress_dot_off_filename = "progress_dot_off16.png";
     progress_dot_on_filename = "progress_dot_on16.png";
     password_field_filename = "password_field16.png";
+    question_field_filename = "password_field16.png";
 } else {
     logo_filename = "ubuntu_logo.png";
     progress_dot_off_filename = "progress_dot_off.png";
     progress_dot_on_filename = "progress_dot_on.png";
     password_field_filename = "password_field.png";
+    question_field_filename = "password_field.png";
 }
 
 logo.image = Image (logo_filename);
@@ -569,29 +574,29 @@ fun display_password_callback (prompt, bullets) {
                password_dialogue.entry.image.GetHeight () / 2 -
                password_dialogue.bullet_image.GetHeight () / 2;
     margin = bullet_width;
-    spaces = Math.Int( (password_dialogue.entry.image.GetWidth () - (margin * 2)) / (bullet_width / 2 ) );
+    spaces = Math.Int( (password_dialogue.entry.image.GetWidth () - (margin * 2) ) / ( 2 * bullet_width / 3 ) );
     #Debug ("spaces = " + spaces + ", bullets = " + bullets);
-    bullets_area.width = margin + spaces * (bullet_width / 2);
+    bullets_area.width = margin + spaces * ( 2 * bullet_width / 3);
     bullets_area.x = Window.GetX () + Window.GetWidth () / 2 - bullets_area.width / 2;
     #DebugBottom ("pwd_entry x = " + password_dialogue.entry.x + ", bullets_area.x = " + bullets_area.x + ", bullets_area.width = " + bullets_area.width);
     if (bullets > spaces)
         bullets = spaces;
-    for (index = 0; password_dialogue.bullets[index] || index < bullets; index++){
+    for (index = 0; password_dialogue.bullets[index] || index < spaces ; index++){
         if (!password_dialogue.bullets[index]) {
             password_dialogue.bullets[index].sprite = Sprite ();
             password_dialogue.bullets[index].sprite.SetImage (password_dialogue.bullet_image);
             password_dialogue.bullets[index].x = bullets_area.x + # password_dialogue.entry.x + margin +
-                                                 index * bullet_width / 2;
+                                                 index * ( 2 * bullet_width / 3 ) ;
             password_dialogue.bullets[index].sprite.SetX (password_dialogue.bullets[index].x);
             password_dialogue.bullets[index].y = bullet_y;
             password_dialogue.bullets[index].sprite.SetY (password_dialogue.bullets[index].y);
-            password_dialogue.bullets[index].z = password_dialogue.entry.z + 1;
+            password_dialogue.bullets[index].z = password_dialogue.entry.z + 100 - index;
             password_dialogue.bullets[index].sprite.SetZ (password_dialogue.bullets[index].z);
         }
 
         password_dialogue.bullets[index].sprite.SetOpacity (0);
 
-        if (index < bullets) {
+        if (index < bullets ) {
             password_dialogue.bullets[index].sprite.SetOpacity (1);
         }
     }
@@ -997,17 +1002,77 @@ fun update_status_callback (status) {
 Plymouth.SetUpdateStatusFunction (update_status_callback); 
 
 #-----------------------------------------Display Question stuff -----------------------
-#
-# TODO: Implement this if needed
-#
+
+fun question_dialogue_setup (message_label, text_image) {
+    #Debug("Question dialog setup");
+    
+    local.field;
+    local.content;
+    local.margin;
+    
+    field.image = Image (question_field_filename);
+    content = Sprite ();    
+    bullet_image = Image (progress_dot_off_filename);
+    margin = bullet_image.GetWidth() / 2;
+    
+    # Hide the normal labels
+    prompt_active = 1;
+    if (message_notification[1].sprite) hide_message (1);
+    
+    # Set the prompt label
+    label = get_message_label(message_label, 0, 1);
+    label.z = 10000;
+    
+    setup_message (message_label, label.x, label.y, label.z, 2);
+    show_message (2);
+
+    # Set up the text field which contains the contents
+    field.sprite = Sprite ();
+    field.sprite.SetImage (field.image);
+    
+    # Centre the box horizontally
+    field.x = Window.GetX () + Window.GetWidth () / 2 - field.image.GetWidth () / 2;    
+    content_x = field.x + margin;
+
+    # Put the field below the second label.
+    field.y = message_notification[2].y + label.height;
+    content_y = field.y + field.image.GetHeight () / 2 - text_image.GetHeight () / 2;
+
+    #Debug ("field x = " + field.x + ", y = " + field.y);
+    field.z = 10000;
+    field.sprite.SetX (field.x);
+    field.sprite.SetY (field.y);
+    field.sprite.SetZ (field.z);   
+    
+    #Debug ("content_x = " + content_x + " content_y = " + content_y);
+    content_z = field.z + 1;
+    content.SetPosition (content_x, content_y, content_z);
+
+    global.question_dialogue = local;
+}
+
 # The callback function is called when the display should display a question dialogue.
-# First arg is prompt string, the second is the entry contents.
-#fun display_question_callback (prompt_string, entry_contents)
-#{
-# time++;
-#}
-#
-#Plymouth.SetDisplayQuestionFunction (display_question_callback); 
+# First arg is prompt string, the second is the field contents.
+fun display_question_callback (prompt, contents) {  
+    global.status = "question";
+    #Debug ("Reply: " + contents);
+
+    textImage = ImageToText(contents); 
+    if (!global.question_dialogue) {
+        question_dialogue_setup(prompt, textImage);
+    }    
+
+    margin = global.question_dialogue.margin;
+    fieldWidth = global.question_dialogue.field.image.GetWidth ();
+    for (i = 0; ( (textImage.GetWidth () + 2 * margin ) > fieldWidth ); i++) {        
+        textImage = ImageToText(StringCopy (contents, i, StringLength (contents)));
+    }
+     
+    global.question_dialogue.content.SetImage (textImage);   
+}
+
+
+Plymouth.SetDisplayQuestionFunction (display_question_callback); 
 
 #-----------------------------------------Refresh stuff --------------------------------
 #
@@ -1036,9 +1101,14 @@ fun display_normal_callback ()
         if (message_notification[2].sprite) hide_message(2);
         prompt_active = 0;
     }
+    if (global.question_dialogue) {
+        question_dialogue_opacity (0);
+        global.question_dialogue = NULL;
+        if (message_notification[2].sprite) hide_message(2);
+        prompt_active = 0;
+    }
     
-    if (message_notification[1].sprite) show_message (1);
-    
+    if (message_notification[1].sprite) show_message (1);    
     
 }
 

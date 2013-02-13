@@ -1,3 +1,11 @@
+plymouth (0.8.8-0ubuntu6) raring; urgency=low
+
+  [ Markus Waas ]
+  * Implement display_question callback for ask-question command.
+    (LP: #509384)
+
+ -- Dmitrijs Ledkovs <dmitrij.ledkov@ubuntu.com>  Wed, 13 Feb 2013 16:56:49 +0000
+
 plymouth (0.8.8-0ubuntu5) raring; urgency=low
 
   * Auto-detect the pango directory to accomodate the versioned path.
