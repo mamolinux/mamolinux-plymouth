@@ -1,3 +1,11 @@
+plymouth (0.8.8-0ubuntu6.1) raring-proposed; urgency=low
+
+  * plymouth-ready.conf: Send an event to indicate plymouth is up. Needed
+    to inform login managers that they can start without racing with
+    plymouth-splash. (LP: #982889)
+
+ -- Timo Aaltonen <tjaalton@ubuntu.com>  Fri, 19 Apr 2013 21:55:18 +0300
+
 plymouth (0.8.8-0ubuntu6) raring; urgency=low
 
   [ Markus Waas ]
