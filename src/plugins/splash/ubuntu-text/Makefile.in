@@ -34,7 +34,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = src/plugins/splash/fade-throbber
+subdir = src/plugins/splash/ubuntu-text
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
@@ -75,19 +75,18 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(plugindir)"
 LTLIBRARIES = $(plugin_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-fade_throbber_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+ubuntu_text_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	../../../libply/libply.la \
-	../../../libply-splash-core/libply-splash-core.la \
-	../../../libply-splash-graphics/libply-splash-graphics.la
-am_fade_throbber_la_OBJECTS = fade_throbber_la-plugin.lo
-fade_throbber_la_OBJECTS = $(am_fade_throbber_la_OBJECTS)
+	../../../libply-splash-core/libply-splash-core.la
+am_ubuntu_text_la_OBJECTS = ubuntu_text_la-plugin.lo
+ubuntu_text_la_OBJECTS = $(am_ubuntu_text_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
-fade_throbber_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+ubuntu_text_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
-	$(fade_throbber_la_CFLAGS) $(CFLAGS) \
-	$(fade_throbber_la_LDFLAGS) $(LDFLAGS) -o $@
+	$(ubuntu_text_la_CFLAGS) $(CFLAGS) $(ubuntu_text_la_LDFLAGS) \
+	$(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/build-tools/depcomp
 am__depfiles_maybe = depfiles
@@ -114,8 +113,8 @@ am__v_CCLD_0 = @echo "  CCLD  " $@;
 AM_V_GEN = $(am__v_GEN_@AM_V@)
 am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
 am__v_GEN_0 = @echo "  GEN   " $@;
-SOURCES = $(fade_throbber_la_SOURCES)
-DIST_SOURCES = $(fade_throbber_la_SOURCES)
+SOURCES = $(ubuntu_text_la_SOURCES)
+DIST_SOURCES = $(ubuntu_text_la_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -276,28 +275,24 @@ top_srcdir = @top_srcdir@
 INCLUDES = -I$(top_srcdir)                                                    \
            -I$(srcdir)/../../../libply                                        \
            -I$(srcdir)/../../../libply-splash-core                            \
-           -I$(srcdir)/../../../libply-splash-graphics                        \
            -I$(srcdir)/../../..                                               \
            -I$(srcdir)/../..                                                  \
            -I$(srcdir)/..                                                     \
            -I$(srcdir)
 
 plugindir = $(libdir)/plymouth
-plugin_LTLIBRARIES = fade-throbber.la
-fade_throbber_la_CFLAGS = $(PLYMOUTH_CFLAGS)                                        \
-                    -DPLYMOUTH_IMAGE_DIR=\"$(datadir)/plymouth/\"             \
-                    -DPLYMOUTH_LOGO_FILE=\"$(logofile)\"                      \
-                    -DPLYMOUTH_BACKGROUND_COLOR=$(background_color)           \
-                    -DPLYMOUTH_BACKGROUND_END_COLOR=$(background_end_color)   \
-                    -DPLYMOUTH_BACKGROUND_START_COLOR=$(background_start_color)
+plugin_LTLIBRARIES = ubuntu-text.la
+ubuntu_text_la_CFLAGS = $(PLYMOUTH_CFLAGS)                                           \
+                 -DPLYMOUTH_BACKGROUND_COLOR=$(background_color)              \
+                 -DPLYMOUTH_BACKGROUND_END_COLOR=$(background_end_color)      \
+                 -DPLYMOUTH_BACKGROUND_START_COLOR=$(background_start_color)
 
-fade_throbber_la_LDFLAGS = -module -avoid-version -export-dynamic
-fade_throbber_la_LIBADD = $(PLYMOUTH_LIBS)                                          \
-                    ../../../libply/libply.la                                 \
-                    ../../../libply-splash-core/libply-splash-core.la         \
-                    ../../../libply-splash-graphics/libply-splash-graphics.la
+ubuntu_text_la_LDFLAGS = -module -avoid-version -export-dynamic
+ubuntu_text_la_LIBADD = $(PLYMOUTH_LIBS)                                            \
+                 ../../../libply/libply.la                                   \
+                 ../../../libply-splash-core/libply-splash-core.la
 
-fade_throbber_la_SOURCES = $(srcdir)/plugin.c
+ubuntu_text_la_SOURCES = $(srcdir)/plugin.c
 MAINTAINERCLEANFILES = Makefile.in
 all: all-am
 
@@ -312,9 +307,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/plugins/splash/fade-throbber/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/plugins/splash/ubuntu-text/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu src/plugins/splash/fade-throbber/Makefile
+	  $(AUTOMAKE) --gnu src/plugins/splash/ubuntu-text/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -364,8 +359,8 @@ clean-pluginLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-fade-throbber.la: $(fade_throbber_la_OBJECTS) $(fade_throbber_la_DEPENDENCIES) $(EXTRA_fade_throbber_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(fade_throbber_la_LINK) -rpath $(plugindir) $(fade_throbber_la_OBJECTS) $(fade_throbber_la_LIBADD) $(LIBS)
+ubuntu-text.la: $(ubuntu_text_la_OBJECTS) $(ubuntu_text_la_DEPENDENCIES) $(EXTRA_ubuntu_text_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(ubuntu_text_la_LINK) -rpath $(plugindir) $(ubuntu_text_la_OBJECTS) $(ubuntu_text_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -373,7 +368,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fade_throbber_la-plugin.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ubuntu_text_la-plugin.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -396,12 +391,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
-fade_throbber_la-plugin.lo: $(srcdir)/plugin.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fade_throbber_la_CFLAGS) $(CFLAGS) -MT fade_throbber_la-plugin.lo -MD -MP -MF $(DEPDIR)/fade_throbber_la-plugin.Tpo -c -o fade_throbber_la-plugin.lo `test -f '$(srcdir)/plugin.c' || echo '$(srcdir)/'`$(srcdir)/plugin.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fade_throbber_la-plugin.Tpo $(DEPDIR)/fade_throbber_la-plugin.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/plugin.c' object='fade_throbber_la-plugin.lo' libtool=yes @AMDEPBACKSLASH@
+ubuntu_text_la-plugin.lo: $(srcdir)/plugin.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ubuntu_text_la_CFLAGS) $(CFLAGS) -MT ubuntu_text_la-plugin.lo -MD -MP -MF $(DEPDIR)/ubuntu_text_la-plugin.Tpo -c -o ubuntu_text_la-plugin.lo `test -f '$(srcdir)/plugin.c' || echo '$(srcdir)/'`$(srcdir)/plugin.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ubuntu_text_la-plugin.Tpo $(DEPDIR)/ubuntu_text_la-plugin.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/plugin.c' object='ubuntu_text_la-plugin.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fade_throbber_la_CFLAGS) $(CFLAGS) -c -o fade_throbber_la-plugin.lo `test -f '$(srcdir)/plugin.c' || echo '$(srcdir)/'`$(srcdir)/plugin.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ubuntu_text_la_CFLAGS) $(CFLAGS) -c -o ubuntu_text_la-plugin.lo `test -f '$(srcdir)/plugin.c' || echo '$(srcdir)/'`$(srcdir)/plugin.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
