@@ -1,3 +1,15 @@
+plymouth (0.8.8-7) experimental; urgency=low
+
+  * Updating initramfs inclusion of font-dejavu for jessie and newer
+    (Closes: #707765).
+  * Ordering fontconfig inclusion in initramfs hook.
+  * Updating initramfs inclusion of pango for jessie and newer (Closes:
+    #702040, #702900, #704872).
+  * Adding patch from upstream to return directly when deactivated
+    (Closes: #632737).
+
+ -- Daniel Baumann <mail@daniel-baumann.ch>  Thu, 23 May 2013 10:31:12 +0200
+
 plymouth (0.8.8-6) unstable; urgency=low
 
   * Removing all references to my old email address.
