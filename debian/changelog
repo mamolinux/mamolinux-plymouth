@@ -1,3 +1,10 @@
+plymouth (0.8.8-0ubuntu7) saucy; urgency=low
+
+  * debian/initramfs-tools/hooks/plymouth: Stop copying the pango modules and
+    *-fc.so, these are included in the main pango shared lib now.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 27 May 2013 15:15:28 +0200
+
 plymouth (0.8.8-0ubuntu6.1) raring-proposed; urgency=low
 
   * plymouth-ready.conf: Send an event to indicate plymouth is up. Needed
