@@ -74,11 +74,4 @@ if [ -e "$THEME" ]; then
 	cp /usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf ${DESTDIR}/usr/share/fonts/truetype/ttf-dejavu/
 	cp /etc/fonts/fonts.conf ${DESTDIR}/etc/fonts/fonts.conf
 	cp -L /etc/fonts/conf.d/60-latin.conf ${DESTDIR}/etc/fonts/conf.d
-	PANGO_MODULES=$(find /usr/lib/#DEB_HOST_MULTIARCH#/pango/ /usr/lib/pango/ \
-			-name libpango1.0-0.modules 2>/dev/null | head -n1)
-	PANGO_DIR=${PANGO_MODULES%/module-files.d/libpango1.0-0.modules}
-	mkdir -p ${DESTDIR}${PANGO_DIR}/module-files.d
-	mkdir -p ${DESTDIR}${PANGO_DIR}/modules
-	cp ${PANGO_DIR}/module-files.d/libpango1.0-0.modules ${DESTDIR}${PANGO_DIR}/module-files.d/
-	cp ${PANGO_DIR}/modules/pango-basic-fc.so ${DESTDIR}${PANGO_DIR}/modules/pango-basic-fc.so
 fi
