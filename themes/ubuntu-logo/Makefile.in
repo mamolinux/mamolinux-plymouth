@@ -51,7 +51,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = themes/glow
+subdir = themes/ubuntu-logo
 DIST_COMMON = $(dist_theme_DATA) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -268,70 +268,22 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-themedir = $(datadir)/plymouth/themes/glow
-nodist_theme_DATA = glow.plymouth
-dist_theme_DATA = \
-                    box.png                                           \
-                    bullet.png                                        \
-                    entry.png                                         \
-                    lock.png                                          \
-                    progress-00.png                                   \
-                    progress-01.png                                   \
-                    progress-02.png                                   \
-                    progress-03.png                                   \
-                    progress-04.png                                   \
-                    progress-05.png                                   \
-                    progress-06.png                                   \
-                    progress-07.png                                   \
-                    progress-08.png                                   \
-                    progress-09.png                                   \
-                    progress-10.png                                   \
-                    progress-11.png                                   \
-                    progress-12.png                                   \
-                    progress-13.png                                   \
-                    progress-14.png                                   \
-                    progress-15.png                                   \
-                    progress-16.png                                   \
-                    progress-17.png                                   \
-                    progress-18.png                                   \
-                    progress-19.png                                   \
-                    progress-20.png                                   \
-                    progress-21.png                                   \
-                    progress-22.png                                   \
-                    progress-23.png                                   \
-                    progress-24.png                                   \
-                    progress-25.png                                   \
-                    progress-26.png                                   \
-                    progress-27.png                                   \
-                    progress-28.png                                   \
-                    progress-29.png                                   \
-                    progress-30.png                                   \
-                    progress-31.png                                   \
-                    progress-32.png                                   \
-                    throbber-00.png                                   \
-                    throbber-01.png                                   \
-                    throbber-02.png                                   \
-                    throbber-03.png                                   \
-                    throbber-04.png                                   \
-                    throbber-05.png                                   \
-                    throbber-06.png                                   \
-                    throbber-07.png                                   \
-                    throbber-08.png                                   \
-                    throbber-09.png                                   \
-                    throbber-10.png                                   \
-                    throbber-11.png                                   \
-                    throbber-12.png                                   \
-                    throbber-13.png                                   \
-                    throbber-14.png                                   \
-                    throbber-15.png                                   \
-                    throbber-16.png                                   \
-                    throbber-17.png                                   \
-                    throbber-18.png                                   \
-                    throbber-19.png
+themedir = $(datadir)/plymouth/themes/ubuntu-logo
+nodist_theme_DATA = ubuntu-logo.plymouth
+dist_theme_DATA = ubuntu-logo.script                                \
+                    ubuntu-logo.grub                                  \
+                    ubuntu_logo.png                                   \
+                    ubuntu_logo16.png                                 \
+                    password_field.png                                \
+                    password_field16.png                              \
+                    progress_dot_off.png                              \
+                    progress_dot_off16.png                            \
+                    progress_dot_on.png                               \
+                    progress_dot_on16.png
 
-MAINTAINERCLEANFILES = Makefile.in glow.plymouth
-CLEANFILES = glow.plymouth
-EXTRA_DIST = glow.plymouth.in
+MAINTAINERCLEANFILES = Makefile.in ubuntu-logo.plymouth
+CLEANFILES = ubuntu-logo.plymouth
+EXTRA_DIST = ubuntu-logo.plymouth.in
 all: all-am
 
 .SUFFIXES:
@@ -344,9 +296,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu themes/glow/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu themes/ubuntu-logo/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu themes/glow/Makefile
+	  $(AUTOMAKE) --gnu themes/ubuntu-logo/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -571,9 +523,9 @@ uninstall-am: uninstall-dist_themeDATA uninstall-nodist_themeDATA
 	uninstall-dist_themeDATA uninstall-nodist_themeDATA
 
 
-glow.plymouth: $(srcdir)/glow.plymouth.in
+ubuntu-logo.plymouth: $(srcdir)/ubuntu-logo.plymouth.in
 	sed -e 's,[@]PLYMOUTH_THEME_PATH[@],$(PLYMOUTH_THEME_PATH),g' \
-	       $(srcdir)/glow.plymouth.in > glow.plymouth
+	       $(srcdir)/ubuntu-logo.plymouth.in > ubuntu-logo.plymouth
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
