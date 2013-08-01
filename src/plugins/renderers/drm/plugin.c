@@ -509,6 +509,7 @@ on_active_vt_changed (ply_renderer_backend_t *backend)
     }
 }
 
+#ifdef PLY_ENABLE_LIBDRM_NOUVEAU
 static bool
 nouveau_force_drm (void)
 {
@@ -540,6 +541,7 @@ nouveau_force_drm (void)
   else
     return false;
 }
+#endif
 
 static bool
 load_driver (ply_renderer_backend_t *backend)

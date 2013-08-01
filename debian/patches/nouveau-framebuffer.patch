@@ -15,7 +15,7 @@ Index: trunk/src/plugins/renderers/drm/plugin.c
 ===================================================================
 --- trunk.orig/src/plugins/renderers/drm/plugin.c
 +++ trunk/src/plugins/renderers/drm/plugin.c
-@@ -75,6 +75,10 @@
+@@ -76,6 +76,10 @@
  
  #define BYTES_PER_PIXEL (4)
  
@@ -26,10 +26,12 @@ Index: trunk/src/plugins/renderers/drm/plugin.c
  struct _ply_renderer_head
  {
    ply_renderer_backend_t *backend;
-@@ -490,6 +494,38 @@
+@@ -505,6 +509,40 @@
+     }
  }
  
- static bool
++#ifdef PLY_ENABLE_LIBDRM_NOUVEAU
++static bool
 +nouveau_force_drm (void)
 +{
 +  int fd;
@@ -60,12 +62,12 @@ Index: trunk/src/plugins/renderers/drm/plugin.c
 +  else
 +    return false;
 +}
++#endif
 +
-+static bool
+ static bool
  load_driver (ply_renderer_backend_t *backend)
  {
-   char *driver_name;
-@@ -524,8 +560,13 @@
+@@ -559,8 +597,13 @@
    if (backend->driver_interface == NULL && (strcmp (driver_name, "nouveau") == 0
                                              || strcmp (driver_name, "lbm-nouveau") == 0))
      {

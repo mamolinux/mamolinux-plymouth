@@ -155,11 +155,7 @@ view_show_prompt (view_t     *view,
                   const char *prompt,
                   const char *entered_text)
 {
-  ply_boot_splash_plugin_t *plugin;
   int display_width, display_height;
-  int i;
-
-  plugin = view->plugin;
 
   display_width = ply_text_display_get_number_of_columns (view->display);
   display_height = ply_text_display_get_number_of_rows (view->display);
@@ -452,7 +448,7 @@ animate_frame (ply_boot_splash_plugin_t *plugin,
 
       ply_text_display_set_background_color (view->display, PLY_TERMINAL_COLOR_BLACK);
       ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_WHITE);
-      ply_text_display_write (view->display, plugin->title);
+      ply_text_display_write (view->display, "%s", plugin->title);
 
       ply_text_display_set_cursor_position (view->display,
                                             (display_width - 10) / 2,
@@ -462,25 +458,25 @@ animate_frame (ply_boot_splash_plugin_t *plugin,
         ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_WHITE);
       else
         ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_BROWN);
-      ply_text_display_write (view->display, ".  ");
+      ply_text_display_write (view->display, "%s", ".  ");
 
       if ((frame < 2) || (frame > 5))
         ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_WHITE);
       else
         ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_BROWN);
-      ply_text_display_write (view->display, ".  ");
+      ply_text_display_write (view->display, "%s", ".  ");
 
       if ((frame < 3) || (frame > 6))
         ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_WHITE);
       else
         ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_BROWN);
-      ply_text_display_write (view->display, ".  ");
+      ply_text_display_write (view->display, "%s", ".  ");
 
       if (frame < 4)
         ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_WHITE);
       else
         ply_text_display_set_foreground_color (view->display, PLY_TERMINAL_COLOR_BROWN);
-      ply_text_display_write (view->display, ".");
+      ply_text_display_write (view->display, "%s", ".");
 
       node = next_node;
     }
@@ -542,8 +538,6 @@ start_animation (ply_boot_splash_plugin_t *plugin)
 static void
 stop_animation (ply_boot_splash_plugin_t *plugin)
 {
-  ply_list_node_t *node;
-
   assert (plugin != NULL);
   assert (plugin->loop != NULL);
 
@@ -551,18 +545,6 @@ stop_animation (ply_boot_splash_plugin_t *plugin)
      return;
 
   plugin->is_animating = false;
-
-  node = ply_list_get_first_node (plugin->views);
-  while (node != NULL)
-    {
-      ply_list_node_t *next_node;
-      view_t *view;
-
-      view = ply_list_node_get_data (node);
-      next_node = ply_list_get_next_node (plugin->views, node);
-
-      node = next_node;
-    }
 
   ply_event_loop_stop_watching_for_timeout (plugin->loop,
                                             (ply_event_loop_timeout_handler_t)

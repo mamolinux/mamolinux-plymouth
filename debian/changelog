@@ -1,3 +1,24 @@
+plymouth (0.8.8-0ubuntu8) saucy; urgency=low
+
+  * Tweak the description of the plymouth-ready upstart job.
+  * debian/patches/Fix-missing-prototype-of-ply_get_timestamp.patch:
+    Fix missing prototype of ply_get_timestamp().  LP: #1187318.
+  * Build with -Werror, to prevent bugs like this from sneaking in in the
+    future.
+  * Drop -Wl,--as-needed from build flags, now used by default in the
+    toolchain.
+  * Fix the ubuntu-text plugin to build cleanly (no -Werror=format-security
+    or -Werror=unused-but-set-variable problems).
+  * debian/patches/Miscellaneous-fixes-for-compiler-warnings.patch:
+    Miscellaneous fixes for compiler warnings.
+  * debian/patches/nouveau-framebuffer.patch: we're no longer building with
+    the nouveau backend at all; make the code build without warnings for this
+    case, but leave the patch in place for right now.
+  * src/client/ply-boot-client.c: fix possible uninitialized variable
+    problems.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Thu, 01 Aug 2013 08:51:45 +0000
+
 plymouth (0.8.8-0ubuntu7) saucy; urgency=low
 
   * debian/initramfs-tools/hooks/plymouth: Stop copying the pango modules and

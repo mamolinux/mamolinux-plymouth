@@ -3,20 +3,22 @@
 	dh $@
 
 
-CFLAGS = -Wall -g
-LDFLAGS = -Wl,--as-needed
-CONFIG_OPTIONS =
-
-DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+DEB_CFLAGS_MAINT_APPEND  := -Werror -Wno-error=unused-result \
+	-Wno-error=sign-compare
 
 # Disable optimisations if noopt found in $DEB_BUILD_OPTIONS
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-	CFLAGS += -O0
-	LDFLAGS += -Wl,-O0
+	DEB_LDFLAGS_MAINT_APPEND += -Wl,-O0
 else
-	CFLAGS += -O2
-	LDFLAGS += -Wl,-O1
+	DEB_LDFLAGS_MAINT_APPEND += -Wl,-O1
 endif
+
+export DEB_LDFLAGS_MAINT_APPEND DEB_CFLAGS_MAINT_APPEND
+
+
+CONFIG_OPTIONS =
+
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
 # This renderer is only available on architectures that are sufficiently
 # PC-like
@@ -30,12 +32,13 @@ ifeq (,$(filter $(DEB_HOST_ARCH),amd64 i386))
 endif
 
 override_dh_auto_configure:
-	dh_auto_configure -- CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
+	dh_auto_configure -- \
 		--libdir=/lib/$(DEB_HOST_MULTIARCH) \
 		--datadir=/lib \
 		--enable-tracing \
 		--disable-tests \
 		--disable-maintainer-mode \
+		--disable-silent-rules \
 		--disable-gdm-transition \
 		--with-system-root-install \
 		--without-rhgb-compat-link \

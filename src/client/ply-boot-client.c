@@ -270,10 +270,13 @@ ply_boot_client_process_incoming_replies (ply_boot_client_t *client)
     }
 
   if (!ply_read (client->socket_fd, byte, sizeof (uint8_t)))
-    goto out;
+    {
+      ply_error ("could not read response from boot status daemon");
+      return;
+    }
 
   for (request_node = ply_list_get_first_node (client->requests_waiting_for_replies);
-       request_node; request_node = ply_list_get_next_node (client->requests_waiting_for_replies, request_node))
+       ; request_node = ply_list_get_next_node (client->requests_waiting_for_replies, request_node))
     {
       assert (request_node != NULL);
       request = (ply_boot_client_request_t *) ply_list_node_get_data (request_node);
