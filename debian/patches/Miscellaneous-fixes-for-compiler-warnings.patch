@@ -1,0 +1,70 @@
+From a38267d05a9621ef8b1e1a53152338026266b523 Mon Sep 17 00:00:00 2001
+From: Steve Langasek <steve.langasek@canonical.com>
+Date: Fri, 28 Jun 2013 14:29:15 -0700
+Subject: [PATCH] Miscellaneous fixes for compiler warnings
+Forwarded: http://lists.freedesktop.org/archives/plymouth/2013-June/000736.html
+
+Fix various warnings turned up with -Wall.  After fixing these issues,
+plymouth now builds successfully with gcc 4.8 using
+"-Werror -Wno-error=unused-result -Wno-error=sign-compare".
+---
+ src/main.c                                      | 2 ++
+ src/plugins/splash/script/script-lib-plymouth.c | 1 +
+ src/plugins/splash/script/script-scan.c         | 7 +++++--
+ 3 files changed, 8 insertions(+), 2 deletions(-)
+
+Index: trunk/src/main.c
+===================================================================
+--- trunk.orig/src/main.c
++++ trunk/src/main.c
+@@ -150,8 +150,10 @@
+                                 const char *default_tty,
+                                 bool        should_add_displays);
+ static void toggle_between_splash_and_details (state_t *state);
++#ifdef PLY_ENABLE_SYSTEMD_INTEGRATION
+ static void tell_systemd_to_print_details (state_t *state);
+ static void tell_systemd_to_stop_printing_details (state_t *state);
++#endif
+ 
+ static void
+ on_session_output (state_t    *state,
+Index: trunk/src/plugins/splash/script/script-lib-plymouth.c
+===================================================================
+--- trunk.orig/src/plugins/splash/script/script-lib-plymouth.c
++++ trunk/src/plugins/splash/script/script-lib-plymouth.c
+@@ -64,6 +64,7 @@
+       case PLY_BOOT_SPLASH_MODE_UPDATES:
+         obj = script_obj_new_string ("updates");
+         break;
++      case PLY_BOOT_SPLASH_MODE_INVALID:
+       default:
+         obj = script_obj_new_string ("unknown");
+         break;
+Index: trunk/src/plugins/splash/script/script-scan.c
+===================================================================
+--- trunk.orig/src/plugins/splash/script/script-scan.c
++++ trunk/src/plugins/splash/script/script-scan.c
+@@ -26,6 +26,7 @@
+ #include <stdbool.h>
+ #include <unistd.h>
+ #include <string.h>
++#include <limits.h>
+ 
+ #include "ply-bitarray.h"
+ #include "script-scan.h"
+@@ -367,11 +368,13 @@
+ {
+   int i;
+ 
+-  if (scan->tokencount <= n)
++  /* we're screwed long before we ever actually hit INT_MAX; but at least
++   * we shouldn't get ourselves stuck in an infinite loop. */
++  if (scan->tokencount <= n && n < INT_MAX)
+     {
+       scan->tokens =
+         realloc (scan->tokens, (n + 1) * sizeof (script_scan_token_t *));
+-      for (i = scan->tokencount; i <= n; i++)                                   /* FIXME warning about possibely inifnite loop */
++      for (i = scan->tokencount; i <= n; i++)
+         {
+           scan->tokens[i] = malloc (sizeof (script_scan_token_t));
+           scan->tokens[i]->type = SCRIPT_SCAN_TOKEN_TYPE_EMPTY;

@@ -9,4 +9,6 @@ ubuntu-logo.patch
 ubuntu-text.patch
 avoid-sigpipe.patch
 tty1-after-boot.patch
+Fix-missing-prototype-of-ply_get_timestamp.patch
+Miscellaneous-fixes-for-compiler-warnings.patch
 autoreconf.patch

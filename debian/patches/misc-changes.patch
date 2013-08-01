@@ -7,8 +7,10 @@ Description: Undocumented changes
  patch series.
 Last-Update: 2011-01-21
 
---- a/src/main.c
-+++ b/src/main.c
+Index: trunk/src/main.c
+===================================================================
+--- trunk.orig/src/main.c
++++ trunk/src/main.c
 @@ -122,6 +122,7 @@
    const char *default_tty;
  
@@ -122,8 +124,10 @@ Last-Update: 2011-01-21
    state->messages = ply_list_new ();
    state->keyboard = NULL;
  
---- a/src/plugins/splash/script/script-lib-image.c
-+++ b/src/plugins/splash/script/script-lib-image.c
+Index: trunk/src/plugins/splash/script/script-lib-image.c
+===================================================================
+--- trunk.orig/src/plugins/splash/script/script-lib-image.c
++++ trunk/src/plugins/splash/script/script-lib-image.c
 @@ -173,7 +173,7 @@
  
    alpha_obj = script_obj_hash_peek_element (state->local, "alpha");
@@ -133,8 +137,10 @@ Last-Update: 2011-01-21
      {
        alpha = CLAMP(script_obj_as_number (alpha_obj), 0, 1);
      }
---- a/src/plugins/splash/script/script-lib-sprite.c
-+++ b/src/plugins/splash/script/script-lib-sprite.c
+Index: trunk/src/plugins/splash/script/script-lib-sprite.c
+===================================================================
+--- trunk.orig/src/plugins/splash/script/script-lib-sprite.c
++++ trunk/src/plugins/splash/script/script-lib-sprite.c
 @@ -399,6 +399,45 @@
    return script_return_obj_null ();
  }
@@ -194,8 +200,10 @@ Last-Update: 2011-01-21
                                "SetBackgroundTopColor",
                                sprite_window_set_background_top_color,
                                data,
---- a/src/plugins/splash/script/plugin.c
-+++ b/src/plugins/splash/script/plugin.c
+Index: trunk/src/plugins/splash/script/plugin.c
+===================================================================
+--- trunk.orig/src/plugins/splash/script/plugin.c
++++ trunk/src/plugins/splash/script/plugin.c
 @@ -467,6 +467,8 @@
  become_idle (ply_boot_splash_plugin_t *plugin,
               ply_trigger_t            *idle_trigger)
@@ -205,8 +213,10 @@ Last-Update: 2011-01-21
    ply_trigger_pull (idle_trigger, NULL);
  }
  
---- a/src/plugins/splash/text/plugin.c
-+++ b/src/plugins/splash/text/plugin.c
+Index: trunk/src/plugins/splash/text/plugin.c
+===================================================================
+--- trunk.orig/src/plugins/splash/text/plugin.c
++++ trunk/src/plugins/splash/text/plugin.c
 @@ -481,7 +481,10 @@
  
    terminal = ply_text_display_get_terminal (view->display);
@@ -219,8 +229,10 @@ Last-Update: 2011-01-21
  
    ply_text_display_set_draw_handler (view->display,
                                       (ply_text_display_draw_handler_t)
---- a/src/libply-splash-core/ply-pixel-display.h
-+++ b/src/libply-splash-core/ply-pixel-display.h
+Index: trunk/src/libply-splash-core/ply-pixel-display.h
+===================================================================
+--- trunk.orig/src/libply-splash-core/ply-pixel-display.h
++++ trunk/src/libply-splash-core/ply-pixel-display.h
 @@ -48,6 +48,7 @@
  
  unsigned long ply_pixel_display_get_width  (ply_pixel_display_t *display);
@@ -229,8 +241,10 @@ Last-Update: 2011-01-21
  
  void ply_pixel_display_set_draw_handler (ply_pixel_display_t              *display,
                                           ply_pixel_display_draw_handler_t  draw_handler,
---- a/src/libply-splash-core/ply-renderer.c
-+++ b/src/libply-splash-core/ply-renderer.c
+Index: trunk/src/libply-splash-core/ply-renderer.c
+===================================================================
+--- trunk.orig/src/libply-splash-core/ply-renderer.c
++++ trunk/src/libply-splash-core/ply-renderer.c
 @@ -328,6 +328,21 @@
                                                            head);
  }
@@ -253,8 +267,10 @@ Last-Update: 2011-01-21
  void
  ply_renderer_flush_head (ply_renderer_t      *renderer,
                           ply_renderer_head_t *head)
---- a/src/libply-splash-core/ply-renderer.h
-+++ b/src/libply-splash-core/ply-renderer.h
+Index: trunk/src/libply-splash-core/ply-renderer.h
+===================================================================
+--- trunk.orig/src/libply-splash-core/ply-renderer.h
++++ trunk/src/libply-splash-core/ply-renderer.h
 @@ -51,6 +51,8 @@
  ply_list_t *ply_renderer_get_heads (ply_renderer_t *renderer);
  ply_pixel_buffer_t *ply_renderer_get_buffer_for_head (ply_renderer_t      *renderer,
@@ -264,8 +280,10 @@ Last-Update: 2011-01-21
  
  void ply_renderer_flush_head (ply_renderer_t      *renderer,
                                ply_renderer_head_t *head);
---- a/src/libply-splash-core/ply-pixel-display.c
-+++ b/src/libply-splash-core/ply-pixel-display.c
+Index: trunk/src/libply-splash-core/ply-pixel-display.c
+===================================================================
+--- trunk.orig/src/libply-splash-core/ply-pixel-display.c
++++ trunk/src/libply-splash-core/ply-pixel-display.c
 @@ -51,6 +51,7 @@
  
    unsigned long width;
@@ -297,8 +315,10 @@ Last-Update: 2011-01-21
  static void
  ply_pixel_display_flush (ply_pixel_display_t *display)
  {
---- a/src/libply-splash-core/ply-renderer-plugin.h
-+++ b/src/libply-splash-core/ply-renderer-plugin.h
+Index: trunk/src/libply-splash-core/ply-renderer-plugin.h
+===================================================================
+--- trunk.orig/src/libply-splash-core/ply-renderer-plugin.h
++++ trunk/src/libply-splash-core/ply-renderer-plugin.h
 @@ -54,6 +54,8 @@
  
    ply_pixel_buffer_t * (* get_buffer_for_head) (ply_renderer_backend_t *backend,
@@ -308,28 +328,33 @@ Last-Update: 2011-01-21
  
    ply_renderer_input_source_t * (* get_input_source) (ply_renderer_backend_t *backend);
    bool                 (* open_input_source) (ply_renderer_backend_t *backend,
---- a/src/client/ply-boot-client.c
-+++ b/src/client/ply-boot-client.c
-@@ -269,15 +269,32 @@
+Index: trunk/src/client/ply-boot-client.c
+===================================================================
+--- trunk.orig/src/client/ply-boot-client.c
++++ trunk/src/client/ply-boot-client.c
+@@ -269,14 +269,34 @@
        return;
      }
  
 -  request_node = ply_list_get_first_node (client->requests_waiting_for_replies);
 -  assert (request_node != NULL);
--
++  if (!ply_read (client->socket_fd, byte, sizeof (uint8_t)))
++    {
++      ply_error ("could not read response from boot status daemon");
++      return;
++    }
+ 
 -  request = (ply_boot_client_request_t *) ply_list_node_get_data (request_node);
 -  assert (request != NULL);
--
-   if (!ply_read (client->socket_fd, byte, sizeof (uint8_t)))
-     goto out;
- 
 +  for (request_node = ply_list_get_first_node (client->requests_waiting_for_replies);
-+       request_node; request_node = ply_list_get_next_node (client->requests_waiting_for_replies, request_node))
++       ; request_node = ply_list_get_next_node (client->requests_waiting_for_replies, request_node))
 +    {
 +      assert (request_node != NULL);
 +      request = (ply_boot_client_request_t *) ply_list_node_get_data (request_node);
 +      assert (request != NULL);
-+
+ 
+-  if (!ply_read (client->socket_fd, byte, sizeof (uint8_t)))
+-    goto out;
 +      if (! strcmp (request->command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_PASSWORD)
 +          || ! strcmp (request->command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_QUESTION)
 +          || ! strcmp (request->command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_KEYSTROKE))
@@ -345,12 +370,13 @@ Last-Update: 2011-01-21
 +            break;
 +        }
 +    }
-+
+ 
    if (memcmp (byte, PLY_BOOT_PROTOCOL_RESPONSE_TYPE_ACK, sizeof (uint8_t)) == 0)
      {
-       if (request->handler != NULL)
---- a/src/plugins/renderers/frame-buffer/plugin.c
-+++ b/src/plugins/renderers/frame-buffer/plugin.c
+Index: trunk/src/plugins/renderers/frame-buffer/plugin.c
+===================================================================
+--- trunk.orig/src/plugins/renderers/frame-buffer/plugin.c
++++ trunk/src/plugins/renderers/frame-buffer/plugin.c
 @@ -644,6 +644,16 @@
    return backend->head.pixel_buffer;
  }
