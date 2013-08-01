@@ -1,3 +1,10 @@
+plymouth (0.8.8-0ubuntu6.2) raring; urgency=low
+
+  * debian/patches/Fix-missing-prototype-of-ply_get_timestamp.patch:
+    Fix missing prototype of ply_get_timestamp().  LP: #1187318.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Thu, 01 Aug 2013 09:13:34 +0100
+
 plymouth (0.8.8-0ubuntu6.1) raring-proposed; urgency=low
 
   * plymouth-ready.conf: Send an event to indicate plymouth is up. Needed

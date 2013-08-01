@@ -1,0 +1,27 @@
+From 98f7fc434d3718be0689671854bece47ed7fef93 Mon Sep 17 00:00:00 2001
+From: Steve Langasek <steve.langasek@canonical.com>
+Date: Fri, 28 Jun 2013 10:52:59 -0700
+Ubuntu-Bug: https://bugs.launchpad.net/ubuntu/+source/plymouth/+bug/1187318
+Subject: [PATCH] Fix missing prototype of ply_get_timestamp()
+
+Because ply_get_timestamp() returns a double, a missing prototype on x86
+corrupts the processor's floating point state with astonishing knock-on
+effects (the label plugin fails to display any text).
+
+    Bug: https://bugs.launchpad.net/ubuntu/+source/plymouth/+bug/1187318
+---
+ src/plugins/splash/script/script-lib-math.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+Index: trunk/src/plugins/splash/script/script-lib-math.c
+===================================================================
+--- trunk.orig/src/plugins/splash/script/script-lib-math.c
++++ trunk/src/plugins/splash/script/script-lib-math.c
+@@ -20,6 +20,7 @@
+  * Written by: Charlie Brej <cbrej@cs.man.ac.uk>
+  */
+ #define _GNU_SOURCE
++#include "ply-utils.h"
+ #include "script.h"
+ #include "script-parse.h"
+ #include "script-execute.h"
