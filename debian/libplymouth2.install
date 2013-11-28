@@ -1,5 +1,5 @@
-lib/*/libply.so.*
 lib/*/libply-boot-client.so.*
 lib/*/libply-splash-core.so.*
 lib/*/libply-splash-graphics.so.*
+lib/*/libply.so.*
 usr/share/apport/package-hooks
