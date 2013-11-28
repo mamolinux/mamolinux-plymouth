@@ -3,7 +3,7 @@ Sat, 07 Feb 2009 12:03:22 +0000.
 
 It was downloaded from git://git.freedesktop.org/git/plymouth
 
-Upstream Authors and Copyright Holder: 
+Upstream Authors and Copyright Holder:
 Kristian Høgsberg <krh@redhat.com>
 Ray Strode <halfline@gmail.com>
 Peter Jones <pjones@redhat.com>
@@ -26,4 +26,3 @@ License:
 
 On Debian systems, the complete text of the GNU General
 Public License can be found in `/usr/share/common-licenses/GPL'.
-
