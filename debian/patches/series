@@ -12,3 +12,4 @@ tty1-after-boot.patch
 Fix-missing-prototype-of-ply_get_timestamp.patch
 Miscellaneous-fixes-for-compiler-warnings.patch
 autoreconf.patch
+details-update-status.patch

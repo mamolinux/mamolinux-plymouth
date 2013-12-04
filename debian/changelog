@@ -1,3 +1,10 @@
+plymouth (0.8.8-0ubuntu11) trusty; urgency=low
+
+  * Implement update status (U) splash plugin function for details plugin,
+    simply display those updates as text messages. (LP: #540645)
+
+ -- Dmitrijs Ledkovs <xnox@ubuntu.com>  Wed, 04 Dec 2013 12:36:46 +0000
+
 plymouth (0.8.8-0ubuntu10) trusty; urgency=low
 
   * Update font dependency from ttf-dejavu-core to fonts-dejavu-core.
