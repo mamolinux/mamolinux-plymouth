@@ -1,3 +1,9 @@
+plymouth (0.8.8-0ubuntu12) trusty; urgency=low
+
+  * Build using dh-autoreconf.
+
+ -- Matthias Klose <doko@ubuntu.com>  Fri, 06 Dec 2013 16:40:26 +0100
+
 plymouth (0.8.8-0ubuntu11) trusty; urgency=low
 
   * Implement update status (U) splash plugin function for details plugin,
