@@ -69,9 +69,9 @@ if [ -e "$THEME" ]; then
 
 	# and copy the font support files needed in order to actually display
 	# any text
-	mkdir -p ${DESTDIR}/usr/share/fonts/truetype/ttf-dejavu
+	mkdir -p ${DESTDIR}/usr/share/fonts/truetype/dejavu
 	mkdir -p ${DESTDIR}/etc/fonts/conf.d
-	cp /usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf ${DESTDIR}/usr/share/fonts/truetype/ttf-dejavu/
+	cp /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf ${DESTDIR}/usr/share/fonts/truetype/dejavu/
 	cp /etc/fonts/fonts.conf ${DESTDIR}/etc/fonts/fonts.conf
 	cp -L /etc/fonts/conf.d/60-latin.conf ${DESTDIR}/etc/fonts/conf.d
 fi

@@ -1,3 +1,10 @@
+plymouth (0.8.8-0ubuntu13) trusty; urgency=medium
+
+  * Fix initramfs hook to look in the right path for fonts, now that we
+    don't depend on the transitional ttf-dejavu-core package.  LP: #1262983.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Thu, 19 Dec 2013 22:29:18 -0800
+
 plymouth (0.8.8-0ubuntu12) trusty; urgency=low
 
   * Build using dh-autoreconf.
