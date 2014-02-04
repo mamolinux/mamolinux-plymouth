@@ -21,6 +21,7 @@ Architecture: any
 Depends: initramfs-tools,
          libplymouth2 (= ${binary:Version}),
          mountall (>= 2.0),
+         upstart (>= 1.11-0ubuntu3),
          udev (>= 166-0ubuntu4),
          ${misc:Depends},
          ${shlibs:Depends}

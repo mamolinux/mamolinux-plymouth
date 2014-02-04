@@ -7,11 +7,19 @@
 
 description	"userspace bootsplash utility"
 
-start on starting mountall
+start on (runlevel [016]
+      	  and (stopped xdm
+	       or stopped uxlaunch))
 
 expect fork
 kill timeout 60
 
-exec /sbin/plymouthd --mode=boot --attach-to-session
+pre-start script
+    status lightdm >/dev/null 2>/dev/null && start wait-for-state WAITER=plymouth-shutdown WAIT_FOR=lightdm TARGET_GOAL=stop WAIT_STATE=waiting || :
+end script
+
+exec /sbin/plymouthd --mode=shutdown
+
+post-start exec /bin/plymouth show-splash
 
 pre-stop exec /bin/plymouth quit
