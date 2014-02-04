@@ -1,3 +1,14 @@
+plymouth (0.8.8-0ubuntu14) trusty; urgency=medium
+
+  * Implement message-less shutdown (LP: #967229):
+    * Refactor plymouth job into plymouth (boot mode) and plymouth-shutdown
+      (shutdown-mode), as the two are two different jobs.
+    * If present, make plymouth-shutdown stop and wait for lightdm to stop.
+    * Add versioned dependency on upstart, which has rc.conf start
+      plymouth-shutdown on shutdown.
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Tue, 04 Feb 2014 17:07:35 +0000
+
 plymouth (0.8.8-0ubuntu13) trusty; urgency=medium
 
   * Fix initramfs hook to look in the right path for fonts, now that we
