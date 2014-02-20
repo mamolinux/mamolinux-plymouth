@@ -1,3 +1,11 @@
+plymouth (0.8.8-0ubuntu15) trusty; urgency=medium
+
+  * Update plymouth ubuntu logos to match installer bootsplash and design
+    guidelines (circle of friends is white with orange, not white and
+    transparent thus aubergine).
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Thu, 20 Feb 2014 21:42:59 +0000
+
 plymouth (0.8.8-0ubuntu14) trusty; urgency=medium
 
   * Implement message-less shutdown (LP: #967229):
