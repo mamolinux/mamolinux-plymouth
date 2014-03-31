@@ -4,7 +4,7 @@ DefaultDependencies=no
 Wants=systemd-ask-password-plymouth.path
 After=systemd-vconsole-setup.service systemd-udev-trigger.service
 Before=systemd-ask-password-plymouth.service
-ConditionKernelCommandLine=!plymouth.enable=0
+ConditionKernelCommandLine=splash
 
 [Service]
 ExecStart=@PLYMOUTH_DAEMON_DIR@/plymouthd --mode=boot --pid-file=@plymouthruntimedir@/pid --attach-to-session
