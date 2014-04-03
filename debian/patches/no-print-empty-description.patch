@@ -1,0 +1,14 @@
+Description: do not store empty descriptions
+Author: Dimitri John Ledkov <xnox@ubuntu.com>
+
+--- plymouth-0.8.8.orig/src/upstart-bridge/ply-upstart-monitor.c
++++ plymouth-0.8.8/src/upstart-bridge/ply-upstart-monitor.c
+@@ -273,7 +273,7 @@ on_get_all_job_properties_finished (DBus
+               DBUS_TYPE_STRING)
+             goto next_item;
+           dbus_message_iter_get_basic (&variant_iter, &description);
+-          if (description != NULL)
++          if (description != NULL && description[0])
+             {
+               ply_trace ("description = '%s'", description);
+               job->properties.description = strdup (description);

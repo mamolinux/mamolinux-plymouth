@@ -1536,7 +1536,8 @@ add_display_and_keyboard_for_terminal (state_t        *state,
   ply_keyboard_t *keyboard;
 
   // urgh
-  if (!ply_terminal_open (state->local_console_terminal))
+  if (state->local_console_terminal != NULL &&
+      !ply_terminal_open (state->local_console_terminal))
     return;
 
   keyboard = ply_keyboard_new_for_terminal (terminal);

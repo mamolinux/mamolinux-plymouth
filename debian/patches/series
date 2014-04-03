@@ -13,3 +13,7 @@ Fix-missing-prototype-of-ply_get_timestamp.patch
 Miscellaneous-fixes-for-compiler-warnings.patch
 autoreconf.patch
 details-update-status.patch
+use-upstart-private-socket.patch
+dont-bail-on-dummy-terms.patch
+no-print-empty-description.patch
+ubuntu-logo-scale-factor-2.patch
