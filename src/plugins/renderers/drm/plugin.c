@@ -556,7 +556,8 @@ load_driver (ply_renderer_backend_t *backend)
     }
 #endif
 #ifdef PLY_ENABLE_LIBDRM_NOUVEAU
-  if (backend->driver_interface == NULL && strcmp (driver_name, "nouveau") == 0)
+  if (backend->driver_interface == NULL && (strcmp (driver_name, "nouveau") == 0
+                                            || strcmp (driver_name, "lbm-nouveau") == 0))
     {
       backend->driver_interface = ply_renderer_nouveau_driver_get_interface ();
       backend->driver_supports_mapping_console = false;
