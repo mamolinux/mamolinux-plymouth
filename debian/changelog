@@ -1,3 +1,34 @@
+plymouth (0.8.8-0ubuntu16) trusty; urgency=medium
+
+  [ Steve Langasek ]
+  * Fix debian/patches/tty1-after-boot.patch: when we have multiple
+    non-default console options on the kernel commandline,
+    local_console_terminal will not be set, so we should avoid the resulting
+    assert.  LP: #1160079, LP: #1235231.
+
+  [ Dimitri John Ledkov ] LP: #1292458
+  * debian/patches/use-upstart-private-socket.patch: instead of using
+    system dbus, use private upstart socket in the plymouth-upstart-bridge.
+  * debian/plymouth.plymouth-upstart-bridge.upstart: start
+    plymouth-upstart-bridge on startup, and thus gather a more complete
+    boot.log.
+  * debian/patches/dont-bail-on-dummy-terms.patch: don't bail
+    plymouth-upstart-bridge if TERM is not set and/or running on a dummy
+    terminal, as we can run on those. This makes console-log useful in
+    lxc-containers and actually contain messages from upstart jobs
+    starting and stopping.
+  * debian/patches/no-print-empty-description.patch: do not store
+    description when dbus returns empty string, and thus stop printing
+    empty "Starting... done" messages. LP: #1185560.
+  * debian/plymouth.plymouth-upstart-bridge.upstart: update stop on
+    conditions to stop when plymouth-shutdown finishes.
+  * Make ubuntu-logo theme support scale factor, provide one plymouth
+    theme with scale 1 and another with scale 2, until scale factor can be
+    dynamically detected.
+  * Mark plymouth-upstart-bridge to respawn.
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Thu, 03 Apr 2014 16:37:29 +0100
+
 plymouth (0.8.8-0ubuntu15) trusty; urgency=medium
 
   * Update plymouth ubuntu logos to match installer bootsplash and design

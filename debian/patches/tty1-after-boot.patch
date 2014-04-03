@@ -2,18 +2,21 @@ Description: Switch back to tty1 on exit if started with vt.handoff
 Author: Steve Langasek <steve.langasek@ubuntu.com>
 Last-Update: 2012-04-10
 Bug-Ubuntu: https://bugs.launchpad.net/bugs/913731
---- a/src/main.c
-+++ b/src/main.c
-@@ -1534,7 +1534,7 @@
+Index: trunk/src/main.c
+===================================================================
+--- trunk.orig/src/main.c
++++ trunk/src/main.c
+@@ -1534,7 +1534,8 @@
    ply_keyboard_t *keyboard;
  
    // urgh
 -  if (!ply_terminal_open (state->terminal))
-+  if (!ply_terminal_open (state->local_console_terminal))
++  if (state->local_console_terminal != NULL &&
++      !ply_terminal_open (state->local_console_terminal))
      return;
  
    keyboard = ply_keyboard_new_for_terminal (terminal);
-@@ -2164,6 +2164,21 @@
+@@ -2164,6 +2165,21 @@
  
    ply_trace ("After processing serial consoles there are now %d text displays",
               ply_list_get_length (state->text_displays));
@@ -35,8 +38,10 @@ Bug-Ubuntu: https://bugs.launchpad.net/bugs/913731
  }
  
  static bool
---- a/src/libply-splash-core/ply-terminal.c
-+++ b/src/libply-splash-core/ply-terminal.c
+Index: trunk/src/libply-splash-core/ply-terminal.c
+===================================================================
+--- trunk.orig/src/libply-splash-core/ply-terminal.c
++++ trunk/src/libply-splash-core/ply-terminal.c
 @@ -651,6 +651,14 @@
    return true;
  }
@@ -52,8 +57,10 @@ Bug-Ubuntu: https://bugs.launchpad.net/bugs/913731
  int
  ply_terminal_get_fd (ply_terminal_t *terminal)
  {
---- a/src/libply-splash-core/ply-terminal.h
-+++ b/src/libply-splash-core/ply-terminal.h
+Index: trunk/src/libply-splash-core/ply-terminal.h
+===================================================================
+--- trunk.orig/src/libply-splash-core/ply-terminal.h
++++ trunk/src/libply-splash-core/ply-terminal.h
 @@ -60,6 +60,7 @@
  void ply_terminal_free (ply_terminal_t *terminal);
  

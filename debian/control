@@ -178,7 +178,7 @@ Description: graphical boot animation and logger - spinfinity theme
 
 Package: plymouth-theme-ubuntu-logo
 Architecture: any
-Depends: plymouth, plymouth-label, ${misc:Depends}, ${shlibs:Depends}
+Depends: plymouth, plymouth-label, ttf-ubuntu-font-family, ${misc:Depends}, ${shlibs:Depends}
 Provides: plymouth-theme
 Replaces: plymouth (<< 0.8.1-1~)
 Description: graphical boot animation and logger - ubuntu-logo theme
