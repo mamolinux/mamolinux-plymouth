@@ -17,3 +17,4 @@ use-upstart-private-socket.patch
 dont-bail-on-dummy-terms.patch
 no-print-empty-description.patch
 ubuntu-logo-scale-factor-2.patch
+supress-notifications.patch
