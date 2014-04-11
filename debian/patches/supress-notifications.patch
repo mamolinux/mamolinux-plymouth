@@ -1,0 +1,16 @@
+Description: Suppress job-name update notifications to plymouthd from
+ plymouth-upstart-bridge.
+Author: Dimitri John Ledkov <xnox@ubuntu.com>
+Bug-Ubuntu: https://bugs.launchpad.net/bugs/1303815
+
+--- plymouth-0.8.8.orig/src/upstart-bridge/plymouth-upstart-bridge.c
++++ plymouth-0.8.8/src/upstart-bridge/plymouth-upstart-bridge.c
+@@ -147,8 +147,6 @@ update_status (state_t
+                const char                                *action,
+                bool                                       is_okay)
+ {
+-  ply_boot_client_update_daemon (state->client, job->name, NULL, NULL, state);
+-
+   if (job->description == NULL)
+     return;
+ 
