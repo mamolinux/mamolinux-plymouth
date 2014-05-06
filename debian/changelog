@@ -1,3 +1,14 @@
+plymouth (0.8.8-0ubuntu18) utopic; urgency=medium
+
+  * Import debian patches, sans default theme. This also brings in systemd
+    units fixes.
+  * Enable systemd units & parallel build.
+  * Synchronise postinst/postrm with debian.
+  * Fold ubuntu-logo patches into one.
+  * Drop autoreconf patch, as we use dh-autoreconf now.
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Tue, 06 May 2014 19:00:06 +0100
+
 plymouth (0.8.8-0ubuntu17) trusty; urgency=medium
 
   * Suppress job-name update notifications to plymouthd from

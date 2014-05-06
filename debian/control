@@ -5,6 +5,7 @@ Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
 Build-Depends: autotools-dev, dh-autoreconf,
                debhelper (>= 9),
                dh-exec (>= 0.3),
+               dh-systemd,
                dpkg-dev (>= 1.16.0~ubuntu4),
                libcairo2-dev,
                libdbus-1-dev,
