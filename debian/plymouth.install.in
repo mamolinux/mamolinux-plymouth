@@ -1,6 +1,7 @@
 bin/plymouth
 bin/plymouth-upstart-bridge
 sbin/plymouthd
+lib/systemd
 lib/*/plymouth/script.so
 lib/*/plymouth/renderers/drm.so
 lib/*/plymouth/renderers/frame-buffer.so
