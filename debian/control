@@ -6,6 +6,7 @@ Build-Depends: autotools-dev, dh-autoreconf,
                debhelper (>= 9),
                dh-exec (>= 0.3),
                dh-systemd,
+               docbook-xsl,
                dpkg-dev (>= 1.16.0~ubuntu4),
                libcairo2-dev,
                libdbus-1-dev,
@@ -13,14 +14,18 @@ Build-Depends: autotools-dev, dh-autoreconf,
                libgtk2.0-dev,
                libncursesw5-dev,
                libpango1.0-dev,
-               libpng12-dev
-Standards-Version: 3.8.3.0
+               libpng12-dev,
+               libudev-dev,
+               pkg-config,
+               systemd,
+               xsltproc
+Standards-Version: 3.9.5
 Vcs-Bzr: lp:ubuntu/plymouth
 
 Package: plymouth
 Architecture: any
 Depends: initramfs-tools,
-         libplymouth2 (= ${binary:Version}),
+         libplymouth4 (= ${binary:Version}),
          mountall (>= 2.0),
          upstart (>= 1.11-0ubuntu3),
          udev (>= 166-0ubuntu4),
@@ -42,7 +47,7 @@ Description: graphical boot animation and logger - main package
 
 Package: plymouth-x11
 Architecture: any
-Depends: libplymouth2 (= ${binary:Version}),
+Depends: libplymouth4 (= ${binary:Version}),
          plymouth (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
@@ -57,7 +62,7 @@ Description: graphical boot animation and logger - X11 interface
 
 Package: plymouth-label
 Architecture: any
-Depends: libplymouth2 (= ${binary:Version}),
+Depends: libplymouth4 (= ${binary:Version}),
          plymouth (= ${binary:Version}),
          fonts-dejavu-core,
          ${misc:Depends},
@@ -71,14 +76,14 @@ Description: graphical boot animation and logger - label control
  This package contains the label control, used by various graphical themes
  to render text.
 
-Package: libplymouth2
+Package: libplymouth4
 Architecture: any
 Multi-Arch: same
 Section: libs
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${misc:Depends}, ${shlibs:Depends}
-Replaces: plymouth (<< 0.7.0+git20090207-0ubuntu0.1~ppa4)
-Breaks: casper (= 1.227), mountall (<< 2.8)
+Replaces: plymouth (<< 0.7.0+git20090207-0ubuntu0.1~ppa4), libplymouth2
+Breaks: casper (= 1.227), mountall (<< 2.8), libplymouth2
 Description: graphical boot animation and logger - shared libraries
  Plymouth is an application that runs very early in the boot process
  (even before the root filesystem is mounted!) that provides a graphical
@@ -90,7 +95,7 @@ Package: libplymouth-dev
 Architecture: any
 Multi-Arch: same
 Section: libdevel
-Depends: libplymouth2 (= ${binary:Version}), ${misc:Depends}, ${shlibs:Depends}
+Depends: libplymouth4 (= ${binary:Version}), ${misc:Depends}, ${shlibs:Depends}
 Replaces: plymouth (<< 0.7.0+git20090207-0ubuntu0.1~ppa4)
 Description: graphical boot animation and logger - development files
  Plymouth is an application that runs very early in the boot process

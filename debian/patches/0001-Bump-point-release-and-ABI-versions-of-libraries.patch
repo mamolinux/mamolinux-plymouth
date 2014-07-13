@@ -1,0 +1,49 @@
+From 05ef62d48164a78fde424664058c92a65bb7713b Mon Sep 17 00:00:00 2001
+From: Dimitri John Ledkov <dimitri.ledkov@canonical.com>
+Date: Fri, 11 Jul 2014 11:41:04 +0100
+Subject: [PATCH] Bump point release and ABI versions of libraries.
+
+Due to removed interfaces since 0.8.8:
+ply_boot_splash_set_keyboard
+ply_boot_splash_unset_keyboard
+ply_boot_splash_add_pixel_display
+ply_boot_splash_remove_pixel_display
+ply_boot_splash_add_text_display
+ply_boot_splash_remove_text_display
+
+And a bunch of new ones added.
+---
+ configure.ac | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 46f8c58..d5957d7 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1,4 +1,4 @@
+-AC_INIT([plymouth],[0.9.0],[https://bugs.freedesktop.org/enter_bug.cgi?product=plymouth])
++AC_INIT([plymouth],[0.9.1],[https://bugs.freedesktop.org/enter_bug.cgi?product=plymouth])
+ AC_CONFIG_SRCDIR(src/main.c)
+ AC_CONFIG_HEADER(config.h)
+ AC_CONFIG_AUX_DIR(build-tools)
+@@ -19,7 +19,7 @@ PKG_PROG_PKG_CONFIG
+ LT_INIT([dlopen disable-static pic-only])
+ 
+ ## increment if the interface has additions, changes, removals.
+-LT_CURRENT=3
++LT_CURRENT=4
+ 
+ ## increment any time the source changes; set to
+ ##  0 if you increment CURRENT
+@@ -28,7 +28,7 @@ LT_REVISION=0
+ ## increment if any interfaces have been added; set to 0
+ ## if any interfaces have been changed or removed. removal has
+ ## precedence over adding, so set to 0 if both happened.
+-LT_AGE=1
++LT_AGE=0
+ 
+ AC_SUBST(LT_CURRENT)
+ AC_SUBST(LT_REVISION)
+-- 
+2.0.1
+

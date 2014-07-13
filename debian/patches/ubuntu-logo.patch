@@ -5,7 +5,7 @@ Last-Update: 2011-01-21
 
 --- a/configure.ac
 +++ b/configure.ac
-@@ -455,6 +455,7 @@
+@@ -322,6 +322,7 @@
             themes/glow/Makefile
             themes/spinner/Makefile
             themes/script/Makefile
@@ -16,8 +16,8 @@ Last-Update: 2011-01-21
 --- a/themes/Makefile.am
 +++ b/themes/Makefile.am
 @@ -1,2 +1,2 @@
--SUBDIRS = spinfinity fade-in text details solar glow script spinner
-+SUBDIRS = spinfinity fade-in text details solar glow script spinner ubuntu-logo
+-SUBDIRS = spinfinity fade-in text details solar glow script spinner tribar
++SUBDIRS = spinfinity fade-in text details solar glow script spinner tribar ubuntu-logo
  MAINTAINERCLEANFILES = Makefile.in
 --- /dev/null
 +++ b/themes/ubuntu-logo/Makefile.am
