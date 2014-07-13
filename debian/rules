@@ -1,7 +1,6 @@
 #!/usr/bin/make -f
-%:
-	dh $@ --parallel --with autoreconf,systemd
 
+export DH_VERBOSE=1
 
 DEB_CFLAGS_MAINT_APPEND  := -Werror -Wno-error=unused-result \
 	-Wno-error=sign-compare
@@ -15,49 +14,54 @@ endif
 
 export DEB_LDFLAGS_MAINT_APPEND DEB_CFLAGS_MAINT_APPEND
 
-
-CONFIG_OPTIONS =
-
-DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
-
 # This renderer is only available on architectures that are sufficiently
 # PC-like
 ifneq (,$(filter $(DEB_HOST_ARCH),amd64 armel i386 ia64))
 	VGA_RENDERER=lib/$(DEB_HOST_MULTIARCH)/plymouth/renderers/vga16fb.so
 endif	
 
-# Don't depend on the intel driver on non-intel architectures
-ifeq (,$(filter $(DEB_HOST_ARCH),amd64 i386))
-	CONFIG_OPTIONS += --disable-libdrm_intel
-endif
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+
+%:
+	dh ${@} --parallel --with autoreconf,systemd
+
+override_dh_auto_clean:
+	dh_auto_clean
+
+	rm -f build-tools/config.guess build-tools/config.sub
 
 override_dh_auto_configure:
+	cp -f /usr/share/misc/config.guess build-tools
+	cp -f /usr/share/misc/config.sub build-tools
+
 	dh_auto_configure -- \
+		--prefix=/usr \
 		--libdir=/lib/$(DEB_HOST_MULTIARCH) \
 		--datadir=/lib \
+		--localstatedir=/var \
+		--enable-pango \
+		--enable-upstart-monitoring \
+		--enable-systemd-integration \
+		--enable-static \
 		--enable-tracing \
-		--disable-tests \
-		--disable-maintainer-mode \
-		--disable-silent-rules \
 		--disable-gdm-transition \
-		--with-system-root-install \
-		--without-rhgb-compat-link \
+		--with-background-color=0x005a8a \
 		--without-gdm-autostart-file \
 		--with-log-viewer \
 		--with-logo=/lib/plymouth/ubuntu_logo.png \
+		--with-release-file=/etc/os-release \
+		--with-system-root-install \
+		--without-rhgb-compat-link \
 		--with-background-color=0x2c001e \
 		--with-background-start-color-stop=0x2c001e \
 		--with-background-end-color-stop=0x2c001e \
 		--with-boot-tty=/dev/tty7 \
-		--with-shutdown-tty=/dev/tty7 \
-		--enable-upstart-monitoring \
-		--enable-systemd-integration \
-		$(CONFIG_OPTIONS)
+		--with-shutdown-tty=/dev/tty7
 
 override_dh_auto_install:
 	dh_auto_install
 	mkdir -p debian/tmp/usr/share/apport/package-hooks
-	install -m 644 debian/libplymouth2.apport debian/tmp/usr/share/apport/package-hooks/source_plymouth.py
+	install -m 644 debian/libplymouth4.apport debian/tmp/usr/share/apport/package-hooks/source_plymouth.py
 
 override_dh_install:
 	sed -e'/frame-buffer\.so$$/a\

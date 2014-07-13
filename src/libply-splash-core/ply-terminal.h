@@ -60,7 +60,6 @@ ply_terminal_t *ply_terminal_new (const char *device_name);
 void ply_terminal_free (ply_terminal_t *terminal);
 
 bool ply_terminal_open (ply_terminal_t *terminal);
-void ply_terminal_handle_vt_handoff (ply_terminal_t *, int);
 int ply_terminal_get_fd (ply_terminal_t *terminal);
 bool ply_terminal_is_vt (ply_terminal_t *terminal);
 bool ply_terminal_is_open (ply_terminal_t *terminal);
@@ -92,6 +91,7 @@ void ply_terminal_set_mode (ply_terminal_t     *terminal,
 void ply_terminal_ignore_mode_changes (ply_terminal_t *terminal,
                                        bool            should_ignore);
 
+const char *ply_terminal_get_name (ply_terminal_t *terminal);
 int ply_terminal_get_vt_number (ply_terminal_t *terminal);
 bool ply_terminal_activate_vt (ply_terminal_t *terminal);
 bool ply_terminal_deactivate_vt (ply_terminal_t *terminal);

@@ -7,19 +7,17 @@ Description: Undocumented changes
  patch series.
 Last-Update: 2011-01-21
 
-Index: trunk/src/main.c
-===================================================================
---- trunk.orig/src/main.c
-+++ trunk/src/main.c
-@@ -122,6 +122,7 @@
+--- a/src/main.c
++++ b/src/main.c
+@@ -126,6 +126,7 @@
    const char *default_tty;
  
    int number_of_errors;
 +  ply_list_t *pending_messages;
  } state_t;
  
- static ply_boot_splash_t *start_boot_splash (state_t    *state,
-@@ -174,8 +175,9 @@
+ static void show_splash (state_t *state);
+@@ -185,8 +186,9 @@
             const char  *status)
  {
    ply_trace ("updating status to '%s'", status);
@@ -31,7 +29,7 @@ Index: trunk/src/main.c
    if (state->boot_splash != NULL)
      ply_boot_splash_update_status (state->boot_splash,
                                     status);
-@@ -227,6 +229,25 @@
+@@ -238,6 +240,25 @@
  }
  
  static void
@@ -57,34 +55,28 @@ Index: trunk/src/main.c
  show_messages (state_t *state)
  {
    if (state->boot_splash == NULL)
-@@ -435,7 +456,7 @@
+@@ -463,7 +484,7 @@
+     {
        ply_trace ("Could not start default splash screen,"
                   "showing text splash screen");
-       state->boot_splash = start_boot_splash (state,
--                                              PLYMOUTH_THEME_PATH "text/text.plymouth",
-+                                              PLYMOUTH_THEME_PATH "text.plymouth",
-                                               false);
-     }
- 
-@@ -444,12 +465,15 @@
-       ply_trace ("Could not start text splash screen,"
-                  "showing built-in fallback");
-       state->boot_splash = start_boot_splash (state,
--                                              PLYMOUTH_THEME_PATH "text/text.plymouth",
-+                                              PLYMOUTH_THEME_PATH "text.plymouth",
-                                               true);
+-      state->boot_splash = show_theme (state, PLYMOUTH_THEME_PATH "text/text.plymouth");
++      state->boot_splash = show_theme (state, PLYMOUTH_THEME_PATH "text.plymouth");
      }
  
    if (state->boot_splash == NULL)
--    ply_error ("plymouthd: could not start boot splash: %m");
-+    {
-+      if (errno != ENOENT)
-+        ply_error ("plymouthd: could not start boot splash: %m");
-+    }
- }
+@@ -475,8 +496,9 @@
  
- static void
-@@ -503,8 +527,10 @@
+   if (state->boot_splash == NULL)
+     {
+-      ply_error ("plymouthd: could not start boot splash: %m");
+-      return;
++	if (errno != ENOENT)
++	    ply_error ("plymouthd: could not start boot splash: %m");
++	return;
+     }
+ 
+   update_display (state);
+@@ -569,8 +591,10 @@
          ply_boot_splash_display_message (state->boot_splash, message);
      }
    else
@@ -97,7 +89,7 @@ Index: trunk/src/main.c
  }
  
  static void
-@@ -721,6 +747,7 @@
+@@ -789,6 +813,7 @@
        if (state->number_of_errors > 0)
          spool_error (state);
      }
@@ -105,29 +97,16 @@ Index: trunk/src/main.c
  }
  
  static void
-@@ -1506,6 +1533,10 @@
-   ply_text_display_t *display;
-   ply_keyboard_t *keyboard;
- 
-+  // urgh
-+  if (!ply_terminal_open (state->terminal))
-+    return;
-+
-   keyboard = ply_keyboard_new_for_terminal (terminal);
-   display = ply_text_display_new (terminal);
- 
-@@ -2209,6 +2240,7 @@
+@@ -2033,6 +2058,7 @@
+   state->keystroke_triggers = ply_list_new ();
+   state->entry_triggers = ply_list_new ();
    state->entry_buffer = ply_buffer_new();
-   state->pixel_displays = ply_list_new ();
-   state->text_displays = ply_list_new ();
 +  state->pending_messages = ply_list_new ();
    state->messages = ply_list_new ();
-   state->keyboard = NULL;
  
-Index: trunk/src/plugins/splash/script/script-lib-image.c
-===================================================================
---- trunk.orig/src/plugins/splash/script/script-lib-image.c
-+++ trunk/src/plugins/splash/script/script-lib-image.c
+   redirect_standard_io_to_dev_null ();
+--- a/src/plugins/splash/script/script-lib-image.c
++++ b/src/plugins/splash/script/script-lib-image.c
 @@ -173,7 +173,7 @@
  
    alpha_obj = script_obj_hash_peek_element (state->local, "alpha");
@@ -137,10 +116,8 @@ Index: trunk/src/plugins/splash/script/script-lib-image.c
      {
        alpha = CLAMP(script_obj_as_number (alpha_obj), 0, 1);
      }
-Index: trunk/src/plugins/splash/script/script-lib-sprite.c
-===================================================================
---- trunk.orig/src/plugins/splash/script/script-lib-sprite.c
-+++ trunk/src/plugins/splash/script/script-lib-sprite.c
+--- a/src/plugins/splash/script/script-lib-sprite.c
++++ b/src/plugins/splash/script/script-lib-sprite.c
 @@ -399,6 +399,45 @@
    return script_return_obj_null ();
  }
@@ -200,10 +177,8 @@ Index: trunk/src/plugins/splash/script/script-lib-sprite.c
                                "SetBackgroundTopColor",
                                sprite_window_set_background_top_color,
                                data,
-Index: trunk/src/plugins/splash/script/plugin.c
-===================================================================
---- trunk.orig/src/plugins/splash/script/plugin.c
-+++ trunk/src/plugins/splash/script/plugin.c
+--- a/src/plugins/splash/script/plugin.c
++++ b/src/plugins/splash/script/plugin.c
 @@ -467,6 +467,8 @@
  become_idle (ply_boot_splash_plugin_t *plugin,
               ply_trigger_t            *idle_trigger)
@@ -213,11 +188,9 @@ Index: trunk/src/plugins/splash/script/plugin.c
    ply_trigger_pull (idle_trigger, NULL);
  }
  
-Index: trunk/src/plugins/splash/text/plugin.c
-===================================================================
---- trunk.orig/src/plugins/splash/text/plugin.c
-+++ trunk/src/plugins/splash/text/plugin.c
-@@ -481,7 +481,10 @@
+--- a/src/plugins/splash/text/plugin.c
++++ b/src/plugins/splash/text/plugin.c
+@@ -478,7 +478,10 @@
  
    terminal = ply_text_display_get_terminal (view->display);
    if (ply_terminal_open (terminal))
@@ -229,10 +202,8 @@ Index: trunk/src/plugins/splash/text/plugin.c
  
    ply_text_display_set_draw_handler (view->display,
                                       (ply_text_display_draw_handler_t)
-Index: trunk/src/libply-splash-core/ply-pixel-display.h
-===================================================================
---- trunk.orig/src/libply-splash-core/ply-pixel-display.h
-+++ trunk/src/libply-splash-core/ply-pixel-display.h
+--- a/src/libply-splash-core/ply-pixel-display.h
++++ b/src/libply-splash-core/ply-pixel-display.h
 @@ -48,6 +48,7 @@
  
  unsigned long ply_pixel_display_get_width  (ply_pixel_display_t *display);
@@ -241,11 +212,9 @@ Index: trunk/src/libply-splash-core/ply-pixel-display.h
  
  void ply_pixel_display_set_draw_handler (ply_pixel_display_t              *display,
                                           ply_pixel_display_draw_handler_t  draw_handler,
-Index: trunk/src/libply-splash-core/ply-renderer.c
-===================================================================
---- trunk.orig/src/libply-splash-core/ply-renderer.c
-+++ trunk/src/libply-splash-core/ply-renderer.c
-@@ -328,6 +328,21 @@
+--- a/src/libply-splash-core/ply-renderer.c
++++ b/src/libply-splash-core/ply-renderer.c
+@@ -331,6 +331,21 @@
                                                            head);
  }
  
@@ -267,11 +236,9 @@ Index: trunk/src/libply-splash-core/ply-renderer.c
  void
  ply_renderer_flush_head (ply_renderer_t      *renderer,
                           ply_renderer_head_t *head)
-Index: trunk/src/libply-splash-core/ply-renderer.h
-===================================================================
---- trunk.orig/src/libply-splash-core/ply-renderer.h
-+++ trunk/src/libply-splash-core/ply-renderer.h
-@@ -51,6 +51,8 @@
+--- a/src/libply-splash-core/ply-renderer.h
++++ b/src/libply-splash-core/ply-renderer.h
+@@ -61,6 +61,8 @@
  ply_list_t *ply_renderer_get_heads (ply_renderer_t *renderer);
  ply_pixel_buffer_t *ply_renderer_get_buffer_for_head (ply_renderer_t      *renderer,
                                                        ply_renderer_head_t *head);
@@ -280,10 +247,8 @@ Index: trunk/src/libply-splash-core/ply-renderer.h
  
  void ply_renderer_flush_head (ply_renderer_t      *renderer,
                                ply_renderer_head_t *head);
-Index: trunk/src/libply-splash-core/ply-pixel-display.c
-===================================================================
---- trunk.orig/src/libply-splash-core/ply-pixel-display.c
-+++ trunk/src/libply-splash-core/ply-pixel-display.c
+--- a/src/libply-splash-core/ply-pixel-display.c
++++ b/src/libply-splash-core/ply-pixel-display.c
 @@ -51,6 +51,7 @@
  
    unsigned long width;
@@ -315,10 +280,8 @@ Index: trunk/src/libply-splash-core/ply-pixel-display.c
  static void
  ply_pixel_display_flush (ply_pixel_display_t *display)
  {
-Index: trunk/src/libply-splash-core/ply-renderer-plugin.h
-===================================================================
---- trunk.orig/src/libply-splash-core/ply-renderer-plugin.h
-+++ trunk/src/libply-splash-core/ply-renderer-plugin.h
+--- a/src/libply-splash-core/ply-renderer-plugin.h
++++ b/src/libply-splash-core/ply-renderer-plugin.h
 @@ -54,6 +54,8 @@
  
    ply_pixel_buffer_t * (* get_buffer_for_head) (ply_renderer_backend_t *backend,
@@ -328,10 +291,8 @@ Index: trunk/src/libply-splash-core/ply-renderer-plugin.h
  
    ply_renderer_input_source_t * (* get_input_source) (ply_renderer_backend_t *backend);
    bool                 (* open_input_source) (ply_renderer_backend_t *backend,
-Index: trunk/src/client/ply-boot-client.c
-===================================================================
---- trunk.orig/src/client/ply-boot-client.c
-+++ trunk/src/client/ply-boot-client.c
+--- a/src/client/ply-boot-client.c
++++ b/src/client/ply-boot-client.c
 @@ -269,14 +269,34 @@
        return;
      }
@@ -373,11 +334,9 @@ Index: trunk/src/client/ply-boot-client.c
  
    if (memcmp (byte, PLY_BOOT_PROTOCOL_RESPONSE_TYPE_ACK, sizeof (uint8_t)) == 0)
      {
-Index: trunk/src/plugins/renderers/frame-buffer/plugin.c
-===================================================================
---- trunk.orig/src/plugins/renderers/frame-buffer/plugin.c
-+++ trunk/src/plugins/renderers/frame-buffer/plugin.c
-@@ -644,6 +644,16 @@
+--- a/src/plugins/renderers/frame-buffer/plugin.c
++++ b/src/plugins/renderers/frame-buffer/plugin.c
+@@ -658,6 +658,16 @@
    return backend->head.pixel_buffer;
  }
  
@@ -394,7 +353,7 @@ Index: trunk/src/plugins/renderers/frame-buffer/plugin.c
  static bool
  has_input_source (ply_renderer_backend_t      *backend,
                    ply_renderer_input_source_t *input_source)
-@@ -737,6 +747,7 @@
+@@ -757,6 +767,7 @@
        .flush_head = flush_head,
        .get_heads = get_heads,
        .get_buffer_for_head = get_buffer_for_head,

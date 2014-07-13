@@ -1,3 +1,13 @@
+plymouth (0.9.0-0ubuntu1) utopic; urgency=medium
+
+  * New upstream release.
+  * Cherrypick library abi bump.
+  * Change initramfs plymouth pid to integrate with systemd ask pass.
+  * Make libplymouth4 break and replace libplymouth2, apport hook file
+    conflict.
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Sun, 13 Jul 2014 04:14:05 +0100
+
 plymouth (0.8.8-0ubuntu18) utopic; urgency=medium
 
   * Import debian patches, sans default theme. This also brings in systemd

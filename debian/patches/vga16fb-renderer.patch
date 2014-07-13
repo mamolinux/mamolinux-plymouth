@@ -3,11 +3,9 @@ Author: Scott James Remnant <scott@ubuntu.com>
 Bug-Ubuntu: https://bugs.launchpad.net/bugs/526892
 Last-Update: 2011-01-21
 
-Index: trunk/configure.ac
-===================================================================
---- trunk.orig/configure.ac
-+++ trunk/configure.ac
-@@ -308,6 +308,9 @@
+--- a/configure.ac
++++ b/configure.ac
+@@ -188,6 +188,9 @@
  AC_ARG_WITH(shutdown-tty, AS_HELP_STRING([--with-shutdown-tty=<tty>],[Default TTY to use in shutdown mode (by default tty63)]),SHUTDOWN_TTY=${withval},SHUTDOWN_TTY=/dev/tty63)
  AC_DEFINE_UNQUOTED(SHUTDOWN_TTY, "$SHUTDOWN_TTY", [TTY to use in shutdown mode])
  
@@ -17,7 +15,7 @@ Index: trunk/configure.ac
  # Turn on the additional warnings last, so -Werror doesn't affect other tests.
  
  AC_DEFUN([PLYMOUTH_CC_TRY_FLAG], [
-@@ -412,6 +415,7 @@
+@@ -292,6 +295,7 @@
             src/plugins/renderers/frame-buffer/Makefile
             src/plugins/renderers/drm/Makefile
             src/plugins/renderers/x11/Makefile
@@ -25,10 +23,8 @@ Index: trunk/configure.ac
             src/plugins/splash/Makefile
             src/plugins/splash/throbgress/Makefile
             src/plugins/splash/fade-throbber/Makefile
-Index: trunk/src/plugins/renderers/Makefile.am
-===================================================================
---- trunk.orig/src/plugins/renderers/Makefile.am
-+++ trunk/src/plugins/renderers/Makefile.am
+--- a/src/plugins/renderers/Makefile.am
++++ b/src/plugins/renderers/Makefile.am
 @@ -1,3 +1,6 @@
  SUBDIRS = frame-buffer x11 drm
 +if BUILD_VGA16FB
@@ -36,10 +32,8 @@ Index: trunk/src/plugins/renderers/Makefile.am
 +endif
  
  MAINTAINERCLEANFILES = Makefile.in
-Index: trunk/src/plugins/renderers/vga16fb/Makefile.am
-===================================================================
 --- /dev/null
-+++ trunk/src/plugins/renderers/vga16fb/Makefile.am
++++ b/src/plugins/renderers/vga16fb/Makefile.am
 @@ -0,0 +1,20 @@
 +INCLUDES = -I$(top_srcdir)                                                    \
 +           -I$(srcdir)/../../../libply                                        \
@@ -61,10 +55,8 @@ Index: trunk/src/plugins/renderers/vga16fb/Makefile.am
 +vga16fb_la_SOURCES = $(srcdir)/plugin.c
 +
 +MAINTAINERCLEANFILES = Makefile.in
-Index: trunk/src/plugins/renderers/vga16fb/plugin.c
-===================================================================
 --- /dev/null
-+++ trunk/src/plugins/renderers/vga16fb/plugin.c
++++ b/src/plugins/renderers/vga16fb/plugin.c
 @@ -0,0 +1,696 @@
 +/* plugin.c - vga16fb renderer plugin
 + *
@@ -762,10 +754,8 @@ Index: trunk/src/plugins/renderers/vga16fb/plugin.c
 +  return &plugin_interface;
 +}
 +/* vim: set ts=4 sw=4 et ai ci cino={.5s,^-2,+.5s,t0,g0,e-2,n-2,p2s,(0,=.5s,:.5s */
-Index: trunk/src/plugins/renderers/vga16fb/vga.h
-===================================================================
 --- /dev/null
-+++ trunk/src/plugins/renderers/vga16fb/vga.h
++++ b/src/plugins/renderers/vga16fb/vga.h
 @@ -0,0 +1,107 @@
 +/* vga.h - inlines for programming the VGA
 + *
@@ -874,15 +864,23 @@ Index: trunk/src/plugins/renderers/vga16fb/vga.h
 +#endif /* PLY_VGA_H */
 +/* vim: set ts=4 sw=4 et ai ci cino={.5s,^-2,+.5s,t0,g0,e-2,n-2,p2s,(0,=.5s,:.5s */
 +
-Index: trunk/src/libply-splash-core/ply-renderer.c
-===================================================================
---- trunk.orig/src/libply-splash-core/ply-renderer.c
-+++ trunk/src/libply-splash-core/ply-renderer.c
-@@ -267,6 +267,7 @@
-       PLYMOUTH_PLUGIN_PATH "renderers/x11.so",
-       PLYMOUTH_PLUGIN_PATH "renderers/drm.so",
-       PLYMOUTH_PLUGIN_PATH "renderers/frame-buffer.so",
-+      PLYMOUTH_PLUGIN_PATH "renderers/vga16fb.so",
-       NULL
+--- a/src/libply-splash-core/ply-renderer.c
++++ b/src/libply-splash-core/ply-renderer.c
+@@ -271,6 +271,7 @@
+       { PLY_RENDERER_TYPE_X11, PLYMOUTH_PLUGIN_PATH "renderers/x11.so" },
+       { PLY_RENDERER_TYPE_DRM, PLYMOUTH_PLUGIN_PATH "renderers/drm.so" },
+       { PLY_RENDERER_TYPE_FRAME_BUFFER, PLYMOUTH_PLUGIN_PATH "renderers/frame-buffer.so" },
++      { PLY_RENDERER_TYPE_VGA16FB, PLYMOUTH_PLUGIN_PATH "renderers/vga16fb.so" },
+       { PLY_RENDERER_TYPE_NONE, NULL }
      };
+ 
+--- a/src/libply-splash-core/ply-renderer.h
++++ b/src/libply-splash-core/ply-renderer.h
+@@ -41,6 +41,7 @@
+   PLY_RENDERER_TYPE_AUTO,
+   PLY_RENDERER_TYPE_DRM,
+   PLY_RENDERER_TYPE_FRAME_BUFFER,
++  PLY_RENDERER_TYPE_VGA16FB,
+   PLY_RENDERER_TYPE_X11
+ } ply_renderer_type_t;
  

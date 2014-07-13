@@ -651,14 +651,6 @@ ply_terminal_open (ply_terminal_t *terminal)
   return true;
 }
 
-void
-ply_terminal_handle_vt_handoff (ply_terminal_t *terminal, int vt)
-{
-  if (vt == terminal->initial_vt_number)
-    terminal->initial_vt_number = 1;
-}
-
-
 int
 ply_terminal_get_fd (ply_terminal_t *terminal)
 {
@@ -882,6 +874,12 @@ ply_terminal_free (ply_terminal_t *terminal)
   free_input_closures (terminal);
   free (terminal->name);
   free (terminal);
+}
+
+const char *
+ply_terminal_get_name (ply_terminal_t *terminal)
+{
+  return terminal->name;
 }
 
 int
