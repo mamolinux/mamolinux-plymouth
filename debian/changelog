@@ -1,3 +1,11 @@
+plymouth (0.9.0-0ubuntu2) utopic; urgency=medium
+
+  * Build without apport hook, and without breaks/replaces libplymouth2,
+    such that rebuilds in the archive can happen with both libplymouths
+    co-installed.
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Mon, 14 Jul 2014 10:47:38 +0100
+
 plymouth (0.9.0-0ubuntu1) utopic; urgency=medium
 
   * New upstream release.
