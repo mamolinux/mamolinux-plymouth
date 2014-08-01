@@ -1,3 +1,11 @@
+plymouth (0.9.0-0ubuntu3) utopic; urgency=medium
+
+  * Convert versioned upstart dependency into a versioned Breaks. We ship
+    systemd units too now, and this avoids a hard upstart dependency even
+    in minimal debootstraps/chroots. (LP: #1351306)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Fri, 01 Aug 2014 15:12:37 +0200
+
 plymouth (0.9.0-0ubuntu2) utopic; urgency=medium
 
   * Build without apport hook, and without breaks/replaces libplymouth2,
