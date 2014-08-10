@@ -313,7 +313,7 @@ create_seats_for_subsystem (ply_device_manager_t *manager,
           /* We only care about devices assigned to a (any) seat. Floating
            * devices should be ignored.
            */
-          if (udev_device_has_tag (device, "seat"))
+          if (true)
             {
               const char *node;
               node = udev_device_get_devnode (device);
