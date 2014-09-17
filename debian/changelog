@@ -1,3 +1,16 @@
+plymouth (0.9.0-0ubuntu4) utopic; urgency=medium
+
+  * Move the dependency on ttf-ubuntu-font-family from
+    plymouth-theme-ubuntu-logo to plymouth-label, replacing the dependency
+    on fonts-dejavu-core instead of causing us to depend on two different
+    fonts
+  * Readd the plymouth hook, but in the plymouth package instead of the
+    library package to avoid uninstallibility problems during library
+    transitions.  In practice, this hook is only interesting to have if
+    plymouth itself is installed.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Wed, 17 Sep 2014 08:40:23 -0700
+
 plymouth (0.9.0-0ubuntu3) utopic; urgency=medium
 
   * Convert versioned upstart dependency into a versioned Breaks. We ship
