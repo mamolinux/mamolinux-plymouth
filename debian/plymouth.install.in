@@ -11,3 +11,4 @@ var/lib/plymouth/
 var/spool/plymouth/
 themes/ubuntu-logo/ubuntu_logo.png	lib/plymouth
 debian/initramfs-tools          usr/share
+usr/share/apport/package-hooks

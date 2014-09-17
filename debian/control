@@ -40,6 +40,7 @@ Breaks: gdm (<< 3.0.4-0ubuntu11),
         ubuntustudio-plymouth-theme (<= 0.38),
         xubuntu-plymouth-theme (<< 10.04.4),
         upstart (<< 1.11-0ubuntu3)
+Replaces: libplymouth2
 Description: graphical boot animation and logger - main package
  Plymouth is an application that runs very early in the boot process
  (even before the root filesystem is mounted!) that provides a graphical
@@ -65,6 +66,7 @@ Architecture: any
 Depends: libplymouth4 (= ${binary:Version}),
          plymouth (= ${binary:Version}),
          fonts-dejavu-core,
+         ttf-ubuntu-font-family,
          ${misc:Depends},
          ${shlibs:Depends}
 Replaces: plymouth (<< 0.8.1-4)
@@ -184,7 +186,7 @@ Description: graphical boot animation and logger - spinfinity theme
 
 Package: plymouth-theme-ubuntu-logo
 Architecture: any
-Depends: plymouth, plymouth-label, ttf-ubuntu-font-family, ${misc:Depends}, ${shlibs:Depends}
+Depends: plymouth, plymouth-label, ${misc:Depends}, ${shlibs:Depends}
 Provides: plymouth-theme
 Replaces: plymouth (<< 0.8.1-1~)
 Description: graphical boot animation and logger - ubuntu-logo theme
