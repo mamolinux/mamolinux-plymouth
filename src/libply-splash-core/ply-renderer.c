@@ -271,6 +271,7 @@ ply_renderer_open (ply_renderer_t *renderer)
       { PLY_RENDERER_TYPE_X11, PLYMOUTH_PLUGIN_PATH "renderers/x11.so" },
       { PLY_RENDERER_TYPE_DRM, PLYMOUTH_PLUGIN_PATH "renderers/drm.so" },
       { PLY_RENDERER_TYPE_FRAME_BUFFER, PLYMOUTH_PLUGIN_PATH "renderers/frame-buffer.so" },
+      { PLY_RENDERER_TYPE_VGA16FB, PLYMOUTH_PLUGIN_PATH "renderers/vga16fb.so" },
       { PLY_RENDERER_TYPE_NONE, NULL }
     };
 
