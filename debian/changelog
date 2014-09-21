@@ -1,3 +1,11 @@
+plymouth (0.9.0-0ubuntu5) utopic; urgency=medium
+
+  * Adjust grub snippet that sets purple background color - set alpha to
+    zero. This corrects early boot theming. Thanks to Yu Ning. (LP:
+    #1308723).
+
+ -- Dimitri John Ledkov <xnox@debian.org>  Sun, 21 Sep 2014 22:28:25 +0100
+
 plymouth (0.9.0-0ubuntu4) utopic; urgency=medium
 
   * Move the dependency on ttf-ubuntu-font-family from
