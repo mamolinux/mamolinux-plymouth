@@ -1,3 +1,11 @@
+plymouth (0.9.0-0ubuntu6) utopic; urgency=medium
+
+  * d/p/ubuntu-seat-terminal-may-be-null.patch -- check that the
+    seat->terminal/keyboard is valid before instantiating a text terminal
+    on it.  (LP: #1371651)
+
+ -- Andy Whitcroft <apw@ubuntu.com>  Thu, 25 Sep 2014 18:31:09 +0100
+
 plymouth (0.9.0-0ubuntu5) utopic; urgency=medium
 
   * Adjust grub snippet that sets purple background color - set alpha to
