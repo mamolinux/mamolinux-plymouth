@@ -1,0 +1,51 @@
+Description: seat->terminal/keyboard may be null
+ seat->terminal may well be null, other places in the code check
+ for this.  When building terminals we unconditionally try and add
+ text displays for every terminal.  Check the seat->terminal is valid
+ before attempting this.
+ .
+ Backported from commit 84eb4381db85877a9a56b35994e6c10d43e46ebe
+ upstream.
+Author: Andy Whitcroft <apw@ubuntu.com>
+Bug-Ubuntu: https://bugs.launchpad.net/bugs/1371651
+Last-Update: 2014-09-25
+Upstream-Patch: http://cgit.freedesktop.org/plymouth/commit/?id=84eb4381db85877a9a56b35994e6c10d43e46ebe
+
+Index: plymouth-0.9.0/src/libply-splash-core/ply-seat.c
+===================================================================
+--- plymouth-0.9.0.orig/src/libply-splash-core/ply-seat.c	2014-09-25 17:23:31.000000000 +0100
++++ plymouth-0.9.0/src/libply-splash-core/ply-seat.c	2014-09-26 13:27:03.680370315 +0100
+@@ -154,14 +154,29 @@
+       add_pixel_displays (seat);
+ 
+     }
+-  else
++  else if (seat->terminal != NULL)
+     {
+       seat->keyboard = ply_keyboard_new_for_terminal (seat->terminal);
+     }
+-  add_text_displays (seat);
+ 
+-  ply_keyboard_watch_for_input (seat->keyboard);
+-  seat->keyboard_active = true;
++  if (seat->terminal != NULL)
++    {
++       add_text_displays (seat);
++    }
++  else
++    {
++      ply_trace ("not adding text display for seat, since seat has no associated terminal");
++    }
++
++  if (seat->keyboard != NULL)
++    {
++      ply_keyboard_watch_for_input (seat->keyboard);
++      seat->keyboard_active = true;
++    }
++  else
++    {
++       ply_trace ("not watching seat for input");
++    }
+ 
+   return true;
+ }
