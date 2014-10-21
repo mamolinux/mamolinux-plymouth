@@ -1,3 +1,12 @@
+plymouth (0.9.0-0ubuntu7) utopic; urgency=low
+
+  * d/p/ubuntu-fix-split-writes.patch -- avoid the client seeing
+    the beginning of our replies before the whole reply is ready for
+    consumption.  This avoids us aborting password lookups even though
+    they were correctly entered. (LP: #1362333)
+
+ -- Andy Whitcroft <apw@ubuntu.com>  Tue, 21 Oct 2014 12:55:18 +0100
+
 plymouth (0.9.0-0ubuntu6) utopic; urgency=medium
 
   * d/p/ubuntu-seat-terminal-may-be-null.patch -- check that the

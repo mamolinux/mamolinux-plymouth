@@ -18,3 +18,4 @@ details-update-status.patch
 0008-show-delay.patch
 0001-Bump-point-release-and-ABI-versions-of-libraries.patch
 ubuntu-seat-terminal-may-be-null.patch
+ubuntu-fix-split-writes.patch
