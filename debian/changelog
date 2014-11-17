@@ -1,3 +1,25 @@
+plymouth (0.9.0-9) unstable; urgency=medium
+
+  [ Laurent Bigonville ]
+  * debian/control: Add a dependency against init-system-helpers as we are
+    explicitly using deb-systemd-helper in the plymouth postinst script
+    (Closes: #767937)
+  * debian/local/plymouth.hook: Test if the plugin is present on disk before
+    trying to copy it to the initramfs (Closes: #767170)
+  * debian/control: Reword the package description. (Closes: #768350)
+    Thanks to Justin B Rye <justin.byam.rye@gmail.com>
+  * debian/local/plymouth.hook: Properly copy .plymouth file into the
+    initramfs for themes that are not shipping images, this should fix the
+    tribar theme.
+
+  [ Sjoerd Simons ]
+  * debian/patches/debian/patches/utils-Don-t-create-unix-sockets-non-blocking.patch:
+    + Added. Don't open unix socket connections as non-blocking as the read
+    function assume blocking sockets. Fixes plymouth failing to query the
+    password from the user  (Closes: #763276)
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Mon, 17 Nov 2014 22:42:50 +0100
+
 plymouth (0.9.0-8) unstable; urgency=medium
 
   * Move the script.so from plymouth-themes to the main plymouth package
