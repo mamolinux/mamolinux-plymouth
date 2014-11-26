@@ -1534,7 +1534,8 @@ add_display_and_keyboard_for_terminal (state_t        *state,
   ply_keyboard_t *keyboard;
 
   // urgh
-  if (!ply_terminal_open (state->terminal))
+  if (state->local_console_terminal != NULL &&
+      !ply_terminal_open (state->local_console_terminal))
     return;
 
   keyboard = ply_keyboard_new_for_terminal (terminal);
@@ -2164,6 +2165,21 @@ check_for_consoles (state_t    *state,
 
   ply_trace ("After processing serial consoles there are now %d text displays",
              ply_list_get_length (state->text_displays));
+
+  if (state->mode == PLY_MODE_BOOT && state->local_console_terminal)
+    {
+      int vt_handoff = -1;
+      char *arg;
+
+      arg = strstr (state->kernel_command_line, "vt.handoff=");
+      if (arg != NULL)
+        sscanf (arg, "vt.handoff=%d", &vt_handoff);
+      if (vt_handoff > 0)
+        {
+          ply_trace ("bootloader handed off on VT%d.", vt_handoff);
+          ply_terminal_handle_vt_handoff (state->local_console_terminal, vt_handoff);
+        }
+    }
 }
 
 static bool
