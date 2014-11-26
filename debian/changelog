@@ -1,3 +1,11 @@
+plymouth (0.8.8-0ubuntu17.1) trusty; urgency=medium
+
+  * Correct early boot theming. Adjust grub snippet that sets purple
+    background color - set alpha to zero. Thanks to Yu Ning. (LP:
+    #1308723).
+
+ -- Dimitri John Ledkov <dimitri.j.ledkov@linux.intel.com>  Wed, 26 Nov 2014 00:40:31 +0000
+
 plymouth (0.8.8-0ubuntu17) trusty; urgency=medium
 
   * Suppress job-name update notifications to plymouthd from
