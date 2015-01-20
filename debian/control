@@ -19,7 +19,7 @@ Build-Depends: autotools-dev, dh-autoreconf,
                pkg-config,
                systemd,
                xsltproc
-Standards-Version: 3.9.5
+Standards-Version: 3.9.6
 Vcs-Bzr: lp:ubuntu/plymouth
 
 Package: plymouth
