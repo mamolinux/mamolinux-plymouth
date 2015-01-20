@@ -126,6 +126,7 @@ typedef struct
   const char *default_tty;
 
   int number_of_errors;
+  ply_list_t *pending_messages;
 } state_t;
 
 static void show_splash (state_t *state);
@@ -185,8 +186,9 @@ on_update (state_t     *state,
            const char  *status)
 {
   ply_trace ("updating status to '%s'", status);
-  ply_progress_status_update (state->progress,
-                               status);
+  if (strncmp (status, "fsck:", 5))
+    ply_progress_status_update (state->progress,
+                                status);
   if (state->boot_splash != NULL)
     ply_boot_splash_update_status (state->boot_splash,
                                    status);
@@ -234,6 +236,25 @@ on_system_update (state_t     *state,
     {
       ply_trace ("failed to update splash");
       return;
+    }
+}
+
+static void
+flush_pending_messages (state_t *state)
+{
+  ply_list_node_t *node = ply_list_get_first_node (state->pending_messages);
+  while (node != NULL)
+    {
+      ply_list_node_t *next_node;
+      char *message = ply_list_node_get_data (node);
+
+      ply_trace ("displaying queued message");
+
+      ply_boot_splash_display_message (state->boot_splash, message);
+      next_node = ply_list_get_next_node (state->pending_messages, node);
+      ply_list_remove_node (state->pending_messages, node);
+      free(message);
+      node = next_node;
     }
 }
 
@@ -463,7 +484,7 @@ show_default_splash (state_t *state)
     {
       ply_trace ("Could not start default splash screen,"
                  "showing text splash screen");
-      state->boot_splash = show_theme (state, PLYMOUTH_THEME_PATH "text/text.plymouth");
+      state->boot_splash = show_theme (state, PLYMOUTH_THEME_PATH "text.plymouth");
     }
 
   if (state->boot_splash == NULL)
@@ -475,8 +496,9 @@ show_default_splash (state_t *state)
 
   if (state->boot_splash == NULL)
     {
-      ply_error ("plymouthd: could not start boot splash: %m");
-      return;
+	if (errno != ENOENT)
+	    ply_error ("plymouthd: could not start boot splash: %m");
+	return;
     }
 
   update_display (state);
@@ -569,8 +591,10 @@ on_display_message (state_t       *state,
         ply_boot_splash_display_message (state->boot_splash, message);
     }
   else
-    ply_trace ("not displaying message %s as no splash", message);
-  ply_list_append_data (state->messages, strdup(message));
+    {
+        ply_trace ("not displaying message %s as no splash", message);
+        ply_list_append_data (state->messages, strdup(message));
+    }
 }
 
 static void
@@ -789,6 +813,7 @@ prepare_logging (state_t *state)
       if (state->number_of_errors > 0)
         spool_error (state);
     }
+  flush_pending_messages (state);
 }
 
 static void
@@ -2033,6 +2058,7 @@ initialize_environment (state_t *state)
   state->keystroke_triggers = ply_list_new ();
   state->entry_triggers = ply_list_new ();
   state->entry_buffer = ply_buffer_new();
+  state->pending_messages = ply_list_new ();
   state->messages = ply_list_new ();
 
   redirect_standard_io_to_dev_null ();
