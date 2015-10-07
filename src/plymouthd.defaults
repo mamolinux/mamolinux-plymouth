@@ -2,4 +2,4 @@
 # upgrades.
 [Daemon]
 Theme=text
-ShowDelay=5
+ShowDelay=0
