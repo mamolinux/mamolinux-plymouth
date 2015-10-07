@@ -28,14 +28,10 @@ override_dh_auto_configure:
 		--enable-tracing \
 		--disable-gdm-transition \
 		--with-background-color=0x005a8a \
-		--with-gdm-autostart-file \
-		--with-log-viewer \
 		--with-logo=/usr/share/plymouth/debian-logo.png \
 		--with-release-file=/etc/os-release \
 		--with-system-root-install \
-		--without-rhgb-compat-link \
-		--with-boot-tty=/dev/tty7 \
-		--with-shutdown-tty=/dev/tty7
+		--without-rhgb-compat-link
 
 override_dh_auto_install:
 	dh_auto_install
@@ -44,6 +40,8 @@ override_dh_auto_install:
 	rm -f debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/*.la
 	rm -f debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/plymouth/*.la
 	rm -f debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/plymouth/*/*.la
+	rm -f debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/plymouth/*.a
+	rm -f debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/plymouth/*/*.a
 
 override_dh_builddeb:
 	dh_builddeb -- -Zxz
@@ -51,6 +49,9 @@ override_dh_builddeb:
 override_dh_install:
 	# Moving /usr/lib to /lib
 	mv debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/*.so.* debian/tmp/lib/$(DEB_HOST_MULTIARCH)
+
+	mv debian/tmp/lib/$(DEB_HOST_MULTIARCH)/*.so debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)
+	mv debian/tmp/lib/$(DEB_HOST_MULTIARCH)/*.a debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)
 
 	dh_install --fail-missing
 
@@ -79,7 +80,7 @@ override_dh_link:
 	# correcting symlink targets
 	for LIB in debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/*.so; \
 	do \
-		dh_link -pplymouth-dev lib/$(DEB_HOST_MULTIARCH)/$$(basename $$(readlink $${LIB})) usr/lib/$(DEB_HOST_MULTIARCH)/$$(basename $${LIB}); \
+		dh_link -plibplymouth-dev lib/$(DEB_HOST_MULTIARCH)/$$(basename $$(readlink $${LIB})) usr/lib/$(DEB_HOST_MULTIARCH)/$$(basename $${LIB}); \
 	done
 
 	dh_link --remaining-packages

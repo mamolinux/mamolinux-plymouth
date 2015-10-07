@@ -1,8 +1,0 @@
-lib/*/*.a
-lib/*/*.so
-usr/include
-usr/lib/*/*.a
-usr/lib/*/*.so
-usr/lib/*/pkgconfig
-usr/lib/*/plymouth/*.a
-usr/lib/*/plymouth/*/*.a
