@@ -1,5 +1,4 @@
 bin
-etc/plymouth
 sbin
 usr/lib/*/plymouth/details.so
 usr/lib/*/plymouth/script.so
@@ -11,10 +10,8 @@ usr/lib/*/plymouth/renderers/frame-buffer.so
 lib/systemd
 usr/sbin
 usr/share/man/man1/plymouth.1
-usr/share/man/man1/plymouth-set-default-theme.1
 usr/share/man/man8/plymouth.8
 usr/share/man/man8/plymouthd.8
-usr/share/plymouth/plymouthd.defaults
 usr/share/plymouth/themes/details
 usr/share/plymouth/themes/text
 usr/share/plymouth/themes/tribar
