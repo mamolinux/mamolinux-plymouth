@@ -27,6 +27,10 @@ if [ -n "${THEME}" ]
 then
 	THEME_NAME="${THEME}"
 	THEME="${THEMES}/${THEME}/${THEME}.plymouth"
+	if [ ! -r "${THEME}" ]
+	then
+		exit 0
+	fi
 else
 	exit 0
 fi
@@ -37,13 +41,25 @@ PLUGIN_PATH="$(plymouth --get-splash-plugin-path)"
 TEXTTHEME_PATH="$(update-alternatives --query text.plymouth | sed -e '/^Value:/!d' -e 's/^Value: \(.*\)/\1/')"
 TEXTTHEME="$(basename ${TEXTTHEME_PATH} .plymouth || true)"
 
+if [ -n "${THEME}" ]
+then
+	TEXTTHEME_NAME="${TEXTTHEME}"
+	TEXTTHEME="${THEMES}/${TEXTTHEME}/${TEXTTHEME}.plymouth"
+	if [ ! -r "${TEXTTHEME}" ]
+	then
+		exit 0
+	fi
+else
+	exit 0
+fi
+
 case "${THEME_NAME}" in
 	text|details|tribar)
-		PLUGINS="${TEXTTHEME}.so details.so"
+		PLUGINS="${TEXTTHEME_NAME}.so details.so"
 		;;
 
 	*)
-		PLUGINS="${TEXTTHEME}.so details.so label.so"
+		PLUGINS="${TEXTTHEME_NAME}.so details.so label.so"
 		;;
 esac
 
@@ -62,7 +78,7 @@ cp -r "${THEMES}/${THEME_NAME}" "${DESTDIR}/${THEMES}"
 
 # create default theme symlinks
 ln -s "${THEME}" "${DESTDIR}/${THEMES}/default.plymouth"
-ln -s "${THEMES}/${TEXTTHEME}/${TEXTTHEME}.plymouth" "${DESTDIR}/${THEMES}/text.plymouth"
+ln -s "${TEXTTHEME}" "${DESTDIR}/${THEMES}/text.plymouth"
 
 # copy binaries and base plugins
 copy_exec /bin/plymouth
@@ -80,8 +96,8 @@ do
 done
 
 # copy base themes and logo
-cp -a "${THEMES}/details" "${DESTDIR}/${THEMES}"
-cp -a "${THEMES}/${TEXTTHEME}" "${DESTDIR}/${THEMES}"
+cp -r "${THEMES}/details" "${DESTDIR}/${THEMES}"
+cp -r "${THEMES}/${TEXTTHEME_NAME}" "${DESTDIR}/${THEMES}"
 
 if [ -f /etc/os-release ]
 then
