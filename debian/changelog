@@ -1,3 +1,11 @@
+plymouth (0.9.2-3ubuntu2) xenial; urgency=medium
+
+  * debian/local/plymouth.hook:
+    - ensure that whenever configuration order is, we only build the
+      initramfs if we have a default and text themes.
+
+ -- Didier Roche <didrocks@ubuntu.com>  Wed, 09 Dec 2015 12:30:47 +0100
+
 plymouth (0.9.2-3ubuntu1) xenial; urgency=medium
 
   * Merged from debian unstable (first time ever…) Remaining changes:
