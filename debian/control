@@ -30,7 +30,8 @@ Depends:
  ${shlibs:Depends},
  initramfs-tools | dracut,
  init-system-helpers (>= 1.18),
-Conflicts: console-common
+Conflicts: console-common,
+           plymouth-theme-lubuntu-text (<< 0.57~)
 Breaks: plymouth-drm (<< 0.9.0-6~), plymouth-themes (<< 0.9.0-8~),
         plymouth-theme-ubuntu-logo (<< 0.9.2-3ubuntu1~),
         plymouth-theme-ubuntu-text (<< 0.9.2-3ubuntu1~),
@@ -43,7 +44,6 @@ Breaks: plymouth-drm (<< 0.9.0-6~), plymouth-themes (<< 0.9.0-8~),
         plymouth-theme-xubuntu-logo (<< 15.12.1~),
         plymouth-theme-xubuntu-text (<< 15.12.1~),
         plymouth-theme-lubuntu-logo (<< 0.57~),
-        plymouth-theme-lubuntu-text (<< 0.57~),
         plymouth-theme-kubuntu-logo (<< 1:16.04ubuntu1~),
         plymouth-theme-kubuntu-text (<< 1:16.04ubuntu1~),
         plymouth-theme-ubuntu-gnome-logo (<< 16.04.1~),
