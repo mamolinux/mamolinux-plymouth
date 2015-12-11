@@ -89,9 +89,6 @@ do
 	if [ -f ${PLUGIN_PATH}/${PLUGIN} ]
 	then
 		copy_exec ${PLUGIN_PATH}/${PLUGIN}
-	else
-		echo "W: plymouth: The plugin ${PLUGIN} is missing, the selected theme might not work as expected."
-		echo "W: plymouth: You might want to install the plymouth-themes package to fix this."
 	fi
 done
 
