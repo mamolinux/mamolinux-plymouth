@@ -6,6 +6,7 @@ After=systemd-udev-trigger.service systemd-udevd.service keyboard-setup.service
 Before=systemd-ask-password-plymouth.service
 ConditionKernelCommandLine=!plymouth.enable=0
 ConditionKernelCommandLine=!nosplash
+ConditionKernelCommandLine=splash
 
 [Service]
 ExecStart=@PLYMOUTH_DAEMON_DIR@/plymouthd --mode=boot --pid-file=@plymouthruntimedir@/pid --attach-to-session
