@@ -1,3 +1,13 @@
+plymouth (0.9.2-3ubuntu6) xenial; urgency=medium
+
+  * debian/local/plymouth.hook:
+    - adapt to handle text flavor plugin, copying the ubuntu-text module
+      (LP: #1525841)
+    - be more resilient if there is only one plymouth theme configured
+      (default or text) or none.
+
+ -- Didier Roche <didrocks@ubuntu.com>  Wed, 16 Dec 2015 08:27:28 +0100
+
 plymouth (0.9.2-3ubuntu5) xenial; urgency=medium
 
   * Declare a Conflicts: with broken (and not-deconfigureable) versions of
