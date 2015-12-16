@@ -2,4 +2,4 @@
 # upgrades.
 [Daemon]
 Theme=spinner
-ShowDelay=5
+ShowDelay=0
