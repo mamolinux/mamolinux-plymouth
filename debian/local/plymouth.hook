@@ -19,82 +19,86 @@ esac
 
 . /usr/share/initramfs-tools/hook-functions
 
-THEME_PATH="$(update-alternatives --query default.plymouth | sed -e '/^Value:/!d' -e 's/^Value: \(.*\)/\1/')"
+THEME_PATH="$(update-alternatives --query default.plymouth 2>/dev/null | sed -e '/^Value:/!d' -e 's/^Value: \(.*\)/\1/')"
 THEME="$(basename ${THEME_PATH} .plymouth || true)"
 THEMES="/usr/share/plymouth/themes"
 
-if [ -n "${THEME}" ]
+mkdir -p "${DESTDIR}/${THEMES}"
+
+if [ -n "${THEME}" ] && [ "${THEME}" != "none" ]
 then
 	THEME_NAME="${THEME}"
 	THEME="${THEMES}/${THEME}/${THEME}.plymouth"
-	if [ ! -r "${THEME}" ]
-	then
-		exit 0
-	fi
-else
-	exit 0
+	# create default theme symlink
+	ln -s "${THEME}" "${DESTDIR}/${THEMES}/default.plymouth"
 fi
 
 PLUGIN_PATH="$(plymouth --get-splash-plugin-path)"
 
 # default text theme alternative
-TEXTTHEME_PATH="$(update-alternatives --query text.plymouth | sed -e '/^Value:/!d' -e 's/^Value: \(.*\)/\1/')"
+TEXTTHEME_PATH="$(update-alternatives --query text.plymouth 2>/dev/null | sed -e '/^Value:/!d' -e 's/^Value: \(.*\)/\1/')"
 TEXTTHEME="$(basename ${TEXTTHEME_PATH} .plymouth || true)"
 
-if [ -n "${THEME}" ]
+if [ -n "${TEXTTHEME}" ] & [ "${TEXTTHEME}" != "none" ]
 then
 	TEXTTHEME_NAME="${TEXTTHEME}"
 	TEXTTHEME="${THEMES}/${TEXTTHEME}/${TEXTTHEME}.plymouth"
-	if [ ! -r "${TEXTTHEME}" ]
-	then
-		exit 0
-	fi
-else
-	exit 0
+    # create default text theme symlink
+    ln -s "${TEXTTHEME}" "${DESTDIR}/${THEMES}/text.plymouth"
 fi
 
-case "${THEME_NAME}" in
-	text|details|tribar)
-		PLUGINS="${TEXTTHEME_NAME}.so details.so"
-		;;
-
-	*)
-		PLUGINS="${TEXTTHEME_NAME}.so details.so label.so"
-		;;
-esac
-
-MODULE="${PLUGIN_PATH}/$(sed -n 's/^ModuleName=\(.*\)/\1/p' ${THEME}).so"
-
-if [ ! -e "$MODULE" ]
+# ensure we at least have one theme configured
+if [ ! -r "${THEME}" ] && [ ! -r "${TEXTTHEME}" ]
 then
-	echo "W: plymouth module ($MODULE) missing, skipping plymouth."
-	exit 0
+    exit 0
 fi
 
-# copy plugin and images for current theme
-copy_exec "${MODULE}"
-mkdir -p "${DESTDIR}/${THEMES}"
-cp -r "${THEMES}/${THEME_NAME}" "${DESTDIR}/${THEMES}"
+# copy base themes content
+currthemes="${THEME_NAME} ${TEXTTHEME_NAME}"
+for currtheme in $currthemes
+do
+	case "${currtheme}" in
+		text|details|tribar)
+			PLUGINS="text.so details.so"
+			;;
 
-# create default theme symlinks
-ln -s "${THEME}" "${DESTDIR}/${THEMES}/default.plymouth"
-ln -s "${TEXTTHEME}" "${DESTDIR}/${THEMES}/text.plymouth"
+		*)
+			PLUGINS="details.so label.so"
+			;;
+	esac
+
+	MODULE="${PLUGIN_PATH}/$(sed -n 's/^ModuleName=\(.*\)/\1/p' ${THEMES}/${currtheme}/${currtheme}.plymouth).so"
+
+	if [ ! -e "$MODULE" ]
+	then
+		echo "W: plymouth module ($MODULE) missing, skipping that theme."
+		continue
+	fi
+
+	# copy plugin and images for current theme
+	copy_exec "${MODULE}"
+	cp -a "${THEMES}/${currtheme}" "${DESTDIR}/${THEMES}"
+
+	# copy base plugins if any
+	for PLUGIN in ${PLUGINS}
+	do
+		if [ -f ${PLUGIN_PATH}/${PLUGIN} ]
+		then
+			copy_exec ${PLUGIN_PATH}/${PLUGIN}
+		else
+			echo "W: plymouth: The plugin ${PLUGIN} is missing, the selected theme might not work as expected."
+			echo "W: plymouth: You might want to install the plymouth-themes and plymouth-label package to fix this."
+		fi
+	done
+
+done
 
 # copy binaries and base plugins
 copy_exec /bin/plymouth
 copy_exec /sbin/plymouthd
 
-for PLUGIN in ${PLUGINS}
-do
-	if [ -f ${PLUGIN_PATH}/${PLUGIN} ]
-	then
-		copy_exec ${PLUGIN_PATH}/${PLUGIN}
-	fi
-done
-
 # copy base themes and logo
-cp -r "${THEMES}/details" "${DESTDIR}/${THEMES}"
-cp -r "${THEMES}/${TEXTTHEME_NAME}" "${DESTDIR}/${THEMES}"
+cp -a "${THEMES}/details" "${DESTDIR}/${THEMES}"
 
 if [ -f /etc/os-release ]
 then
