@@ -20,7 +20,7 @@ esac
 . /usr/share/initramfs-tools/hook-functions
 
 THEME_PATH="$(update-alternatives --query default.plymouth 2>/dev/null | sed -e '/^Value:/!d' -e 's/^Value: \(.*\)/\1/')"
-THEME="$(basename ${THEME_PATH} .plymouth || true)"
+THEME="$(basename ${THEME_PATH:-none} .plymouth || true)"
 THEMES="/usr/share/plymouth/themes"
 
 mkdir -p "${DESTDIR}/${THEMES}"
@@ -37,7 +37,7 @@ PLUGIN_PATH="$(plymouth --get-splash-plugin-path)"
 
 # default text theme alternative
 TEXTTHEME_PATH="$(update-alternatives --query text.plymouth 2>/dev/null | sed -e '/^Value:/!d' -e 's/^Value: \(.*\)/\1/')"
-TEXTTHEME="$(basename ${TEXTTHEME_PATH} .plymouth || true)"
+TEXTTHEME="$(basename ${TEXTTHEME_PATH:-none} .plymouth || true)"
 
 if [ -n "${TEXTTHEME}" ] & [ "${TEXTTHEME}" != "none" ]
 then
