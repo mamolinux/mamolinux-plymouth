@@ -1,3 +1,11 @@
+plymouth (0.9.2-3ubuntu8) xenial; urgency=medium
+
+  * debian/local/plymouth.hook:
+    - handle having the minimum dependency packages installed (no font)
+      when setting either no graphical theme or ubuntu-text one as default.
+
+ -- Didier Roche <didrocks@ubuntu.com>  Wed, 16 Dec 2015 15:42:00 +0100
+
 plymouth (0.9.2-3ubuntu7) xenial; urgency=medium
 
   * debian/local/plymouth.hook:

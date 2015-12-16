@@ -106,7 +106,7 @@ then
 fi
 
 case "${THEME_NAME}" in
-	text|details)
+	""|ubuntu-text|text|details)
 
 		;;
 
