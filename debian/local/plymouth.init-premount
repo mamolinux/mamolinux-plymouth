@@ -15,7 +15,7 @@ case ${1} in
 		;;
 esac
 
-SPLASH="true"
+SPLASH="false"
 
 for ARGUMENT in $(cat /proc/cmdline)
 do
