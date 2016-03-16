@@ -1,3 +1,12 @@
+plymouth (0.9.2-3ubuntu11) xenial; urgency=medium
+
+  * debian/local/plymouth.hook:
+    - Fix kernel updates on some weird configurations where there is
+      a plymouth theme alternative setup pointing to a non existing theme.
+      (LP: #1532355, #1548254)
+
+ -- Didier Roche <didrocks@ubuntu.com>  Wed, 16 Mar 2016 15:25:50 +0100
+
 plymouth (0.9.2-3ubuntu10) xenial; urgency=medium
 
   * debian/local/plymouth.init-premount: Don't start plymouth if "splash" is
