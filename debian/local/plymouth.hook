@@ -67,7 +67,7 @@ do
 			;;
 	esac
 
-	MODULE="${PLUGIN_PATH}/$(sed -n 's/^ModuleName=\(.*\)/\1/p' ${THEMES}/${currtheme}/${currtheme}.plymouth).so"
+	MODULE="${PLUGIN_PATH}/$(sed -n 's/^ModuleName=\(.*\)/\1/p' ${THEMES}/${currtheme}/${currtheme}.plymouth 2>/dev/null || true).so"
 
 	if [ ! -e "$MODULE" ]
 	then
