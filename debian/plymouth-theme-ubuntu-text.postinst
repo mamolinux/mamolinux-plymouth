@@ -18,9 +18,11 @@
 
 case "$1" in
     configure|triggered)
-	# We remove leftover generated file from previous plymouth version. Can be removed on xenial+1
-	if dpkg --compare-versions "$2" le-nl "0.9.2-3ubuntu1~"; then
-		rm -f /lib/plymouth/themes/ubuntu-text/ubuntu-text.plymouth
+	if [ "$1" = "configure" ]; then
+		# We remove leftover generated file from previous plymouth version. Can be removed on xenial+1
+		if dpkg --compare-versions "$2" le-nl "0.9.2-3ubuntu1~"; then
+			rm -f /lib/plymouth/themes/ubuntu-text/ubuntu-text.plymouth
+		fi
 	fi
 	# we keep that rmdir unconditional as we want to ensure that the dir is
 	# removed at some point (alternatives on other theme package removing
