@@ -1,3 +1,10 @@
+plymouth (0.9.2-3ubuntu16) artful; urgency=medium
+
+  * debian/local/plymouth.hook: add only a single copy of nss libs in
+    initramfs.  LP #1714319.
+
+ -- Scott Moser <smoser@ubuntu.com>  Wed, 06 Sep 2017 10:55:55 -0400
+
 plymouth (0.9.2-3ubuntu15) yakkety; urgency=medium
 
   * Fix hook script to not print warnings about label.so when using the
