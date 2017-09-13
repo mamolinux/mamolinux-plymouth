@@ -1,3 +1,9 @@
+plymouth (0.9.2-3ubuntu15.1) zesty; urgency=medium
+
+  * Remove dependency on initramfs-tools | dracut.  LP: #1716825.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Tue, 12 Sep 2017 22:19:01 -0700
+
 plymouth (0.9.2-3ubuntu15) yakkety; urgency=medium
 
   * Fix hook script to not print warnings about label.so when using the
