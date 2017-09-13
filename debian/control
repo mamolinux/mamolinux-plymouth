@@ -28,7 +28,6 @@ Pre-Depends: ${misc:Pre-Depends}
 Depends:
  ${misc:Depends},
  ${shlibs:Depends},
- initramfs-tools | dracut,
  init-system-helpers (>= 1.18),
 Conflicts: console-common,
            plymouth-theme-lubuntu-text (<< 0.57~)
