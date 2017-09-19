@@ -3,3 +3,4 @@
 [Daemon]
 Theme=text
 ShowDelay=0
+DeviceTimeout=5
