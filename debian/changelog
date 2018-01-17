@@ -1,3 +1,93 @@
+plymouth (0.9.3-1ubuntu1) bionic; urgency=medium
+
+  * Merged from debian unstable (second time ever…) Remaining changes:
+    - include ubuntu theme logos:
+      themes/ubuntu-logo/*, debian/source/include-binaries.
+    - debian/libplymouth4.apport: add Apport hook.
+    - Ship ubuntu-logo instead of debian-logo (debian/rules and
+      debian/local/plymouth.hook).
+    - Ship debian/source_plymouth.apport apport hook (debian/rules).
+    - Add plymouth-label as a separate package and makes themes depending on
+      it (debian/control, debian/plymouth-label.install,
+      debian/plymouth-themes.install).
+    - As log-viewer is disabled by default upstream and now in debian, don't
+      ship its man page (debian/plymouth.links).
+    - Ship plymouth-theme-ubuntu-logo and plymouth-theme-ubuntu-text specific
+      themes (debian/plymouth-theme-ubuntu-* and debian/control) and add
+      Recommends on it | plymouth-theme to accommodate flavors.
+    - Remove debian/patches/0003-default-theme.patch as we handle our defaults
+      via alternatives. (and refresh debian/patches/0008-show-delay.patch)
+    - debian/patches/misc-changes.patch: old undocumented inline changes.
+      export a new symbol added in debian/libplymouth4.symbols.
+    - debian/patches/avoid-sigpipe.patch:
+      Use first a socket connection before fallbacking to regular write()
+    - debian:patches/details-short-prompt.patch: When we display bullets in the
+      ubuntu details theme, shorten the prompt.
+    - debian/patches/details-remove-separator.patch: Removed explicit printing
+      of ':'.
+    - debian/patches/details-update-status.patch: Implement update status (U)
+      splash plugin function for details plugin, imply display those updates
+      as text messages.
+    - debian/patches/initramfsless-boot.patch: support intramfsless boot.
+    - debian/patches/fix-split-writes.patch: fix split writes for long server
+      responses.
+    - debian/patches/ubuntu-add-splash-option.patch: add "splash" option as a
+      condition to trigger plymouth.
+    - debian/rules:
+      - disable optimization is noopt found in $DEB_BUILD_OPTION
+      - enable -Werror
+      - use ubuntu-themes background color
+    - debian/local/<initramfs scripts>: export OPTION=FRAMEBUFFER for user's
+      command line argument explicitly disabling framebuffer.
+    - We use alternatives instead of plymouth-set-default-theme tool:
+      + debian/plymouth-themes.{prerm,postinst}: ensure we select one default
+       plymouth logo and text themes through alternatives even when we remove
+       ubuntu-base ones.
+      + debian/rules, debian/plymouth.{install,links), don't ship non
+        non alternative-based theme policy files and tools.
+      + update plymouth.README.Debian to tell to use update-alternative
+        instead of set-default-theme
+      + change debian/local/plymouth.hook to use update-alternative to get
+        default theme instead of set-default-theme. Also, don't copy
+        deleted files to initramfs.
+    - Add Breaks: against older themes versions as they are shipping in /lib
+      instead of /usr/share.
+    - ubuntu old changelog containing debian-like packaging version has been
+      copied to debian/changelog.ubuntu.old in the source package.
+    - Remove dependency on initramfs-tools | dracut.
+    - debian/plymouth-theme-ubuntu-text.postinst: Only remove the leftover
+      generated files when upgrading, not when triggered.
+    - debian/local/plymouth.init-premount: Don't start plymouth if "splash" is
+      not present on the kernel command line. This makes initrd behaviour
+      consistent with what happens at boot (see ubuntu-add-splash-option.patch).
+      Fixes password prompts when not booting with "splash".
+    - Add missing replaces due to apport hook move
+    - debian/local/plymouth.hook:
+      + protect when there is no alternative configured
+      + handle having the minimum dependency packages installed (no font)
+        when setting either no graphical theme or ubuntu-text one as default.
+      + Fix kernel updates on some weird configurations where there is
+        a plymouth theme alternative setup pointing to a non existing theme.
+      + adapt to handle text flavor plugin, copying the ubuntu-text module
+      + be more resilient if there is only one plymouth theme configured
+        (default or text) or none.
+      + disable harmless (in the ubuntu case, where we control supported official
+        and flavors themes) warning which confuses users for flavors not using
+        a compiled text theme
+      + Fix hook script to not print warnings about label.so when using the
+        ubuntu-text theme.
+      + ensure that whenever configuration order is, we only build the
+        initramfs if we have a default and text themes.
+
+  * Add a patch to unconditionally set DeviceTimeout to a non-zero value
+    to prevent plymouthd asserts on boot.
+  * Use newer syntax to update the root fs.
+  * Run plymouth in debug mode and store the log in /run/plymouth.
+  * Drop the old ubuntu-logo-scale-2 "manual" hidpi theme, superseeded by
+    hidpi support in plymouth.
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Wed, 17 Jan 2018 13:37:16 +0000
+
 plymouth (0.9.3-1) unstable; urgency=medium
 
   [ Laurent Bigonville ]
@@ -47,6 +137,210 @@ plymouth (0.9.2-4) unstable; urgency=medium
   * Do not hardcode to the update-initramfs executable anymore
 
  -- Laurent Bigonville <bigon@debian.org>  Sun, 18 Dec 2016 11:50:34 +0100
+
+plymouth (0.9.2-3ubuntu17) artful; urgency=medium
+
+  * Remove dependency on initramfs-tools | dracut.  LP: #1716825.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Tue, 12 Sep 2017 22:09:59 -0700
+
+plymouth (0.9.2-3ubuntu16) artful; urgency=medium
+
+  * debian/local/plymouth.hook: add only a single copy of nss libs in
+    initramfs.  LP #1714319.
+
+ -- Scott Moser <smoser@ubuntu.com>  Wed, 06 Sep 2017 10:55:55 -0400
+
+plymouth (0.9.2-3ubuntu15) yakkety; urgency=medium
+
+  * Fix hook script to not print warnings about label.so when using the
+    ubuntu-text theme.  LP: #1578006.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Wed, 04 May 2016 19:55:22 -0700
+
+plymouth (0.9.2-3ubuntu14) yakkety; urgency=medium
+
+  * No-change rebuild for libpng soname change.
+
+ -- Matthias Klose <doko@ubuntu.com>  Sat, 23 Apr 2016 00:18:35 +0000
+
+plymouth (0.9.2-3ubuntu13) xenial; urgency=medium
+
+  * debian/plymouth-theme-ubuntu-text.postinst: Make rmdir less noisy.
+
+ -- Adam Conrad <adconrad@ubuntu.com>  Sat, 16 Apr 2016 14:43:32 -0600
+
+plymouth (0.9.2-3ubuntu12) xenial; urgency=medium
+
+  * debian/plymouth-theme-ubuntu-text.postinst: Only remove the leftover
+    generated files when upgrading, not when triggered.
+
+ -- Iain Lane <iain@orangesquash.org.uk>  Fri, 15 Apr 2016 12:29:06 +0100
+
+plymouth (0.9.2-3ubuntu11) xenial; urgency=medium
+
+  * debian/local/plymouth.hook:
+    - Fix kernel updates on some weird configurations where there is
+      a plymouth theme alternative setup pointing to a non existing theme.
+      (LP: #1532355, #1548254)
+
+ -- Didier Roche <didrocks@ubuntu.com>  Wed, 16 Mar 2016 15:25:50 +0100
+
+plymouth (0.9.2-3ubuntu10) xenial; urgency=medium
+
+  * debian/local/plymouth.init-premount: Don't start plymouth if "splash" is
+    not present on the kernel command line. This makes initrd behaviour
+    consistent with what happens at boot (see ubuntu-add-splash-option.patch).
+    Fixes password prompts when not booting with "splash". (LP: #1432265)
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Mon, 22 Feb 2016 13:15:42 +0100
+
+plymouth (0.9.2-3ubuntu9) xenial; urgency=medium
+
+  * Add missing replaces due to apport hook move (LP: #1531070)
+
+ -- Didier Roche <didrocks@ubuntu.com>  Thu, 07 Jan 2016 08:12:20 +0100
+
+plymouth (0.9.2-3ubuntu8) xenial; urgency=medium
+
+  * debian/local/plymouth.hook:
+    - handle having the minimum dependency packages installed (no font)
+      when setting either no graphical theme or ubuntu-text one as default.
+
+ -- Didier Roche <didrocks@ubuntu.com>  Wed, 16 Dec 2015 15:42:00 +0100
+
+plymouth (0.9.2-3ubuntu7) xenial; urgency=medium
+
+  * debian/local/plymouth.hook:
+    - protect when there is no alternative configured
+
+ -- Didier Roche <didrocks@ubuntu.com>  Wed, 16 Dec 2015 12:22:17 +0100
+
+plymouth (0.9.2-3ubuntu6) xenial; urgency=medium
+
+  * debian/local/plymouth.hook:
+    - adapt to handle text flavor plugin, copying the ubuntu-text module
+      (LP: #1525841)
+    - be more resilient if there is only one plymouth theme configured
+      (default or text) or none.
+
+ -- Didier Roche <didrocks@ubuntu.com>  Wed, 16 Dec 2015 08:27:28 +0100
+
+plymouth (0.9.2-3ubuntu5) xenial; urgency=medium
+
+  * Declare a Conflicts: with broken (and not-deconfigureable) versions of
+    plymouth-theme-lubuntu-text, to work around LP: #1524480.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Fri, 11 Dec 2015 14:45:22 -0800
+
+plymouth (0.9.2-3ubuntu4) xenial; urgency=medium
+
+  * debian/local/plymouth.hook:
+    - disable harmless (in the ubuntu case, where we control supported official
+      and flavors themes) warning which confuses users for flavors not using
+      a compiled text theme (LP: #1524937)
+
+ -- Didier Roche <didrocks@ubuntu.com>  Fri, 11 Dec 2015 11:18:29 +0100
+
+plymouth (0.9.2-3ubuntu3) xenial; urgency=medium
+
+  * debian/plymouth-theme-ubuntu-text.postinst: don't fail if the directory
+    /lib/plymouth doesn't exist when we try to remove it, such as when a new
+    install is being bootstrapped.
+
+ -- Mathieu Trudel-Lapierre <mathieu-tl@ubuntu.com>  Wed, 09 Dec 2015 17:43:15 -0500
+
+plymouth (0.9.2-3ubuntu2) xenial; urgency=medium
+
+  * debian/local/plymouth.hook:
+    - ensure that whenever configuration order is, we only build the
+      initramfs if we have a default and text themes.
+
+ -- Didier Roche <didrocks@ubuntu.com>  Wed, 09 Dec 2015 12:30:47 +0100
+
+plymouth (0.9.2-3ubuntu1) xenial; urgency=medium
+
+  * Merged from debian unstable (first time ever…) Remaining changes:
+    - include ubuntu theme logos:
+      themes/ubuntu-logo/*, debian/source/include-binaries.
+    - debian/libplymouth4.apport: add Apport hook.
+    - Ship ubuntu-logo instead of debian-logo (debian/rules and
+      debian/local/plymouth.hook).
+    - Ship debian/source_plymouth.apport apport hook (debian/rules).
+    - Add plymouth-label as a separate package and makes themes depending on
+      it (debian/control, debian/plymouth-label.install,
+      debian/plymouth-themes.install).
+    - As log-viewer is disabled by default upstream and now in debian, don't
+      ship its man page (debian/plymouth.links).
+    - Ship plymouth-theme-ubuntu-logo and plymouth-theme-ubuntu-text specific
+      themes (debian/plymouth-theme-ubuntu-* and debian/control) and add
+      Recommends on it | plymouth-theme to accommodate flavors.
+    - Remove debian/patches/0003-default-theme.patch as we handle our defaults
+      via alternatives. (and refresh debian/patches/0008-show-delay.patch)
+    - debian/patches/misc-changes.patch: old undocumented inline changes.
+      export a new symbol added in debian/libplymouth4.symbols.
+    - debian/patches/avoid-sigpipe.patch:
+      Use first a socket connection before fallbacking to regular write()
+    - debian:patches/details-short-prompt.patch: When we display bullets in the
+      ubuntu details theme, shorten the prompt.
+    - debian/patches/details-remove-separator.patch: Removed explicit printing
+      of ':'.
+    - debian/patches/details-update-status.patch: Implement update status (U)
+      splash plugin function for details plugin, imply display those updates
+      as text messages.
+    - debian/patches/initramfsless-boot.patch: support intramfsless boot.
+    - debian/patches/fix-split-writes.patch: fix split writes for long server
+      responses.
+    - debian/patches/ubuntu-add-splash-option.patch: add "splash" option as a
+      condition to trigger plymouth.
+    - debian/rules:
+      - disable optimization is noopt found in $DEB_BUILD_OPTION
+      - enable -Werror
+      - use ubuntu-themes background color
+    - debian/local/<initramfs scripts>: export OPTION=FRAMEBUFFER for user's
+      command line argument explicitly disabling framebuffer.
+    - We use alternatives instead of plymouth-set-default-theme tool:
+      + debian/plymouth-themes.{prerm,postinst}: ensure we select one default
+       plymouth logo and text themes through alternatives even when we remove
+       ubuntu-base ones.
+      + debian/rules, debian/plymouth.{install,links), don't ship non
+        non alternative-based theme policy files and tools.
+      + update plymouth.README.Debian to tell to use update-alternative
+        instead of set-default-theme
+      + change debian/local/plymouth.hook to use update-alternative to get
+        default theme instead of set-default-theme. Also, don't copy
+        deleted files to initramfs.
+    - Add Breaks: against older themes versions as they are shipping in /lib
+      instead of /usr/share.
+  * Noticeable changes from previous ubuntu version:
+    - Follow debian in moving all renderers from /lib to /usr/lib 
+    - Follow debian as well in moving all themes from /lib to /usr/share
+      and handle transition removing older /lib/plymouth/theme generated files.
+    - Renamed all ubuntu_logo* to ubuntu-logo* to follow debian naming. Do
+      something comparable with all our assets and adapt scripts to it.
+    - Renamed debian/libplymouth4.apport to debian/source_plymouth.apport
+      as we install it under this name.
+    - Cleaning up deprecated transitions in maintainer scripts and package
+      metadata.
+    - Log viewer has been disabled in upstream build for quite a while and
+      is now not built either in debian. Follow this changes. We can re-enable
+      it if there is a need but systemd logs should be generally enough.
+    - Update ubuntu specific package description to match debian's one.
+    - Following debian change, we disable plymouth splash with !nosplash as
+      a kernel command parameter.
+    - All patches needed some adapation as upstream changed its identation from
+      2 to 8 space characters.
+    - debian/plymouth-theme-ubuntu-text.postrm: clean up generated postinst
+      ubuntu-text plymouth metafile.
+    - we do select one default theme when no ubuntu related themes are
+      installed from the default plymouth theme package (spinner theme). If
+      you don't want to install an ubuntu plymouth theme and select another
+      one from the default set manually, update the alternative.
+    - add missing lsb-release dep on plymouth-theme-ubuntu-text
+  * ubuntu old changelog containing debian-like packaging version has been
+    copied to debian/changelog.ubuntu.old in the source package.
+
+ -- Didier Roche <didrocks@ubuntu.com>  Wed, 02 Dec 2015 09:41:06 +0100
 
 plymouth (0.9.2-3) unstable; urgency=medium
 
