@@ -2,6 +2,7 @@
 
 set -e
 
+OPTION=FRAMEBUFFER
 PREREQ=""
 
 prereqs()
@@ -18,60 +19,86 @@ esac
 
 . /usr/share/initramfs-tools/hook-functions
 
-THEME="$(/usr/sbin/plymouth-set-default-theme || true)"
+THEME_PATH="$(update-alternatives --query default.plymouth 2>/dev/null | sed -e '/^Value:/!d' -e 's/^Value: \(.*\)/\1/')"
+THEME="$(basename ${THEME_PATH:-none} .plymouth || true)"
 THEMES="/usr/share/plymouth/themes"
 
-if [ -n "${THEME}" ]
+mkdir -p "${DESTDIR}/${THEMES}"
+
+if [ -n "${THEME}" ] && [ "${THEME}" != "none" ]
 then
 	THEME_NAME="${THEME}"
 	THEME="${THEMES}/${THEME}/${THEME}.plymouth"
-else
-	exit 0
+	# create default theme symlink
+	ln -s "${THEME}" "${DESTDIR}/${THEMES}/default.plymouth"
 fi
 
 PLUGIN_PATH="$(plymouth --get-splash-plugin-path)"
 
-case "${THEME_NAME}" in
-	text|details|tribar)
-		PLUGINS="text.so details.so"
-		;;
+# default text theme alternative
+TEXTTHEME_PATH="$(update-alternatives --query text.plymouth 2>/dev/null | sed -e '/^Value:/!d' -e 's/^Value: \(.*\)/\1/')"
+TEXTTHEME="$(basename ${TEXTTHEME_PATH:-none} .plymouth || true)"
 
-	*)
-		PLUGINS="text.so details.so label.so"
-		;;
-esac
-
-MODULE="${PLUGIN_PATH}/$(sed -n 's/^ModuleName=\(.*\)/\1/p' ${THEME}).so"
-
-if [ ! -e "$MODULE" ]
+if [ -n "${TEXTTHEME}" ] & [ "${TEXTTHEME}" != "none" ]
 then
-	echo "W: plymouth module ($MODULE) missing, skipping plymouth."
-	exit 0
+	TEXTTHEME_NAME="${TEXTTHEME}"
+	TEXTTHEME="${THEMES}/${TEXTTHEME}/${TEXTTHEME}.plymouth"
+    # create default text theme symlink
+    ln -s "${TEXTTHEME}" "${DESTDIR}/${THEMES}/text.plymouth"
 fi
 
-# copy plugin and images for current theme
-copy_exec "${MODULE}"
-mkdir -p "${DESTDIR}/${THEMES}"
-cp -r "${THEMES}/${THEME_NAME}" "${DESTDIR}/${THEMES}"
+# ensure we at least have one theme configured
+if [ ! -r "${THEME}" ] && [ ! -r "${TEXTTHEME}" ]
+then
+    exit 0
+fi
+
+# copy base themes content
+currthemes="${THEME_NAME} ${TEXTTHEME_NAME}"
+for currtheme in $currthemes
+do
+	case "${currtheme}" in
+		text|details|tribar|ubuntu-text)
+			PLUGINS="text.so details.so"
+			;;
+
+		*)
+			PLUGINS="details.so label.so"
+			;;
+	esac
+
+	MODULE="${PLUGIN_PATH}/$(sed -n 's/^ModuleName=\(.*\)/\1/p' ${THEMES}/${currtheme}/${currtheme}.plymouth 2>/dev/null || true).so"
+
+	if [ ! -e "$MODULE" ]
+	then
+		echo "W: plymouth module ($MODULE) missing, skipping that theme."
+		continue
+	fi
+
+	# copy plugin and images for current theme
+	copy_exec "${MODULE}"
+	cp -a "${THEMES}/${currtheme}" "${DESTDIR}/${THEMES}"
+
+	# copy base plugins if any
+	for PLUGIN in ${PLUGINS}
+	do
+		if [ -f ${PLUGIN_PATH}/${PLUGIN} ]
+		then
+			copy_exec ${PLUGIN_PATH}/${PLUGIN}
+		else
+			echo "W: plymouth: The plugin ${PLUGIN} is missing, the selected theme might not work as expected."
+			echo "W: plymouth: You might want to install the plymouth-themes and plymouth-label package to fix this."
+		fi
+	done
+
+done
 
 # copy binaries and base plugins
 copy_exec /bin/plymouth
 copy_exec /sbin/plymouthd
 
-for PLUGIN in ${PLUGINS}
-do
-	if [ -f ${PLUGIN_PATH}/${PLUGIN} ]
-	then
-		copy_exec ${PLUGIN_PATH}/${PLUGIN}
-	else
-		echo "W: plymouth: The plugin ${PLUGIN} is missing, the selected theme might not work as expected."
-		echo "W: plymouth: You might want to install the plymouth-themes package to fix this."
-	fi
-done
-
 # copy base themes and logo
 cp -a "${THEMES}/details" "${DESTDIR}/${THEMES}"
-cp -a "${THEMES}/text" "${DESTDIR}/${THEMES}"
 
 if [ -f /etc/os-release ]
 then
@@ -79,12 +106,12 @@ then
 fi
 
 case "${THEME_NAME}" in
-	text|details)
+	""|ubuntu-text|text|details)
 
 		;;
 
 	*)
-		cp /usr/share/plymouth/debian-logo.png "${DESTDIR}/usr/share/plymouth"
+		cp /usr/share/plymouth/ubuntu-logo.png "${DESTDIR}/usr/share/plymouth"
 
 		# fontconfig
 		mkdir -p "${DESTDIR}/etc/fonts/conf.d"
@@ -138,7 +165,11 @@ then
 	cp -a /etc/plymouth/plymouthd.conf "${DESTDIR}/etc/plymouth/"
 fi
 
-cp -a /usr/share/plymouth/plymouthd.defaults "${DESTDIR}/usr/share/plymouth/"
+# copy defaults file if exist
+if [ -r /usr/share/plymouth/plymouthd.defaults ]
+then
+	cp -a /usr/share/plymouth/plymouthd.defaults "${DESTDIR}/usr/share/plymouth/"
+fi
 
 # temporarily include dummy root account lookup (#691598)
 if ! grep -qs '^root:' "${DESTDIR}/etc/passwd"
