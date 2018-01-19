@@ -1,3 +1,19 @@
+plymouth (0.9.3-2) unstable; urgency=medium
+
+  * Import upstream patches coming from the master branch:
+    - Remove d/p/0002-stderr.patch, replaced by
+      d/p/0002-scripts-Use-2-instead-of-dev-stderr.patch
+    - d/p/0006-x11-don-t-call-gdk_display_get_name-before-gtk_init.patch:
+      Fixes a crash when the x11 renderer is installed (Closes: #878115)
+  * debian/control: Drop obsolete dh-systemd build-dependency and bump
+    debhelper minimal version
+  * debian/control: Bump Standards-Version to 4.1.3 (no further changes)
+  * debian/watch: Use https:// URL
+  * Add apport hook, taken from Ubuntu and adjusted to support the fact that
+    we are not using alternatives to select the default theme
+
+ -- Laurent Bigonville <bigon@debian.org>  Fri, 19 Jan 2018 11:31:55 +0100
+
 plymouth (0.9.3-1) unstable; urgency=medium
 
   [ Laurent Bigonville ]
