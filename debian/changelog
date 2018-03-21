@@ -1,3 +1,11 @@
+plymouth (0.9.3-1ubuntu2) bionic; urgency=medium
+
+  * Make the lsb-release triggers interest-noawait, so that we don't block
+    configuration of an Essential: yes package during upgrades.
+    LP: #1750465.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Tue, 20 Mar 2018 23:15:58 -0700
+
 plymouth (0.9.3-1ubuntu1) bionic; urgency=medium
 
   * Merged from debian unstable (second time ever…) Remaining changes:
