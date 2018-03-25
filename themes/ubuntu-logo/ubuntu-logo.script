@@ -47,7 +47,7 @@ debugsprite_bottom = Sprite();
 debugsprite_medium = Sprite();
 
 # Ubuntu Font
-ubuntufont = "Ubuntu 11";
+ubuntufont = "Ubuntu, sans-serif 11";
 ubuntualignment = "center";
 
 

@@ -1,3 +1,12 @@
+plymouth (0.9.3-1ubuntu3) bionic; urgency=medium
+
+  * Make the Ubuntu font the default sans-serif & mono fonts. LP: #1592405
+  * Adjust title of ubuntu-text theme.
+  * In the ubuntu-logo theme fallback to sans-serif font, if Ubuntu font
+    is not available.
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Sun, 25 Mar 2018 22:00:14 +0100
+
 plymouth (0.9.3-1ubuntu2) bionic; urgency=medium
 
   * Make the lsb-release triggers interest-noawait, so that we don't block
