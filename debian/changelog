@@ -1,3 +1,11 @@
+plymouth (0.9.2-3ubuntu13.3) xenial; urgency=medium
+
+  * Make the lsb-release triggers interest-noawait, so that we don't block
+    configuration of an Essential: yes package during upgrades.
+    LP: #1750465.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Tue, 27 Mar 2018 12:04:31 -0700
+
 plymouth (0.9.2-3ubuntu13.2) xenial; urgency=medium
 
   * Remove dependency on initramfs-tools | dracut.  LP: #1716825.
