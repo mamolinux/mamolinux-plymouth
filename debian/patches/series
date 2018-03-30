@@ -26,6 +26,7 @@ initramfsless-boot.patch
 fix-split-writes.patch
 ubuntu-add-splash-option.patch
 default-devicetimeout.patch
+timeout-for-ping.patch
 
 # Ubuntu themes
 ubuntu-logo.patch
