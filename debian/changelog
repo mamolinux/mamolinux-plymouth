@@ -1,3 +1,10 @@
+plymouth (0.9.3-1ubuntu4) bionic; urgency=medium
+
+  * debian/patches/timeout-for-ping.ptach: Don't wait forever for a reply from
+    a ping command. (LP: #1705345)
+
+ -- Brian Murray <brian@ubuntu.com>  Fri, 30 Mar 2018 07:41:54 -0700
+
 plymouth (0.9.3-1ubuntu3) bionic; urgency=medium
 
   * Make the Ubuntu font the default sans-serif & mono fonts. LP: #1592405
