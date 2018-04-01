@@ -5,6 +5,7 @@ Before=systemd-poweroff.service
 DefaultDependencies=no
 ConditionKernelCommandLine=!plymouth.enable=0
 ConditionKernelCommandLine=!nosplash
+ConditionKernelCommandLine=splash
 
 [Service]
 ExecStart=@PLYMOUTH_DAEMON_DIR@/plymouthd --mode=shutdown --attach-to-session
