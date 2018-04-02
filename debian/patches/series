@@ -15,6 +15,7 @@ details-update-status.patch
 initramfsless-boot.patch
 fix-split-writes.patch
 ubuntu-add-splash-option.patch
+timeout-for-ping.patch
 
 # Ubuntu themes
 ubuntu-logo.patch
