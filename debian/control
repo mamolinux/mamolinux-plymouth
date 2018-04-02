@@ -94,7 +94,6 @@ Architecture: linux-any
 Depends: plymouth (= ${binary:Version}), ${misc:Depends}, ${shlibs:Depends},
          fonts-ubuntu,
          fontconfig-config,
-         fonts-dejavu-core | ttf-dejavu-core
 Breaks: plymouth-themes (<< 0.9.2-5~)
 Replaces: plymouth-themes (<< 0.9.2-5~)
 Description: boot animation, logger and I/O multiplexer - label control

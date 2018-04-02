@@ -1,3 +1,11 @@
+plymouth (0.9.3-1ubuntu6) bionic; urgency=medium
+
+  * Drop references to dejavu fonts in the initramfs hook; our themes only
+    ever use the Ubuntu font, and any other themes that want a different
+    font should handle this themselves.
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Mon, 02 Apr 2018 11:19:15 -0700
+
 plymouth (0.9.3-1ubuntu5) bionic; urgency=medium
 
   * Move the Ubuntu font, dejavu font, fontconfig dependencies to

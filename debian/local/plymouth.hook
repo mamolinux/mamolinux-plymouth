@@ -117,10 +117,11 @@ case "${THEME_NAME}" in
 		mkdir -p "${DESTDIR}/etc/fonts/conf.d"
 		cp -a /etc/fonts/fonts.conf "${DESTDIR}/etc/fonts"
 		mkdir -p "${DESTDIR}/var/cache/fontconfig"
-		mkdir -p "${DESTDIR}/usr/share/fonts/truetype/dejavu"
-		cp -a /usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf "${DESTDIR}/usr/share/fonts/truetype/dejavu"
 
-		# Make Ubuntu the default sans-serif, and mono fonts
+		# Make Ubuntu the default sans-serif, and mono fonts.  Ubuntu
+		# font is always present if we have python-label installed; if
+		# not installed, then we have no graphical themes that display
+		# text, so that's ok.
 		if [ -e /usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf ]
 		then
 		    sed 's|\(<family>DejaVu Sans</family>\)|<family>Ubuntu</family>\1|;s|\(<family>DejaVu Sans Mono</family>\)|<family>Ubuntu Mono</family>\1|;' \
@@ -128,11 +129,8 @@ case "${THEME_NAME}" in
 		    mkdir -p "${DESTDIR}/usr/share/fonts/truetype/ubuntu"
 		    cp -a /usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf "${DESTDIR}/usr/share/fonts/truetype/ubuntu"
 		    cp -a /usr/share/fonts/truetype/ubuntu/UbuntuMono-R.ttf "${DESTDIR}/usr/share/fonts/truetype/ubuntu"
-		else
-		    cp -rL /etc/fonts/conf.d/60-latin.conf "${DESTDIR}/etc/fonts/conf.d"
-		    cp -a /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf  "${DESTDIR}/usr/share/fonts/truetype/dejavu"
 		fi
-		
+
 		# pango
 		if ls /usr/lib/@DEB_HOST_MULTIARCH@/pango/1* > /dev/null 2>&1
 		then
