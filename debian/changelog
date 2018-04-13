@@ -1,3 +1,11 @@
+plymouth (0.9.3-1ubuntu7) bionic; urgency=medium
+
+  * debian/patches/misc-changes.patch: Drop call to stop_animation as it would
+    unreference a bunch of variables and may cause a crash writing a NULL VMA.
+    (LP: #1745406)
+
+ -- Brian Murray <brian@ubuntu.com>  Thu, 12 Apr 2018 17:07:36 -0700
+
 plymouth (0.9.3-1ubuntu6) bionic; urgency=medium
 
   * Drop references to dejavu fonts in the initramfs hook; our themes only
