@@ -1,3 +1,11 @@
+plymouth (0.8.8-0ubuntu17.2) trusty; urgency=medium
+
+  *debian/patches/misc-changes.patch: Drop call to stop_animation as it would
+   unreference a bunch of variables and cause a crash writing a NULL VMA.
+   (LP: #927636)
+
+ -- Brian Murray <brian@ubuntu.com>  Mon, 07 May 2018 16:45:23 -0700
+
 plymouth (0.8.8-0ubuntu17.1) trusty; urgency=medium
 
   * Correct early boot theming. Adjust grub snippet that sets purple
