@@ -200,19 +200,6 @@ Index: trunk/src/plugins/splash/script/script-lib-sprite.c
                                "SetBackgroundTopColor",
                                sprite_window_set_background_top_color,
                                data,
-Index: trunk/src/plugins/splash/script/plugin.c
-===================================================================
---- trunk.orig/src/plugins/splash/script/plugin.c
-+++ trunk/src/plugins/splash/script/plugin.c
-@@ -467,6 +467,8 @@
- become_idle (ply_boot_splash_plugin_t *plugin,
-              ply_trigger_t            *idle_trigger)
- {
-+  stop_animation (plugin);
-+
-   ply_trigger_pull (idle_trigger, NULL);
- }
- 
 Index: trunk/src/plugins/splash/text/plugin.c
 ===================================================================
 --- trunk.orig/src/plugins/splash/text/plugin.c
