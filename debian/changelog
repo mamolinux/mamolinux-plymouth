@@ -1,3 +1,11 @@
+plymouth (0.9.2-3ubuntu13.5) xenial; urgency=medium
+
+  *debian/patches/misc-changes.patch: Drop call to stop_animation as it would
+   unreference a bunch of variables and cause a crash writing a NULL VMA.
+   (LP: #927636)
+
+ -- Brian Murray <brian@ubuntu.com>  Mon, 07 May 2018 16:39:09 -0700
+
 plymouth (0.9.2-3ubuntu13.4) xenial; urgency=medium
 
   * debian/patches/timeout-for-ping.ptach: Don't wait forever for a reply from
