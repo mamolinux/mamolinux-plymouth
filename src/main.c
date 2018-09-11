@@ -1278,12 +1278,8 @@ quit_program (state_t *state)
 }
 
 static void
-deactivate_splash (state_t *state)
+deactivate_console (state_t *state)
 {
-        assert (!state->is_inactive);
-
-        ply_device_manager_deactivate_renderers (state->device_manager);
-
         detach_from_running_session (state);
 
         if (state->local_console_terminal != NULL) {
@@ -1296,6 +1292,17 @@ deactivate_splash (state_t *state)
         /* do not let any tty opened where we could write after deactivate */
         if (command_line_has_argument (state->kernel_command_line, "plymouth.debug"))
                 ply_logger_close_file (ply_logger_get_error_default ());
+
+}
+
+static void
+deactivate_splash (state_t *state)
+{
+        assert (!state->is_inactive);
+
+        ply_device_manager_deactivate_renderers (state->device_manager);
+
+        deactivate_console (state);
 
         state->is_inactive = true;
 
@@ -1333,6 +1340,7 @@ on_deactivate (state_t       *state,
                ply_trigger_t *deactivate_trigger)
 {
         if (state->is_inactive) {
+                deactivate_console (state);
                 ply_trigger_pull (deactivate_trigger, NULL);
                 return;
         }
