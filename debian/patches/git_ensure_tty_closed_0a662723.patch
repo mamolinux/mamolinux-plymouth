@@ -1,0 +1,67 @@
+From 28ee4012c94b4045b97e5a2a66f66b7688b2dff3 Mon Sep 17 00:00:00 2001
+From: Ray Strode <rstrode@redhat.com>
+Date: Sat, 25 Aug 2018 12:21:45 -0400
+Subject: [PATCH] main: ensure tty is closed on deactivate
+
+If plymouth doesn't get explicitly "activated" then when
+GDM tries to deactivate it, the deactivation request is
+a noop.
+
+One aspect of being active, though is having ownership and
+control of the terminal.  This happens immediately, even
+before a splash is shown.
+
+The `deactivate` request needs to relinguish such control,
+unconditionally, since some display server is about to use
+the tty.
+
+This commit fixes that.
+
+---
+ src/main.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
+
+Index: b/src/main.c
+===================================================================
+--- a/src/main.c
++++ b/src/main.c
+@@ -1255,12 +1255,8 @@ quit_program (state_t *state)
+ }
+ 
+ static void
+-deactivate_splash (state_t *state)
++deactivate_console (state_t *state)
+ {
+-        assert (!state->is_inactive);
+-
+-        ply_device_manager_deactivate_renderers (state->device_manager);
+-
+         detach_from_running_session (state);
+ 
+         if (state->local_console_terminal != NULL) {
+@@ -1274,6 +1270,17 @@ deactivate_splash (state_t *state)
+         if (command_line_has_argument (state->kernel_command_line, "plymouth.debug"))
+                 ply_logger_close_file (ply_logger_get_error_default ());
+ 
++}
++
++static void
++deactivate_splash (state_t *state)
++{
++        assert (!state->is_inactive);
++
++        ply_device_manager_deactivate_renderers (state->device_manager);
++
++        deactivate_console (state);
++
+         state->is_inactive = true;
+ 
+         ply_trigger_pull (state->deactivate_trigger, NULL);
+@@ -1310,6 +1317,7 @@ on_deactivate (state_t       *state,
+                ply_trigger_t *deactivate_trigger)
+ {
+         if (state->is_inactive) {
++                deactivate_console (state);
+                 ply_trigger_pull (deactivate_trigger, NULL);
+                 return;
+         }
