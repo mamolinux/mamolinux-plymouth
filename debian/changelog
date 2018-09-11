@@ -1,3 +1,10 @@
+plymouth (0.9.3-1ubuntu7.18.04.1) bionic; urgency=medium
+
+  * debian/patches/git_ensure_tty_closed_0a662723.patch: ensure tty is closed
+    on deactivate. (LP: #1767918) 
+
+ -- Mathieu Trudel-Lapierre <cyphermox@ubuntu.com>  Tue, 11 Sep 2018 19:03:58 -0400
+
 plymouth (0.9.3-1ubuntu7) bionic; urgency=medium
 
   * debian/patches/misc-changes.patch: Drop call to stop_animation as it would

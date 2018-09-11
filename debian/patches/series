@@ -15,6 +15,7 @@ drop-systemd-vconsole-setup-service.patch
 0005-INSTALL-Fix-a-spelling-error-in-the-command-example.patch
 0006-x11-don-t-call-gdk_display_get_name-before-gtk_init.patch
 0007-device-manager-drop-superfluous-create_pixel_display.patch
+git_ensure_tty_closed_0a662723.patch
 
 ## Ubuntu
 misc-changes.patch
