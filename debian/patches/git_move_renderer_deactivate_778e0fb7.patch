@@ -1,0 +1,61 @@
+From 778e0fb77a9dfb85270242f1238eba237488eb48 Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Mon, 25 Jun 2018 16:55:39 +0200
+Subject: main: move ply_device_manager_deactivate_renderers() into
+ hide_splash()
+
+hide_splash() should be the counter-part of show_splash(). show_splash()
+calls ply_device_manager_activate_renderers() (through show_theme()).
+
+2 of the 3 callers of hide_splash() are already calling
+ply_device_manager_deactivate_renderers() directly before calling
+hide_splash(). This commit moves the deactivate call into hide_splash()
+so that it also gets called from the 3th code-path, which is when
+the user hits the escape to key to toggle from the splash to details.
+
+It's important that plymouth deactivates its renderers before going
+to details, because those renderers can block the kernel from
+initializing fbcon, which the kernel will start doing lazily in the
+future:
+
+https://lkml.org/lkml/2018/6/26/489.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+
+https://bugs.freedesktop.org/show_bug.cgi?id=107047
+---
+ src/main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/main.c b/src/main.c
+index 841fe6b..ff02ea6 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -1174,6 +1174,8 @@ quit_splash (state_t *state)
+ static void
+ hide_splash (state_t *state)
+ {
++        ply_device_manager_deactivate_renderers (state->device_manager);
++
+         state->is_shown = false;
+ 
+         cancel_pending_delayed_show (state);
+@@ -1193,7 +1195,6 @@ dump_details_and_quit_splash (state_t *state)
+         state->showing_details = false;
+         toggle_between_splash_and_details (state);
+ 
+-        ply_device_manager_deactivate_renderers (state->device_manager);
+         hide_splash (state);
+         quit_splash (state);
+ }
+@@ -1291,7 +1292,6 @@ on_boot_splash_idle (state_t *state)
+         if (state->quit_trigger != NULL) {
+                 if (!state->should_retain_splash) {
+                         ply_trace ("hiding splash");
+-                        ply_device_manager_deactivate_renderers (state->device_manager);
+                         hide_splash (state);
+                 }
+ 
+-- 
+cgit v1.1
+

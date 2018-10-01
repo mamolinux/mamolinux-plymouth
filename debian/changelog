@@ -1,3 +1,13 @@
+plymouth (0.9.3-1ubuntu9) cosmic; urgency=medium
+
+  * debian/patches/git_move_renderer_deactivate_778e0fb7.patch: move the
+    ply_device_manager_deactivate_renderers() calls into hide_splash(). This
+    makes sure it is run in all three of the likely code-paths to deactivating
+    plymouth's splash, and ensures objects are in the right state when
+    deactivating on close. (LP: #1794292)
+
+ -- Mathieu Trudel-Lapierre <cyphermox@ubuntu.com>  Mon, 01 Oct 2018 11:46:00 -0400
+
 plymouth (0.9.3-1ubuntu8) cosmic; urgency=medium
 
   * debian/patches/git_ensure_tty_closed_0a662723.patch: ensure tty is closed
