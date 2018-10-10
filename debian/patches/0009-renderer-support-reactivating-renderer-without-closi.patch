@@ -1,0 +1,40 @@
+From eb147e52b123070ab8839c3f59aaecc43fcc8652 Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Mon, 25 Jun 2018 22:02:07 +0200
+Subject: [PATCH 34/48] renderer: support reactivating renderer without closing
+ it first
+
+At the moment, ply_renderer_activate() doesn't work immediately following
+ply_renderer_deactivate().  This is because the renderer isn't marked
+inactive until it's closed.
+
+This commit marks the renderer inactive when it's deactivated.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+
+https://bugs.freedesktop.org/show_bug.cgi?id=107047
+
+Origin: upstream, commit:eb147e52b123070ab8839c3f59aaecc43fcc8652
+Applied-Upstream: 0.9.4
+
+---
+ src/libply-splash-core/ply-renderer.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/libply-splash-core/ply-renderer.c b/src/libply-splash-core/ply-renderer.c
+index b9059ef..ecf7082 100644
+--- a/src/libply-splash-core/ply-renderer.c
++++ b/src/libply-splash-core/ply-renderer.c
+@@ -314,7 +314,8 @@ ply_renderer_deactivate (ply_renderer_t *renderer)
+ {
+         assert (renderer->plugin_interface != NULL);
+ 
+-        return renderer->plugin_interface->deactivate (renderer->backend);
++        renderer->plugin_interface->deactivate (renderer->backend);
++        renderer->is_active = false;
+ }
+ 
+ bool
+-- 
+2.17.0
+

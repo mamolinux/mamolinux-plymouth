@@ -16,7 +16,13 @@ drop-systemd-vconsole-setup-service.patch
 0006-x11-don-t-call-gdk_display_get_name-before-gtk_init.patch
 0007-device-manager-drop-superfluous-create_pixel_display.patch
 git_move_renderer_deactivate_778e0fb7.patch
+0009-renderer-support-reactivating-renderer-without-closi.patch
+0010-main-Only-activate-renderers-if-the-splash-uses-pixe.patch
+0011-drm-Remove-unnecessary-reset_scan_out_buffer_if_need.patch
+# despite the name, this is actually 28ee401 (it was previously the hash of the
+# merge commit; the patch is not renamed to not generate too much diff noise)
 git_ensure_tty_closed_0a662723.patch
+0013-device-manager-don-t-watch-for-udev-events-when-deac.patch
 
 ## Ubuntu
 misc-changes.patch
@@ -33,4 +39,3 @@ timeout-for-ping.patch
 # Ubuntu themes
 ubuntu-logo.patch
 ubuntu-text.patch
-

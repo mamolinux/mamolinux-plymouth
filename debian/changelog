@@ -1,3 +1,25 @@
+plymouth (0.9.3-1ubuntu10) cosmic; urgency=medium
+
+  * Grab some commits from upstream:
+    + 0009-renderer-support-reactivating-renderer-without-closi.patch,
+      0010-main-Only-activate-renderers-if-the-splash-uses-pixe.patch:
+      Fix (or at least improve the situation regarding!) toggling of renderers
+      on and off, e.g. when pressing escape multiple times to switch between
+      text and graphics.
+    + 0011-drm-Remove-unnecessary-reset_scan_out_buffer_if_need.patch:
+      See the patch for a detailed description, but it avoids some cases of
+      renderers becoming active unnecessarily, which is related to...
+    + 0013-device-manager-don-t-watch-for-udev-events-when-deac.patch:
+      Don't process udev events after we've been deactivated. These can cause
+      renderers to activate, which might make them claim DRM master and never
+      release it, causing wayland / Xorg to fail. (LP: #1795637)
+  * git_ensure_tty_closed_0a662723.patch:
+    + Re-cherry-picked, as it had been rebased before. The filename is now a
+      lie, since I took the commit instead of the merge, but kept as-is for
+      a more sane diff.
+
+ -- Iain Lane <iain.lane@canonical.com>  Wed, 10 Oct 2018 20:40:30 +0100
+
 plymouth (0.9.3-1ubuntu9) cosmic; urgency=medium
 
   * debian/patches/git_move_renderer_deactivate_778e0fb7.patch: move the

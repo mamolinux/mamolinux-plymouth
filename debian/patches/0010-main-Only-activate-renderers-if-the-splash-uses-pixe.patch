@@ -1,0 +1,102 @@
+From 447c783046a0e6bd0486e780f6a94396637a5bd4 Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Mon, 2 Jul 2018 09:39:12 +0200
+Subject: [PATCH 36/48] main: Only activate renderers if the splash uses
+ pixel-displays
+
+Since commit eb147e52b123 ("renderer: support reactivating renderer without
+closing it first"), the show_theme() call done by
+toggle_between_splash_and_details() will reactivate the renderers after
+switching to details mode, causing the drm renderer to switch the screen
+from text to graphics mode hiding the details being logged on the console.
+
+This commit fixes this by only calling ply_device_manager_activate_renderers()
+and ply_device_manager_deactivate_renderers if the splash uses pixel-displays.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+
+https://bugs.freedesktop.org/show_bug.cgi?id=107047
+
+Origin: upstream,commit:447c783046a0e6bd0486e780f6a94396637a5bd4
+Applied-Upstream: 0.9.4
+
+---
+ src/libply-splash-core/ply-boot-splash.c |  6 ++++++
+ src/libply-splash-core/ply-boot-splash.h |  1 +
+ src/main.c                               | 12 ++++++++----
+ 3 files changed, 15 insertions(+), 4 deletions(-)
+
+diff --git a/src/libply-splash-core/ply-boot-splash.c b/src/libply-splash-core/ply-boot-splash.c
+index 87a7a0c..2e295f4 100644
+--- a/src/libply-splash-core/ply-boot-splash.c
++++ b/src/libply-splash-core/ply-boot-splash.c
+@@ -695,4 +695,10 @@ ply_boot_splash_become_idle (ply_boot_splash_t                *splash,
+         splash->plugin_interface->become_idle (splash->plugin, splash->idle_trigger);
+ }
+ 
++bool
++ply_boot_splash_uses_pixel_displays (ply_boot_splash_t *splash)
++{
++        return splash->plugin_interface->add_pixel_display != NULL;
++}
++
+ /* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */
+diff --git a/src/libply-splash-core/ply-boot-splash.h b/src/libply-splash-core/ply-boot-splash.h
+index b66ca47..0bdbe96 100644
+--- a/src/libply-splash-core/ply-boot-splash.h
++++ b/src/libply-splash-core/ply-boot-splash.h
+@@ -89,6 +89,7 @@ void ply_boot_splash_attach_progress (ply_boot_splash_t *splash,
+ void ply_boot_splash_become_idle (ply_boot_splash_t                *splash,
+                                   ply_boot_splash_on_idle_handler_t idle_handler,
+                                   void                             *user_data);
++bool ply_boot_splash_uses_pixel_displays (ply_boot_splash_t *splash);
+ 
+ 
+ #endif
+diff --git a/src/main.c b/src/main.c
+index ff02ea6..ed23968 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -1174,7 +1174,8 @@ quit_splash (state_t *state)
+ static void
+ hide_splash (state_t *state)
+ {
+-        ply_device_manager_deactivate_renderers (state->device_manager);
++        if (state->boot_splash && ply_boot_splash_uses_pixel_displays (state->boot_splash))
++                ply_device_manager_deactivate_renderers (state->device_manager);
+ 
+         state->is_shown = false;
+ 
+@@ -1260,7 +1261,8 @@ deactivate_splash (state_t *state)
+ {
+         assert (!state->is_inactive);
+ 
+-        ply_device_manager_deactivate_renderers (state->device_manager);
++        if (state->boot_splash && ply_boot_splash_uses_pixel_displays (state->boot_splash))
++                ply_device_manager_deactivate_renderers (state->device_manager);
+ 
+         detach_from_running_session (state);
+ 
+@@ -1359,7 +1361,8 @@ on_reactivate (state_t *state)
+         }
+ 
+         ply_device_manager_activate_keyboards (state->device_manager);
+-        ply_device_manager_activate_renderers (state->device_manager);
++        if (state->boot_splash && ply_boot_splash_uses_pixel_displays (state->boot_splash))
++                ply_device_manager_activate_renderers (state->device_manager);
+ 
+         state->is_inactive = false;
+ 
+@@ -1763,7 +1766,8 @@ show_theme (state_t    *state,
+                 return NULL;
+ 
+         attach_splash_to_devices (state, splash);
+-        ply_device_manager_activate_renderers (state->device_manager);
++        if (ply_boot_splash_uses_pixel_displays (splash))
++                ply_device_manager_activate_renderers (state->device_manager);
+ 
+         splash_mode = get_splash_mode_from_mode (state->mode);
+ 
+-- 
+2.17.0
+

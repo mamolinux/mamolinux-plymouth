@@ -1,0 +1,89 @@
+From b527834c8821362da6d01ee15ecab589a43abfcb Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Mon, 2 Jul 2018 23:46:59 +0200
+Subject: [PATCH 37/48] drm: Remove unnecessary
+ reset_scan_out_buffer_if_needed() call from ply_renderer_head_map()
+
+ply_renderer_head_map() gets only called from map_to_device() which
+calls activate() directly afterwards which calls
+ply_renderer_head_set_scan_out_buffer(), so there is no need for the
+reset_scan_out_buffer_if_needed() call.
+
+Not only is it not needed, but it is actually harmful, there are 2 problems
+woth it:
+
+1) Normally the drm plugin gets instantiated by ply-renderer.c with
+   rendered->is_active=true, backend->is_active=false. The
+   rendered->is_active=true causes the first ply_renderer_activate call
+   to be a no-op without calling backend->activate(). So when the first
+   map_to_device() calls happen activate() has not been called yet and we've
+   not yet claimed master rights, so ply_renderer_head_set_scan_out_buffer()
+   calls will always fail, resulting in this in a ply-trace:
+
+   Mapping buffer for 1920x1080 renderer head
+   Redrawing 1920x1080 renderer head
+   Setting scan out buffer of 1920x1080 head to our buffer
+   Couldn't set scan out buffer for head with controller id 41
+
+   This is harmless, but also shows that the reset_scan_out_buffer_if_needed()
+   is really not needed.
+
+2. If deactivate_renderer() gets called before the first show-splash then
+   rendered->is_active will become false, so renderer_activate() done before
+   map_to_device() will now actually call backend->activate() claiming
+   drm master rights and setting backend->is_active=true.
+
+   The map_to_device() -> ply_renderer_head_map() call done after this, calls
+   ply_renderer_head_redraw() -> flush_head() which under 1. was a no-op
+   as it exits directly when backend->is_active=false. But now it actually
+   flushes the buffers by calling reset_scan_out_buffer_if_needed(). This
+   itself is fine.
+
+   But since reset_scan_out_buffer_if_needed() has already happened in
+   ply_renderer_head_redraw() the reset_scan_out_buffer_if_needed() call this
+   commit removes would always return false (no reset necessary) causing
+   ply_renderer_head_map() to destroy the buffer and return an error.
+
+   This results in the splash briefly showing, followed by the core soon after
+   trying another map_to_device(), which again briefly shows the splash, etc.
+   With the end result being a badly flickering display.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+
+Origin: upstream,commit:b527834c8821362da6d01ee15ecab589a43abfcb
+Applied-Upstream: 0.9.4
+
+---
+ src/plugins/renderers/drm/plugin.c | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/src/plugins/renderers/drm/plugin.c b/src/plugins/renderers/drm/plugin.c
+index fb79aa6..1080590 100644
+--- a/src/plugins/renderers/drm/plugin.c
++++ b/src/plugins/renderers/drm/plugin.c
+@@ -618,8 +618,6 @@ static bool
+ ply_renderer_head_map (ply_renderer_backend_t *backend,
+                        ply_renderer_head_t    *head)
+ {
+-        bool scan_out_set;
+-
+         assert (backend != NULL);
+         assert (backend->device_fd >= 0);
+         assert (backend != NULL);
+@@ -646,13 +644,6 @@ ply_renderer_head_map (ply_renderer_backend_t *backend,
+          */
+         ply_renderer_head_redraw (backend, head);
+ 
+-        scan_out_set = reset_scan_out_buffer_if_needed (backend, head);
+-        if (!scan_out_set && backend->is_active) {
+-                destroy_output_buffer (backend, head->scan_out_buffer_id);
+-                head->scan_out_buffer_id = 0;
+-                return false;
+-        }
+-
+         return true;
+ }
+ 
+-- 
+2.17.0
+
