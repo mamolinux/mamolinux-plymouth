@@ -1,3 +1,20 @@
+plymouth (0.9.4-1) unstable; urgency=medium
+
+  [ Ondřej Nový ]
+  * d/copyright: Use https protocol in Format field
+
+  [ Laurent Bigonville ]
+  * New upstream version 0.9.3
+    - Add support screen rotation (Closes: #905429)
+    - Drop patches merged upstream
+    - debian/patches/0005-cmdline.patch: Refreshed
+    - debian/libplymouth4.symbols: Add newly exported symbols
+  * debian/control: Bump Standards-Version to 4.2.1 (no further changes)
+  * Do not explicitly set the compression algorithm, to please lintian
+  * debian/rules: Use dh_missing --fail-missing instead of dh_install
+
+ -- Laurent Bigonville <bigon@debian.org>  Thu, 08 Nov 2018 02:03:31 +0100
+
 plymouth (0.9.3-3) unstable; urgency=medium
 
   * debian/local/plymouth.hook: Call fc-cache when generating the initramfs,
