@@ -314,10 +314,13 @@ create_devices_for_subsystem (ply_device_manager_t *manager,
                          */
                         if (udev_device_has_tag (device, "seat")) {
                                 const char *node;
+                                bool found = false;
                                 node = udev_device_get_devnode (device);
                                 if (node != NULL) {
                                         ply_trace ("found node %s", node);
-                                        found_device = create_devices_for_udev_device (manager, device);
+                                        found = create_devices_for_udev_device (manager, device);
+                                        if (found)
+                                                found_device = found;
                                 }
                         } else {
                                 ply_trace ("device doesn't have a devices tag");

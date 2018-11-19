@@ -1,0 +1,27 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Make sure we remember we've found some good drm devices
+
+Replacing found_device again and again might mean our last call to
+create_devices_for_udev_device() might return a false, confusing the device
+manager into thinking we haven't found a DRM device and thus also initializing
+a console as well.
+
+Index: plymouth-0.9.3/src/libply-splash-core/ply-device-manager.c
+===================================================================
+--- plymouth-0.9.3.orig/src/libply-splash-core/ply-device-manager.c
++++ plymouth-0.9.3/src/libply-splash-core/ply-device-manager.c
+@@ -314,10 +314,13 @@ create_devices_for_subsystem (ply_device
+                          */
+                         if (udev_device_has_tag (device, "seat")) {
+                                 const char *node;
++                                bool found = false;
+                                 node = udev_device_get_devnode (device);
+                                 if (node != NULL) {
+                                         ply_trace ("found node %s", node);
+-                                        found_device = create_devices_for_udev_device (manager, device);
++                                        found = create_devices_for_udev_device (manager, device);
++                                        if (found)
++                                                found_device = found;
+                                 }
+                         } else {
+                                 ply_trace ("device doesn't have a devices tag");

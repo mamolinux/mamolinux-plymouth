@@ -401,6 +401,8 @@ ply_keyboard_stop_watching_for_input (ply_keyboard_t *keyboard)
         if (!keyboard->is_active)
                 return;
 
+        keyboard->is_active = false;
+
         switch (keyboard->provider_type) {
         case PLY_KEYBOARD_PROVIDER_TYPE_RENDERER:
                 ply_keyboard_stop_watching_for_renderer_input (keyboard);
@@ -410,8 +412,6 @@ ply_keyboard_stop_watching_for_input (ply_keyboard_t *keyboard)
                 ply_keyboard_stop_watching_for_terminal_input (keyboard);
                 break;
         }
-
-        keyboard->is_active = false;
 }
 
 void
