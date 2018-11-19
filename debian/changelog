@@ -1,3 +1,14 @@
+plymouth (0.9.3-1ubuntu11) disco; urgency=medium
+
+  * Workaround a plugin being already deactivated when we try to remove input
+    watchers for keyboards in DRM mode. Also guard against races at removing
+    input watches and new device detection at startup. (LP: #1794292)
+    - debian/patches/fix_unrefd_plugin_interface.patch
+    - debian/patches/remember_found_devices.patch
+    - debian/patches/keyboard_deactivation.patch
+
+ -- Mathieu Trudel-Lapierre <cyphermox@ubuntu.com>  Mon, 19 Nov 2018 12:16:23 -0500
+
 plymouth (0.9.3-1ubuntu10) cosmic; urgency=medium
 
   * Grab some commits from upstream:

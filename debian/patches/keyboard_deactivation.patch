@@ -1,0 +1,30 @@
+From: Mathieu Trudel-Lapierre <mathieu.trudel-lapierre@canonical.com>
+Subject: Mark a keyboard inactive before deactivating to avoid races
+
+Mark the keyboard we're deactivating (removing watches for input) just before
+actually removing the watches. This avoids running into a case where we might
+try to remove the watch again in parallel from this, crashing if this happens
+while we're freeing objects too.
+
+Index: plymouth-0.9.3/src/libply-splash-core/ply-keyboard.c
+===================================================================
+--- plymouth-0.9.3.orig/src/libply-splash-core/ply-keyboard.c
++++ plymouth-0.9.3/src/libply-splash-core/ply-keyboard.c
+@@ -401,6 +401,8 @@ ply_keyboard_stop_watching_for_input (pl
+         if (!keyboard->is_active)
+                 return;
+ 
++        keyboard->is_active = false;
++
+         switch (keyboard->provider_type) {
+         case PLY_KEYBOARD_PROVIDER_TYPE_RENDERER:
+                 ply_keyboard_stop_watching_for_renderer_input (keyboard);
+@@ -410,8 +412,6 @@ ply_keyboard_stop_watching_for_input (pl
+                 ply_keyboard_stop_watching_for_terminal_input (keyboard);
+                 break;
+         }
+-
+-        keyboard->is_active = false;
+ }
+ 
+ void
