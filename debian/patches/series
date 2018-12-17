@@ -39,6 +39,8 @@ timeout-for-ping.patch
 # Ubuntu themes
 ubuntu-logo.patch
 ubuntu-text.patch
-fix_unrefd_plugin_interface.patch
-remember_found_devices.patch
-keyboard_deactivation.patch
+
+# Upstream backport
+git_helper_renderer.patch
+git_desactivate_renderer.patch
+git_small_bugfixes.patch
