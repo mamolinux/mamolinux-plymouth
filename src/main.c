@@ -1337,6 +1337,7 @@ on_deactivate (state_t       *state,
         ply_trace ("deactivating");
         cancel_pending_delayed_show (state);
 
+        ply_device_manager_pause (state->device_manager);
         ply_device_manager_deactivate_keyboards (state->device_manager);
 
         if (state->boot_splash != NULL) {
@@ -1371,6 +1372,8 @@ on_reactivate (state_t *state)
         ply_device_manager_activate_keyboards (state->device_manager);
         if (state->boot_splash && ply_boot_splash_uses_pixel_displays (state->boot_splash))
                 ply_device_manager_activate_renderers (state->device_manager);
+
+        ply_device_manager_unpause (state->device_manager);
 
         state->is_inactive = false;
 
