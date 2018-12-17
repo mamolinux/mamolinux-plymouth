@@ -401,8 +401,6 @@ ply_keyboard_stop_watching_for_input (ply_keyboard_t *keyboard)
         if (!keyboard->is_active)
                 return;
 
-        keyboard->is_active = false;
-
         switch (keyboard->provider_type) {
         case PLY_KEYBOARD_PROVIDER_TYPE_RENDERER:
                 ply_keyboard_stop_watching_for_renderer_input (keyboard);
@@ -412,6 +410,8 @@ ply_keyboard_stop_watching_for_input (ply_keyboard_t *keyboard)
                 ply_keyboard_stop_watching_for_terminal_input (keyboard);
                 break;
         }
+
+        keyboard->is_active = false;
 }
 
 void
@@ -585,6 +585,22 @@ ply_keyboard_remove_enter_handler (ply_keyboard_t              *keyboard,
                         return;
                 }
         }
+}
+
+ply_renderer_t *
+ply_keyboard_get_renderer (ply_keyboard_t *keyboard)
+{
+        assert (keyboard != NULL);
+
+        switch (keyboard->provider_type) {
+        case PLY_KEYBOARD_PROVIDER_TYPE_RENDERER:
+                return keyboard->provider.if_renderer->renderer;
+
+        default:
+                break;
+        }
+
+        return NULL;
 }
 
 /* vim: set ts=4 sw=4 et ai ci cino={.5s,^-2,+.5s,t0,g0,e-2,n-2,p2s,(0,=.5s,:.5s */

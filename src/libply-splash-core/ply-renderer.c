@@ -404,12 +404,6 @@ ply_renderer_set_handler_for_input_source (ply_renderer_t                     *r
         assert (renderer != NULL);
         assert (input_source != NULL);
 
-        ply_trace ("set handler for input source on backend %p (device: %s) (renderer type: %d)",
-                   renderer->backend, renderer->device_name, renderer->type);
-
-        if (!renderer->plugin_interface)
-                return;
-
         renderer->plugin_interface->set_handler_for_input_source (renderer->backend,
                                                                   input_source,
                                                                   handler,

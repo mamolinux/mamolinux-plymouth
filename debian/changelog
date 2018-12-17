@@ -1,3 +1,18 @@
+plymouth (0.9.3-1ubuntu12) disco; urgency=medium
+
+  * debian/patches/git_helper_renderer.patch,
+    debian/patches/git_desactivate_renderer.patch:
+    - 'device-manager: free keyboards when deactivating a renderer', 
+      (lp: #1794292)
+  * debian/patches/git_small_bugfixes.patch:
+    - backported some upstream small bugfixes
+  * debian/patches/keyboard_deactivation.patch,
+    debian/patches/remember_found_devices.patch,
+    debian/patches/fix_unrefd_plugin_interface.patch:
+    - removed patches, superseeded by the previous one from upstream
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 17 Dec 2018 20:18:03 +0100
+
 plymouth (0.9.3-1ubuntu11) disco; urgency=medium
 
   * Workaround a plugin being already deactivated when we try to remove input
