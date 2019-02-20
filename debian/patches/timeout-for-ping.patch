@@ -1,0 +1,38 @@
+Description: Don't wait forever for a ping reply.
+ In the event that plymouthd is not responding the plymouth client will wait
+ forever when sending a ping to the daemon. Instead of waiting forever timeout
+ after a couple of seconds.
+
+Origin: vendor
+Author: Brian Murray <brian.murray@ubuntu.com>
+Bug-Ubuntu: https://bugs.launchpad.net/bugs/1705345
+Forwarded: no
+Last-Update: 2018-03-29
+
+Index: plymouth-0.9.3/src/client/plymouth.c
+===================================================================
+--- plymouth-0.9.3.orig/src/client/plymouth.c
++++ plymouth-0.9.3/src/client/plymouth.c
+@@ -76,6 +76,13 @@ typedef struct
+         char    *keys;
+ } key_answer_state_t;
+ 
++ply_event_loop_timeout_handler_t timeout_handler(void *user_data)
++{
++        ply_event_loop_t *loop = user_data;
++        ply_trace ("ping: timed out waiting for plymouthd");
++        ply_event_loop_exit(loop, 1);
++}
++
+ static char **
+ split_string (const char *command,
+               const char  delimiter)
+@@ -1161,6 +1168,8 @@ main (int    argc,
+                                              on_success,
+                                              (ply_boot_client_response_handler_t)
+                                              on_failure, &state);
++                ply_event_loop_watch_for_timeout (state.loop, 2.0,
++                                                  timeout_handler, state.loop);
+         } else if (should_check_for_active_vt) {
+                 ply_boot_client_ask_daemon_has_active_vt (state.client,
+                                                           (ply_boot_client_response_handler_t)
