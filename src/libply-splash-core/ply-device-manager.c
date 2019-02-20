@@ -81,6 +81,8 @@ struct _ply_device_manager
 
         uint32_t                    paused : 1;
         uint32_t                    device_timeout_elapsed : 1;
+        uint32_t                    found_drm_device : 1;
+        uint32_t                    found_fb_device : 1;
 };
 
 static void
@@ -135,6 +137,34 @@ free_displays_for_renderer (ply_device_manager_t *manager,
 }
 
 static void
+free_keyboards_for_renderer (ply_device_manager_t *manager,
+                            ply_renderer_t       *renderer)
+{
+        ply_list_node_t *node;
+
+        node = ply_list_get_first_node (manager->keyboards);
+        while (node != NULL) {
+                ply_list_node_t *next_node;
+                ply_keyboard_t *keyboard;
+                ply_renderer_t *keyboard_renderer;
+
+                keyboard = ply_list_node_get_data (node);
+                next_node = ply_list_get_next_node (manager->keyboards, node);
+                keyboard_renderer = ply_keyboard_get_renderer (keyboard);
+
+                if (keyboard_renderer == renderer) {
+                        ply_keyboard_free (keyboard);
+                        ply_list_remove_node (manager->keyboards, node);
+                }
+
+                node = next_node;
+        }
+        if (ply_list_get_first_node (manager->keyboards) == NULL) {
+                manager->local_console_managed = false;
+        }
+}
+
+static void
 free_devices_from_device_path (ply_device_manager_t *manager,
                                const char           *device_path)
 {
@@ -150,6 +180,7 @@ free_devices_from_device_path (ply_device_manager_t *manager,
                 return;
 
         free_displays_for_renderer (manager, renderer);
+        free_keyboards_for_renderer (manager, renderer);
 
         ply_hashtable_remove (manager->renderers, (void *) device_path);
         free (key);
@@ -254,6 +285,12 @@ create_devices_for_udev_device (ply_device_manager_t *manager,
                                                                                  device_path,
                                                                                  terminal,
                                                                                  renderer_type);
+                        if (created) {
+                                if (renderer_type == PLY_RENDERER_TYPE_DRM)
+                                        manager->found_drm_device = 1;
+                                if (renderer_type == PLY_RENDERER_TYPE_FRAME_BUFFER)
+                                        manager->found_fb_device = 1;
+                        }
                 }
         }
 
@@ -818,8 +855,6 @@ create_non_graphical_devices (ply_device_manager_t *manager)
 static void
 create_devices_from_udev (ply_device_manager_t *manager)
 {
-        bool found_drm_device, found_fb_device;
-
         manager->device_timeout_elapsed = true;
 
         if (manager->paused) {
@@ -829,10 +864,10 @@ create_devices_from_udev (ply_device_manager_t *manager)
 
         ply_trace ("Timeout elapsed, looking for devices from udev");
 
-        found_drm_device = create_devices_for_subsystem (manager, SUBSYSTEM_DRM);
-        found_fb_device = create_devices_for_subsystem (manager, SUBSYSTEM_FRAME_BUFFER);
+        create_devices_for_subsystem (manager, SUBSYSTEM_DRM);
+        create_devices_for_subsystem (manager, SUBSYSTEM_FRAME_BUFFER);
 
-        if (found_drm_device || found_fb_device)
+        if (manager->found_drm_device || manager->found_fb_device)
                 return;
 
         ply_trace ("Creating non-graphical devices, since there's no suitable graphics hardware");

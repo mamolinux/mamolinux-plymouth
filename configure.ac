@@ -189,6 +189,8 @@ AC_DEFINE_UNQUOTED(BOOT_TTY, "$BOOT_TTY", [TTY to use in boot mode])
 AC_ARG_WITH(shutdown-tty, AS_HELP_STRING([--with-shutdown-tty=<tty>],[Default TTY to use in shutdown mode (by default tty63)]),SHUTDOWN_TTY=${withval},SHUTDOWN_TTY=/dev/tty63)
 AC_DEFINE_UNQUOTED(SHUTDOWN_TTY, "$SHUTDOWN_TTY", [TTY to use in shutdown mode])
 
+AC_CHECK_DECLS([MSG_NOSIGNAL], [], [], [[ #include <sys/socket.h> ]])
+
 # Turn on the additional warnings last, so -Werror doesn't affect other tests.
 
 AC_DEFUN([PLYMOUTH_CC_TRY_FLAG], [
@@ -301,6 +303,7 @@ AC_CONFIG_FILES([Makefile
            src/plugins/splash/throbgress/Makefile
            src/plugins/splash/fade-throbber/Makefile
            src/plugins/splash/tribar/Makefile
+           src/plugins/splash/ubuntu-text/Makefile
            src/plugins/splash/text/Makefile
            src/plugins/splash/details/Makefile
            src/plugins/splash/space-flares/Makefile
@@ -322,6 +325,8 @@ AC_CONFIG_FILES([Makefile
            themes/glow/Makefile
            themes/spinner/Makefile
            themes/script/Makefile
+           themes/ubuntu-logo/Makefile
+           themes/ubuntu-text/Makefile
            images/Makefile
 	   scripts/plymouth-generate-initrd
 	   scripts/plymouth-populate-initrd
