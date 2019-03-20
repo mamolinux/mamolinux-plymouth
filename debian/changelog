@@ -1,3 +1,12 @@
+plymouth (0.9.3-1ubuntu10.1) cosmic; urgency=medium
+
+  * debian/patches/git_helper_renderer.patch,
+    debian/patches/git_desactivate_renderer.patch:
+    - 'device-manager: free keyboards when deactivating a renderer',
+      (LP: #1794292)
+
+ -- Brian Murray <brian@ubuntu.com>  Wed, 20 Mar 2019 14:49:21 -0700
+
 plymouth (0.9.3-1ubuntu10) cosmic; urgency=medium
 
   * Grab some commits from upstream:

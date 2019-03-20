@@ -39,3 +39,7 @@ timeout-for-ping.patch
 # Ubuntu themes
 ubuntu-logo.patch
 ubuntu-text.patch
+
+# Upstream backport
+git_helper_renderer.patch
+git_desactivate_renderer.patch
