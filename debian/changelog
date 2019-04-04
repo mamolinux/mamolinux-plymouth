@@ -1,3 +1,20 @@
+plymouth (0.9.3-1ubuntu7.18.04.2) bionic; urgency=medium
+
+  [ Mauricio Faria de Oliveira ]
+  * d/p/0013-device-manager-don-t-watch-for-udev-events-when-deac_bionic.patch:
+    - Don't process udev events after we've been deactivated (e.g., by gdm).
+      These can cause the VT/tty to be set back to VT_AUTO mode after it's
+      set to VT_PROCESS mode (by gdm), which blocks 'chvt' indefinitely on
+      that VT (login screen or auto-login session in tty1). (LP: #1817738)
+
+  [ Brian Murray ]
+  * debian/patches/git_helper_renderer.patch,
+    debian/patches/git_desactivate_renderer.patch:
+    - 'device-manager: free keyboards when deactivating a renderer',
+      (LP: #1794292)
+
+ -- Dan Streetman <ddstreet@canonical.com>  Thu, 04 Apr 2019 11:41:18 -0400
+
 plymouth (0.9.3-1ubuntu7.18.04.1) bionic; urgency=medium
 
   * debian/patches/git_ensure_tty_closed_0a662723.patch: ensure tty is closed
