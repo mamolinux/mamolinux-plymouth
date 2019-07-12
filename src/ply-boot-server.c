@@ -258,40 +258,16 @@ ply_boot_connection_is_from_root (ply_boot_connection_t *connection)
         return connection->uid == 0;
 }
 
-uint8_t *
-ply_pack_uint32 (uint8_t *buffer,
-                 uint32_t value)
-{
-        buffer[0] = (value >> 0) & 0xFF;
-        buffer[1] = (value >> 8) & 0xFF;
-        buffer[2] = (value >> 16) & 0xFF;
-        buffer[3] = (value >> 24) & 0xFF;
-
-        return &buffer[4];
-}
-
-uint8_t *
-ply_pack_binary(uint8_t *buffer,
-               const void *value,
-               int length)
-{
-        memcpy(buffer, value, length);
-        return &buffer[length];
-}
-
 static void
 ply_boot_connection_send_answer (ply_boot_connection_t *connection,
                                  const char            *answer)
 {
         uint32_t size;
-        uint8_t *b;
-        uint8_t *c;
 
         /* splash plugin isn't able to ask for password,
          * punt to client
          */
         if (answer == NULL) {
- err:
                 if (!ply_write (connection->fd,
                                 PLY_BOOT_PROTOCOL_RESPONSE_TYPE_NO_ANSWER,
                                 strlen (PLY_BOOT_PROTOCOL_RESPONSE_TYPE_NO_ANSWER)))
@@ -299,26 +275,14 @@ ply_boot_connection_send_answer (ply_boot_connection_t *connection,
         } else {
                 size = strlen (answer);
 
-                b = malloc(strlen(PLY_BOOT_PROTOCOL_RESPONSE_TYPE_ANSWER) + 4 + size);
-                if (!b) {
-                        ply_trace ("could not create buffer for answer reply");
-                        goto err;
-                }
-
-                /* Build a complete packet buffer. */
-                c = b;
-                c = ply_pack_binary(c, PLY_BOOT_PROTOCOL_RESPONSE_TYPE_ANSWER,
-                                    strlen (PLY_BOOT_PROTOCOL_RESPONSE_TYPE_ANSWER));
-                c = ply_pack_uint32(c, size);
-                c = ply_pack_binary(c, answer, size);
-
-                /* Write the reply as a single transaction so that we ensure the
-                 * consumer cannot see the beginning without the remainder being
-                 * available to read. */
-                if (!ply_write (connection->fd, b, c - b))
+                if (!ply_write (connection->fd,
+                                PLY_BOOT_PROTOCOL_RESPONSE_TYPE_ANSWER,
+                                strlen (PLY_BOOT_PROTOCOL_RESPONSE_TYPE_ANSWER)) ||
+                    !ply_write_uint32 (connection->fd,
+                                       size) ||
+                    !ply_write (connection->fd,
+                                answer, size))
                         ply_trace ("could not finish writing answer: %m");
-
-                free(b);
         }
 }
 

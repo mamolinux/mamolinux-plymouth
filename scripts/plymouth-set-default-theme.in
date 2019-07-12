@@ -45,7 +45,15 @@ function list_themes ()
 function read_theme_name_from_file ()
 {
         echo $(grep -v '^#' $1 2> /dev/null |
-		awk -F= '/Theme=/ { print $2 }')
+               awk '
+                     BEGIN {
+                        RS="[[][[:blank:]]*[^[:space:]]+[:blank:]*[]\n]";
+                        FS="[=[:space:]]+";
+                        OFS="";
+                        ORS=""
+                     }
+                     $1 ~/Theme/ { print $2 }
+               ')
 }
 
 function get_default_theme ()
@@ -184,7 +192,5 @@ grep -q '^[[]Daemon[]]' ${PLYMOUTH_CONFDIR}/plymouthd.conf 2> /dev/null || echo 
 sed -i -e '/^Theme[[:blank:]]*=.*/d' ${PLYMOUTH_CONFDIR}/plymouthd.conf
 sed -i -e "s/^\([[]Daemon[]]\)\n*/\1\nTheme=${THEME_NAME}/" ${PLYMOUTH_CONFDIR}/plymouthd.conf
 
-if [ $DO_INITRD_REBUILD -ne 0 ] ; then
-        (${PLYMOUTH_LIBEXECDIR}/plymouth/plymouth-update-initrd)
-fi
+[ $DO_INITRD_REBUILD -ne 0 ] && (${PLYMOUTH_LIBEXECDIR}/plymouth/plymouth-update-initrd)
 exit 0

@@ -7,11 +7,11 @@ Description: Undocumented changes
  patch series.
 Last-Update: 2011-01-21
 
-Index: plymouth-0.9.2/src/main.c
+Index: plymouth-0.9.4/src/main.c
 ===================================================================
---- plymouth-0.9.2.orig/src/main.c
-+++ plymouth-0.9.2/src/main.c
-@@ -127,6 +127,7 @@ typedef struct
+--- plymouth-0.9.4.orig/src/main.c
++++ plymouth-0.9.4/src/main.c
+@@ -121,6 +121,7 @@ typedef struct
          const char             *default_tty;
  
          int                     number_of_errors;
@@ -19,7 +19,7 @@ Index: plymouth-0.9.2/src/main.c
  } state_t;
  
  static void show_splash (state_t *state);
-@@ -214,8 +215,9 @@ on_update (state_t    *state,
+@@ -209,8 +210,9 @@ on_update (state_t    *state,
             const char *status)
  {
          ply_trace ("updating status to '%s'", status);
@@ -31,7 +31,7 @@ Index: plymouth-0.9.2/src/main.c
          if (state->boot_splash != NULL)
                  ply_boot_splash_update_status (state->boot_splash,
                                                 status);
-@@ -267,6 +269,25 @@ on_system_update (state_t *state,
+@@ -262,6 +264,25 @@ on_system_update (state_t *state,
  }
  
  static void
@@ -57,7 +57,7 @@ Index: plymouth-0.9.2/src/main.c
  show_messages (state_t *state)
  {
          if (state->boot_splash == NULL) {
-@@ -478,7 +499,7 @@ show_default_splash (state_t *state)
+@@ -495,7 +516,7 @@ show_default_splash (state_t *state)
          if (state->boot_splash == NULL) {
                  ply_trace ("Could not start default splash screen,"
                             "showing text splash screen");
@@ -66,7 +66,7 @@ Index: plymouth-0.9.2/src/main.c
          }
  
          if (state->boot_splash == NULL) {
-@@ -488,7 +509,8 @@ show_default_splash (state_t *state)
+@@ -505,7 +526,8 @@ show_default_splash (state_t *state)
          }
  
          if (state->boot_splash == NULL) {
@@ -76,7 +76,7 @@ Index: plymouth-0.9.2/src/main.c
                  return;
          }
  
-@@ -574,8 +596,8 @@ on_display_message (state_t    *state,
+@@ -592,8 +614,8 @@ on_display_message (state_t    *state,
                  ply_boot_splash_display_message (state->boot_splash, message);
          } else {
                  ply_trace ("not displaying message %s as no splash", message);
@@ -86,7 +86,7 @@ Index: plymouth-0.9.2/src/main.c
  }
  
  static void
-@@ -790,6 +812,7 @@ prepare_logging (state_t *state)
+@@ -808,6 +830,7 @@ prepare_logging (state_t *state)
                  if (state->number_of_errors > 0)
                          spool_error (state);
          }
@@ -94,7 +94,7 @@ Index: plymouth-0.9.2/src/main.c
  }
  
  static void
-@@ -1931,6 +1954,7 @@ initialize_environment (state_t *state)
+@@ -2008,6 +2031,7 @@ initialize_environment (state_t *state)
          state->keystroke_triggers = ply_list_new ();
          state->entry_triggers = ply_list_new ();
          state->entry_buffer = ply_buffer_new ();
@@ -102,10 +102,10 @@ Index: plymouth-0.9.2/src/main.c
          state->messages = ply_list_new ();
  
          if (!ply_is_tracing ())
-Index: plymouth-0.9.2/src/plugins/splash/script/script-lib-image.c
+Index: plymouth-0.9.4/src/plugins/splash/script/script-lib-image.c
 ===================================================================
---- plymouth-0.9.2.orig/src/plugins/splash/script/script-lib-image.c
-+++ plymouth-0.9.2/src/plugins/splash/script/script-lib-image.c
+--- plymouth-0.9.4.orig/src/plugins/splash/script/script-lib-image.c
++++ plymouth-0.9.4/src/plugins/splash/script/script-lib-image.c
 @@ -166,7 +166,7 @@ static script_return_t image_text (scrip
  
          alpha_obj = script_obj_hash_peek_element (state->local, "alpha");
@@ -115,10 +115,10 @@ Index: plymouth-0.9.2/src/plugins/splash/script/script-lib-image.c
                  alpha = CLAMP (script_obj_as_number (alpha_obj), 0, 1);
          else
                  alpha = 1;
-Index: plymouth-0.9.2/src/plugins/splash/script/script-lib-sprite.c
+Index: plymouth-0.9.4/src/plugins/splash/script/script-lib-sprite.c
 ===================================================================
---- plymouth-0.9.2.orig/src/plugins/splash/script/script-lib-sprite.c
-+++ plymouth-0.9.2/src/plugins/splash/script/script-lib-sprite.c
+--- plymouth-0.9.4.orig/src/plugins/splash/script/script-lib-sprite.c
++++ plymouth-0.9.4/src/plugins/splash/script/script-lib-sprite.c
 @@ -387,6 +387,45 @@ static script_return_t sprite_window_set
          return script_return_obj_null ();
  }
@@ -165,7 +165,7 @@ Index: plymouth-0.9.2/src/plugins/splash/script/script-lib-sprite.c
  static uint32_t extract_rgb_color (script_state_t *state)
  {
          uint8_t red = CLAMP (255 * script_obj_hash_get_number (state->local, "red"), 0, 255);
-@@ -635,6 +674,12 @@ script_lib_sprite_data_t *script_lib_spr
+@@ -663,6 +702,12 @@ script_lib_sprite_data_t *script_lib_spr
                                      "value",
                                      NULL);
          script_add_native_function (window_hash,
@@ -178,10 +178,10 @@ Index: plymouth-0.9.2/src/plugins/splash/script/script-lib-sprite.c
                                      "SetBackgroundTopColor",
                                      sprite_window_set_background_top_color,
                                      data,
-Index: plymouth-0.9.2/src/plugins/splash/text/plugin.c
+Index: plymouth-0.9.4/src/plugins/splash/text/plugin.c
 ===================================================================
---- plymouth-0.9.2.orig/src/plugins/splash/text/plugin.c
-+++ plymouth-0.9.2/src/plugins/splash/text/plugin.c
+--- plymouth-0.9.4.orig/src/plugins/splash/text/plugin.c
++++ plymouth-0.9.4/src/plugins/splash/text/plugin.c
 @@ -464,8 +464,10 @@ add_text_display (ply_boot_splash_plugin
          view = view_new (plugin, display);
  
@@ -194,11 +194,11 @@ Index: plymouth-0.9.2/src/plugins/splash/text/plugin.c
  
          ply_text_display_set_draw_handler (view->display,
                                             (ply_text_display_draw_handler_t)
-Index: plymouth-0.9.2/src/libply-splash-core/ply-pixel-display.h
+Index: plymouth-0.9.4/src/libply-splash-core/ply-pixel-display.h
 ===================================================================
---- plymouth-0.9.2.orig/src/libply-splash-core/ply-pixel-display.h
-+++ plymouth-0.9.2/src/libply-splash-core/ply-pixel-display.h
-@@ -48,6 +48,7 @@ void ply_pixel_display_free (ply_pixel_d
+--- plymouth-0.9.4.orig/src/libply-splash-core/ply-pixel-display.h
++++ plymouth-0.9.4/src/libply-splash-core/ply-pixel-display.h
+@@ -51,6 +51,7 @@ ply_renderer_head_t *ply_pixel_display_g
  
  unsigned long ply_pixel_display_get_width (ply_pixel_display_t *display);
  unsigned long ply_pixel_display_get_height (ply_pixel_display_t *display);
@@ -206,11 +206,11 @@ Index: plymouth-0.9.2/src/libply-splash-core/ply-pixel-display.h
  
  void ply_pixel_display_set_draw_handler (ply_pixel_display_t             *display,
                                           ply_pixel_display_draw_handler_t draw_handler,
-Index: plymouth-0.9.2/src/libply-splash-core/ply-renderer.c
+Index: plymouth-0.9.4/src/libply-splash-core/ply-renderer.c
 ===================================================================
---- plymouth-0.9.2.orig/src/libply-splash-core/ply-renderer.c
-+++ plymouth-0.9.2/src/libply-splash-core/ply-renderer.c
-@@ -322,6 +322,21 @@ ply_renderer_get_buffer_for_head (ply_re
+--- plymouth-0.9.4.orig/src/libply-splash-core/ply-renderer.c
++++ plymouth-0.9.4/src/libply-splash-core/ply-renderer.c
+@@ -344,6 +344,21 @@ ply_renderer_get_buffer_for_head (ply_re
                                                                  head);
  }
  
@@ -232,11 +232,11 @@ Index: plymouth-0.9.2/src/libply-splash-core/ply-renderer.c
  void
  ply_renderer_flush_head (ply_renderer_t      *renderer,
                           ply_renderer_head_t *head)
-Index: plymouth-0.9.2/src/libply-splash-core/ply-renderer.h
+Index: plymouth-0.9.4/src/libply-splash-core/ply-renderer.h
 ===================================================================
---- plymouth-0.9.2.orig/src/libply-splash-core/ply-renderer.h
-+++ plymouth-0.9.2/src/libply-splash-core/ply-renderer.h
-@@ -61,6 +61,8 @@ const char *ply_renderer_get_device_name
+--- plymouth-0.9.4.orig/src/libply-splash-core/ply-renderer.h
++++ plymouth-0.9.4/src/libply-splash-core/ply-renderer.h
+@@ -62,6 +62,8 @@ const char *ply_renderer_get_device_name
  ply_list_t *ply_renderer_get_heads (ply_renderer_t *renderer);
  ply_pixel_buffer_t *ply_renderer_get_buffer_for_head (ply_renderer_t      *renderer,
                                                        ply_renderer_head_t *head);
@@ -245,10 +245,10 @@ Index: plymouth-0.9.2/src/libply-splash-core/ply-renderer.h
  
  void ply_renderer_flush_head (ply_renderer_t      *renderer,
                                ply_renderer_head_t *head);
-Index: plymouth-0.9.2/src/libply-splash-core/ply-pixel-display.c
+Index: plymouth-0.9.4/src/libply-splash-core/ply-pixel-display.c
 ===================================================================
---- plymouth-0.9.2.orig/src/libply-splash-core/ply-pixel-display.c
-+++ plymouth-0.9.2/src/libply-splash-core/ply-pixel-display.c
+--- plymouth-0.9.4.orig/src/libply-splash-core/ply-pixel-display.c
++++ plymouth-0.9.4/src/libply-splash-core/ply-pixel-display.c
 @@ -51,6 +51,7 @@ struct _ply_pixel_display
  
          unsigned long                    width;
@@ -267,7 +267,7 @@ Index: plymouth-0.9.2/src/libply-splash-core/ply-pixel-display.c
          return display;
  }
  
-@@ -93,6 +97,12 @@ ply_pixel_display_get_height (ply_pixel_
+@@ -105,6 +109,12 @@ ply_pixel_display_get_height (ply_pixel_
          return display->height;
  }
  
@@ -280,10 +280,10 @@ Index: plymouth-0.9.2/src/libply-splash-core/ply-pixel-display.c
  static void
  ply_pixel_display_flush (ply_pixel_display_t *display)
  {
-Index: plymouth-0.9.2/src/libply-splash-core/ply-renderer-plugin.h
+Index: plymouth-0.9.4/src/libply-splash-core/ply-renderer-plugin.h
 ===================================================================
---- plymouth-0.9.2.orig/src/libply-splash-core/ply-renderer-plugin.h
-+++ plymouth-0.9.2/src/libply-splash-core/ply-renderer-plugin.h
+--- plymouth-0.9.4.orig/src/libply-splash-core/ply-renderer-plugin.h
++++ plymouth-0.9.4/src/libply-splash-core/ply-renderer-plugin.h
 @@ -54,6 +54,8 @@ typedef struct
  
          ply_pixel_buffer_t * (*get_buffer_for_head)(ply_renderer_backend_t * backend,
@@ -293,10 +293,10 @@ Index: plymouth-0.9.2/src/libply-splash-core/ply-renderer-plugin.h
  
          ply_renderer_input_source_t * (*get_input_source)(ply_renderer_backend_t * backend);
          bool (*open_input_source)(ply_renderer_backend_t      *backend,
-Index: plymouth-0.9.2/src/client/ply-boot-client.c
+Index: plymouth-0.9.4/src/client/ply-boot-client.c
 ===================================================================
---- plymouth-0.9.2.orig/src/client/ply-boot-client.c
-+++ plymouth-0.9.2/src/client/ply-boot-client.c
+--- plymouth-0.9.4.orig/src/client/ply-boot-client.c
++++ plymouth-0.9.4/src/client/ply-boot-client.c
 @@ -262,14 +262,29 @@ ply_boot_client_process_incoming_replies
                  return;
          }
@@ -333,11 +333,11 @@ Index: plymouth-0.9.2/src/client/ply-boot-client.c
  
          if (memcmp (byte, PLY_BOOT_PROTOCOL_RESPONSE_TYPE_ACK, sizeof(uint8_t)) == 0) {
                  if (request->handler != NULL)
-Index: plymouth-0.9.2/src/plugins/renderers/frame-buffer/plugin.c
+Index: plymouth-0.9.4/src/plugins/renderers/frame-buffer/plugin.c
 ===================================================================
---- plymouth-0.9.2.orig/src/plugins/renderers/frame-buffer/plugin.c
-+++ plymouth-0.9.2/src/plugins/renderers/frame-buffer/plugin.c
-@@ -631,6 +631,16 @@ get_buffer_for_head (ply_renderer_backen
+--- plymouth-0.9.4.orig/src/plugins/renderers/frame-buffer/plugin.c
++++ plymouth-0.9.4/src/plugins/renderers/frame-buffer/plugin.c
+@@ -637,6 +637,16 @@ get_buffer_for_head (ply_renderer_backen
          return backend->head.pixel_buffer;
  }
  
@@ -354,7 +354,7 @@ Index: plymouth-0.9.2/src/plugins/renderers/frame-buffer/plugin.c
  static bool
  has_input_source (ply_renderer_backend_t      *backend,
                    ply_renderer_input_source_t *input_source)
-@@ -729,6 +739,7 @@ ply_renderer_backend_get_interface (void
+@@ -735,6 +745,7 @@ ply_renderer_backend_get_interface (void
                  .flush_head                   = flush_head,
                  .get_heads                    = get_heads,
                  .get_buffer_for_head          = get_buffer_for_head,
