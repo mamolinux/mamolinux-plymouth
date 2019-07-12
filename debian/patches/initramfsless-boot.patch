@@ -4,11 +4,11 @@ Description: support initramfsless boot
  yet, as this breaks booting without an initramfs.
 Bug-Ubuntu: https://bugs.launchpad.net/bugs/981314
 
-Index: plymouth-0.9.2/src/main.c
+Index: plymouth-0.9.4/src/main.c
 ===================================================================
---- plymouth-0.9.2.orig/src/main.c
-+++ plymouth-0.9.2/src/main.c
-@@ -1688,6 +1688,7 @@ attach_to_running_session (state_t *stat
+--- plymouth-0.9.4.orig/src/main.c
++++ plymouth-0.9.4/src/main.c
+@@ -1808,6 +1808,7 @@ attach_to_running_session (state_t *stat
                  session = ply_terminal_session_new (NULL);
  
                  ply_terminal_session_attach_to_event_loop (session, state->loop);
@@ -16,7 +16,7 @@ Index: plymouth-0.9.2/src/main.c
          } else {
                  session = state->session;
                  ply_trace ("session already created");
-@@ -1699,12 +1700,6 @@ attach_to_running_session (state_t *stat
+@@ -1819,12 +1820,6 @@ attach_to_running_session (state_t *stat
                                            (ply_terminal_session_hangup_handler_t)
                                            (should_be_redirected ? on_session_hangup : NULL),
                                            -1, state)) {
@@ -29,7 +29,7 @@ Index: plymouth-0.9.2/src/main.c
                  state->is_redirected = false;
                  state->is_attached = false;
                  return false;
-@@ -1712,7 +1707,6 @@ attach_to_running_session (state_t *stat
+@@ -1836,7 +1831,6 @@ attach_to_running_session (state_t *stat
  
          state->is_redirected = should_be_redirected;
          state->is_attached = true;
@@ -37,7 +37,7 @@ Index: plymouth-0.9.2/src/main.c
  
          return true;
  }
-@@ -2207,9 +2201,6 @@ main (int    argc,
+@@ -2284,9 +2278,6 @@ main (int    argc,
                  state.should_be_attached = attach_to_session;
                  if (!attach_to_running_session (&state)) {
                          ply_trace ("could not redirect console session: %m");

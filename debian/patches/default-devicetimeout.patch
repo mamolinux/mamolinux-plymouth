@@ -1,7 +1,6 @@
 Description: Set default DeviceTimeout to 5.0, otherwise boot fails
 Author: Dimitri John Ledkov <xnox@ubuntu.com>
-
-
+Upstream: https://gitlab.freedesktop.org/plymouth/plymouth/merge_requests/44
 ---
  src/main.c |    4 ++++
  1 file changed, 4 insertions(+)
