@@ -9,11 +9,11 @@ Bug-Ubuntu: https://bugs.launchpad.net/bugs/1705345
 Forwarded: no
 Last-Update: 2018-03-29
 
-Index: plymouth-0.9.3/src/client/plymouth.c
+Index: plymouth-0.9.4git20190712/src/client/plymouth.c
 ===================================================================
---- plymouth-0.9.3.orig/src/client/plymouth.c
-+++ plymouth-0.9.3/src/client/plymouth.c
-@@ -76,6 +76,13 @@ typedef struct
+--- plymouth-0.9.4git20190712.orig/src/client/plymouth.c
++++ plymouth-0.9.4git20190712/src/client/plymouth.c
+@@ -75,6 +75,13 @@ typedef struct
          char    *keys;
  } key_answer_state_t;
  
@@ -27,7 +27,7 @@ Index: plymouth-0.9.3/src/client/plymouth.c
  static char **
  split_string (const char *command,
                const char  delimiter)
-@@ -1161,6 +1168,8 @@ main (int    argc,
+@@ -1145,6 +1152,8 @@ main (int    argc,
                                               on_success,
                                               (ply_boot_client_response_handler_t)
                                               on_failure, &state);

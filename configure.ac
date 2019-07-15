@@ -1,4 +1,4 @@
-AC_INIT([plymouth],[0.9.4],[https://bugs.freedesktop.org/enter_bug.cgi?product=plymouth])
+AC_INIT([plymouth],[0.9.5],[https://bugs.freedesktop.org/enter_bug.cgi?product=plymouth])
 AC_CONFIG_SRCDIR(src/main.c)
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_AUX_DIR(build-tools)
@@ -14,6 +14,13 @@ AC_C_CONST
 AM_INIT_AUTOMAKE([dist-xz no-dist-gzip])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AM_MAINTAINER_MODE([enable])
+
+AM_GNU_GETTEXT_VERSION([0.19.8])
+AM_GNU_GETTEXT([external])
+AC_PATH_PROG([INTLTOOL_EXTRACT], [intltool-extract])
+if test x$INTLTOOL_EXTRACT = x; then
+  AC_MSG_ERROR([intltool-extract is required to build plymouth])
+fi
 
 PKG_PROG_PKG_CONFIG
 LT_INIT([dlopen disable-static pic-only])
@@ -104,10 +111,6 @@ if test x$enable_tracing = xyes; then
 fi
 
 AC_ARG_ENABLE(gdm-transition, AS_HELP_STRING([--enable-gdm-transition],[enable smooth transition to gdm]),enable_gdm_transition=$enableval,enable_gdm_transition=no)
-
-if test x$enable_gdm_transition = xyes; then
-  AC_DEFINE(PLY_ENABLE_DEPRECATED_GDM_TRANSITION, 1, [Enable deprecated smooth transition to GDM])
-fi
 
 AC_ARG_ENABLE(upstart-monitoring, AS_HELP_STRING([--enable-upstart-monitoring],[listen for messages on the Upstart D-Bus interface]),enable_upstart_monitoring=$enableval,enable_upstart_monitoring=no)
 if test x$enable_upstart_monitoring = xyes; then
@@ -286,7 +289,7 @@ AS_AC_EXPAND(PLYMOUTH_LIBDIR, $libdir)
 AS_AC_EXPAND(PLYMOUTH_LIBEXECDIR, $libexecdir)
 AS_AC_EXPAND(PLYMOUTH_DATADIR, $datadir)
 
-AC_CONFIG_FILES([Makefile
+AC_CONFIG_FILES([Makefile po/Makefile.in
            src/libply/Makefile
            src/libply-splash-core/Makefile
            src/libply-splash-graphics/Makefile
@@ -322,6 +325,7 @@ AC_CONFIG_FILES([Makefile
            themes/glow/Makefile
            themes/spinner/Makefile
            themes/script/Makefile
+           themes/bgrt/Makefile
            images/Makefile
 	   scripts/plymouth-generate-initrd
 	   scripts/plymouth-populate-initrd

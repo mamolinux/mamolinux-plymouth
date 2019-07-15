@@ -1,3 +1,35 @@
+plymouth (0.9.4git20190712-0ubuntu1) eoan; urgency=medium
+
+  * Update to a new upstream git snapshot including those changes:
+    - new BGRT theme, using the firmware boot splash as background
+    - new firmware-upgrade mode for use by fwupd
+    - fix failing to pick the native monitor mode starting with kernel 5.2
+  * debian/control:
+    - build-depends on gettext and intltool
+    - build a new binary for the spinner theme
+  * debian/plymouth.install:
+    - include the translations
+  * debian/control,
+    debian/plymouth-themes.install:
+    - install the new bgrt theme in plymouth-themes for now, we probably
+      want to move it to a new binary (with spinner which it relies on)
+      if/when we make it default
+  * debian/libplymouth4.symbols:
+    - refreshed for the new version symbols
+  * debian/plymouth.postinst,
+    debian/plymouth-theme-ubuntu-logo.postinst:
+    debian/plymouth-theme-ubuntu-text.postinst:
+    - remove transition code that was needed until xenial
+  * debian/plymouth-theme-spinner.install:
+    - install the spinner and bgrt themes in that binary
+  * debian/plymouth-theme-spinner.postinst/postrm:
+    - install the new bgrt theme with an higher alternative score,
+      call update-initramfs
+  * debian/patches/0008-show-delay.patch:
+    - removed, the patch is in the new version
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 15 Jul 2019 17:31:09 +0200
+
 plymouth (0.9.4-1ubuntu2) eoan; urgency=medium
 
   * debian/patches/0001-awk.patch,

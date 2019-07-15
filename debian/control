@@ -7,6 +7,8 @@ Uploaders: Sjoerd Simons <sjoerd@debian.org>
 Build-Depends: debhelper (>= 9.20160709~),
                dh-autoreconf,
                docbook-xsl,
+               gettext,
+               intltool,
                libdrm-dev,
                libgtk-3-dev (>= 3.14.0),
                libpango1.0-dev,
@@ -47,7 +49,7 @@ Description: boot animation, logger and I/O multiplexer
 Package: plymouth-x11
 Architecture: linux-any
 Depends: plymouth (= ${binary:Version}), ${misc:Depends}, ${shlibs:Depends}
-Recommends: plymouth-theme-ubuntu-logo | plymouth-theme
+Recommends: plymouth-theme-spinner | plymouth-theme
 Suggests: gdm
 Description: boot animation, logger and I/O multiplexer - X11 renderer
  Plymouth provides a boot-time I/O multiplexing framework - the most obvious
@@ -110,6 +112,7 @@ Package: plymouth-themes
 Architecture: linux-any
 Depends: plymouth (= ${binary:Version}),
          plymouth-label (= ${binary:Version}),
+         plymouth-theme-spinner (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends}
 Conflicts: plymouth-themes-all,
@@ -153,7 +156,6 @@ Description: boot animation, logger and I/O multiplexer - themes
   * solar: features a blue flamed sun with animated solar flares.
   * spinfinity: features a centered logo and animated spinner that spins in the
     shape of an infinity sign.
-  * spinner: features a simple theme with a small spinner on a dark background.
 
 Package: plymouth-theme-ubuntu-logo
 Architecture: linux-any
@@ -191,3 +193,23 @@ Description: boot animation, logger and I/O multiplexer - ubuntu text theme
  .
  This package contains the default ubuntu-text text theme used when no
  support for a graphical theme is found on your system.
+ 
+Package: plymouth-theme-spinner
+Architecture: linux-any
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends},
+ plymouth (= ${binary:Version}),
+ lsb-release,
+Breaks: plymouth-themes (<< 0.9.4git20190712-0ubuntu1~)
+Replaces: plymouth-themes (<< 0.9.4git20190712-0ubuntu1~)
+Provides: plymouth-theme,
+Description: boot animation, logger and I/O multiplexer - spinner theme
+ Plymouth provides a boot-time I/O multiplexing framework - the most obvious
+ use for which is to provide an attractive graphical animation in place of
+ the text messages that normally get shown during boot. (The messages are
+ instead redirected to a logfile for later viewing.) However, in event-driven
+ boot systems Plymouth can also usefully handle user interaction such as
+ password prompts for encrypted file systems.
+ .
+ This package contains the spinner theme.
