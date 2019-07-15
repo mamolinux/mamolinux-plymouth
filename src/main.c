@@ -36,6 +36,7 @@
 #include <paths.h>
 #include <assert.h>
 #include <values.h>
+#include <locale.h>
 
 #include <linux/kd.h>
 #include <linux/vt.h>
@@ -57,13 +58,6 @@
 
 #define BOOT_DURATION_FILE     PLYMOUTH_TIME_DIRECTORY "/boot-duration"
 #define SHUTDOWN_DURATION_FILE PLYMOUTH_TIME_DIRECTORY "/shutdown-duration"
-
-typedef enum
-{
-        PLY_MODE_BOOT,
-        PLY_MODE_SHUTDOWN,
-        PLY_MODE_UPDATES
-} ply_mode_t;
 
 typedef struct
 {
@@ -93,7 +87,7 @@ typedef struct
         ply_buffer_t           *entry_buffer;
         ply_list_t             *messages;
         ply_command_parser_t   *command_parser;
-        ply_mode_t              mode;
+        ply_boot_splash_mode_t  mode;
         ply_terminal_t         *local_console_terminal;
         ply_device_manager_t   *device_manager;
 
@@ -150,7 +144,7 @@ static void toggle_between_splash_and_details (state_t *state);
 static void tell_systemd_to_print_details (state_t *state);
 static void tell_systemd_to_stop_printing_details (state_t *state);
 #endif
-static const char *get_cache_file_for_mode (ply_mode_t mode);
+static const char *get_cache_file_for_mode (ply_boot_splash_mode_t mode);
 static void on_escape_pressed (state_t *state);
 static void on_enter (state_t    *state,
                       const char *line);
@@ -163,30 +157,6 @@ static void on_quit (state_t       *state,
                      ply_trigger_t *quit_trigger);
 static bool sh_is_init (state_t *state);
 static void cancel_pending_delayed_show (state_t *state);
-
-static ply_boot_splash_mode_t
-get_splash_mode_from_mode (ply_mode_t mode)
-{
-        ply_boot_splash_mode_t splash_mode;
-        switch (mode) {
-                case PLY_MODE_BOOT:
-                        splash_mode = PLY_BOOT_SPLASH_MODE_BOOT_UP;
-                        break;
-                case PLY_MODE_SHUTDOWN:
-                        splash_mode = PLY_BOOT_SPLASH_MODE_SHUTDOWN;
-                        break;
-                case PLY_MODE_UPDATES:
-                        splash_mode = PLY_BOOT_SPLASH_MODE_UPDATES;
-                        break;
-                default:
-                        splash_mode = PLY_BOOT_SPLASH_MODE_INVALID;
-                        break;
-        }
-
-        assert (splash_mode != PLY_BOOT_SPLASH_MODE_INVALID);
-
-        return splash_mode;
-}
 
 static void
 on_session_output (state_t    *state,
@@ -222,8 +192,6 @@ static void
 on_change_mode (state_t    *state,
                 const char *mode)
 {
-        ply_boot_splash_mode_t splash_mode;
-
         if (state->boot_splash == NULL) {
                 ply_trace ("no splash set");
                 return;
@@ -231,17 +199,21 @@ on_change_mode (state_t    *state,
 
         ply_trace ("updating mode to '%s'", mode);
         if (strcmp (mode, "boot-up") == 0)
-                state->mode = PLY_MODE_BOOT;
+                state->mode = PLY_BOOT_SPLASH_MODE_BOOT_UP;
         else if (strcmp (mode, "shutdown") == 0)
-                state->mode = PLY_MODE_SHUTDOWN;
+                state->mode = PLY_BOOT_SPLASH_MODE_SHUTDOWN;
+        else if (strcmp (mode, "reboot") == 0)
+                state->mode = PLY_BOOT_SPLASH_MODE_REBOOT;
         else if (strcmp (mode, "updates") == 0)
-                state->mode = PLY_MODE_UPDATES;
+                state->mode = PLY_BOOT_SPLASH_MODE_UPDATES;
+        else if (strcmp (mode, "system-upgrade") == 0)
+                state->mode = PLY_BOOT_SPLASH_MODE_SYSTEM_UPGRADE;
+        else if (strcmp (mode, "firmware-upgrade") == 0)
+                state->mode = PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE;
         else
                 return;
 
-        splash_mode = get_splash_mode_from_mode (state->mode);
-
-        if (!ply_boot_splash_show (state->boot_splash, splash_mode)) {
+        if (!ply_boot_splash_show (state->boot_splash, state->mode)) {
                 ply_trace ("failed to update splash");
                 return;
         }
@@ -705,26 +677,32 @@ on_newroot (state_t    *state,
         chdir (root_dir);
         chroot (".");
         chdir ("/");
+        /* Update local now that we have /usr/share/locale available */
+        setlocale(LC_ALL, "");
         ply_progress_load_cache (state->progress, get_cache_file_for_mode (state->mode));
         if (state->boot_splash != NULL)
                 ply_boot_splash_root_mounted (state->boot_splash);
 }
 
 static const char *
-get_cache_file_for_mode (ply_mode_t mode)
+get_cache_file_for_mode (ply_boot_splash_mode_t mode)
 {
         const char *filename;
 
-        switch ((int) mode) {
-        case PLY_MODE_BOOT:
+        switch (mode) {
+        case PLY_BOOT_SPLASH_MODE_BOOT_UP:
                 filename = BOOT_DURATION_FILE;
                 break;
-        case PLY_MODE_SHUTDOWN:
+        case PLY_BOOT_SPLASH_MODE_SHUTDOWN:
+        case PLY_BOOT_SPLASH_MODE_REBOOT:
                 filename = SHUTDOWN_DURATION_FILE;
                 break;
-        case PLY_MODE_UPDATES:
+        case PLY_BOOT_SPLASH_MODE_UPDATES:
+        case PLY_BOOT_SPLASH_MODE_SYSTEM_UPGRADE:
+        case PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE:
                 filename = NULL;
                 break;
+        case PLY_BOOT_SPLASH_MODE_INVALID:
         default:
                 ply_error ("Unhandled case in %s line %d\n", __FILE__, __LINE__);
                 abort ();
@@ -740,17 +718,21 @@ get_log_file_for_state (state_t *state)
 {
         const char *filename;
 
-        switch ((int) state->mode) {
-        case PLY_MODE_BOOT:
+        switch (state->mode) {
+        case PLY_BOOT_SPLASH_MODE_BOOT_UP:
                 if (state->no_boot_log)
                         filename = NULL;
                 else
                         filename = PLYMOUTH_LOG_DIRECTORY "/boot.log";
                 break;
-        case PLY_MODE_SHUTDOWN:
-        case PLY_MODE_UPDATES:
+        case PLY_BOOT_SPLASH_MODE_SHUTDOWN:
+        case PLY_BOOT_SPLASH_MODE_REBOOT:
+        case PLY_BOOT_SPLASH_MODE_UPDATES:
+        case PLY_BOOT_SPLASH_MODE_SYSTEM_UPGRADE:
+        case PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE:
                 filename = _PATH_DEVNULL;
                 break;
+        case PLY_BOOT_SPLASH_MODE_INVALID:
         default:
                 ply_error ("Unhandled case in %s line %d\n", __FILE__, __LINE__);
                 abort ();
@@ -762,18 +744,22 @@ get_log_file_for_state (state_t *state)
 }
 
 static const char *
-get_log_spool_file_for_mode (ply_mode_t mode)
+get_log_spool_file_for_mode (ply_boot_splash_mode_t mode)
 {
         const char *filename;
 
-        switch ((int) mode) {
-        case PLY_MODE_BOOT:
+        switch (mode) {
+        case PLY_BOOT_SPLASH_MODE_BOOT_UP:
                 filename = PLYMOUTH_SPOOL_DIRECTORY "/boot.log";
                 break;
-        case PLY_MODE_SHUTDOWN:
-        case PLY_MODE_UPDATES:
+        case PLY_BOOT_SPLASH_MODE_SHUTDOWN:
+        case PLY_BOOT_SPLASH_MODE_REBOOT:
+        case PLY_BOOT_SPLASH_MODE_UPDATES:
+        case PLY_BOOT_SPLASH_MODE_SYSTEM_UPGRADE:
+        case PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE:
                 filename = NULL;
                 break;
+        case PLY_BOOT_SPLASH_MODE_INVALID:
         default:
                 ply_error ("Unhandled case in %s line %d\n", __FILE__, __LINE__);
                 abort ();
@@ -864,7 +850,7 @@ static bool
 plymouth_should_ignore_show_splash_calls (state_t *state)
 {
         ply_trace ("checking if plymouth should be running");
-        if (state->mode != PLY_MODE_BOOT || ply_kernel_command_line_has_argument ("plymouth.force-splash"))
+        if (state->mode != PLY_BOOT_SPLASH_MODE_BOOT_UP || ply_kernel_command_line_has_argument ("plymouth.force-splash"))
                 return false;
 
         if (ply_kernel_command_line_has_argument ("plymouth.ignore-show-splash"))
@@ -1146,7 +1132,7 @@ load_devices (state_t                   *state,
 static void
 quit_splash (state_t *state)
 {
-        ply_trace ("quiting splash");
+        ply_trace ("quitting splash");
         if (state->boot_splash != NULL) {
                 ply_trace ("freeing splash");
                 ply_boot_splash_free (state->boot_splash);
@@ -1208,17 +1194,6 @@ on_hide_splash (state_t *state)
         dump_details_and_quit_splash (state);
 }
 
-#ifdef PLY_ENABLE_DEPRECATED_GDM_TRANSITION
-static void
-tell_gdm_to_transition (void)
-{
-        int fd;
-
-        fd = creat ("/var/spool/gdm/force-display-on-active-vt", 0644);
-        close (fd);
-}
-#endif
-
 static void
 quit_program (state_t *state)
 {
@@ -1233,13 +1208,6 @@ quit_program (state_t *state)
                 free (pid_file);
                 pid_file = NULL;
         }
-
-#ifdef PLY_ENABLE_DEPRECATED_GDM_TRANSITION
-        if (state->should_retain_splash &&
-            state->mode == PLY_MODE_BOOT)
-                tell_gdm_to_transition ();
-
-#endif
 
         if (state->deactivate_trigger != NULL) {
                 ply_trigger_pull (state->deactivate_trigger, NULL);
@@ -1760,7 +1728,6 @@ static ply_boot_splash_t *
 show_theme (state_t    *state,
             const char *theme_path)
 {
-        ply_boot_splash_mode_t splash_mode;
         ply_boot_splash_t *splash;
 
         if (theme_path != NULL)
@@ -1775,9 +1742,7 @@ show_theme (state_t    *state,
         if (ply_boot_splash_uses_pixel_displays (splash))
                 ply_device_manager_activate_renderers (state->device_manager);
 
-        splash_mode = get_splash_mode_from_mode (state->mode);
-
-        if (!ply_boot_splash_show (splash, splash_mode)) {
+        if (!ply_boot_splash_show (splash, state->mode)) {
                 ply_save_errno ();
                 ply_boot_splash_free (splash);
                 ply_restore_errno ();
@@ -2002,7 +1967,8 @@ initialize_environment (state_t *state)
                 if (getenv ("DISPLAY") != NULL && access (PLYMOUTH_PLUGIN_PATH "renderers/x11.so", F_OK) == 0)
                         state->default_tty = "/dev/tty";
         if (!state->default_tty) {
-                if (state->mode == PLY_MODE_SHUTDOWN)
+                if (state->mode == PLY_BOOT_SPLASH_MODE_SHUTDOWN ||
+                    state->mode == PLY_BOOT_SPLASH_MODE_REBOOT)
                         state->default_tty = SHUTDOWN_TTY;
                 else
                         state->default_tty = BOOT_TTY;
@@ -2199,11 +2165,17 @@ main (int    argc,
 
         if (mode_string != NULL) {
                 if (strcmp (mode_string, "shutdown") == 0)
-                        state.mode = PLY_MODE_SHUTDOWN;
+                        state.mode = PLY_BOOT_SPLASH_MODE_SHUTDOWN;
+                else if (strcmp (mode_string, "reboot") == 0)
+                        state.mode = PLY_BOOT_SPLASH_MODE_REBOOT;
                 else if (strcmp (mode_string, "updates") == 0)
-                        state.mode = PLY_MODE_UPDATES;
+                        state.mode = PLY_BOOT_SPLASH_MODE_UPDATES;
+                else if (strcmp (mode_string, "system-upgrade") == 0)
+                        state.mode = PLY_BOOT_SPLASH_MODE_SYSTEM_UPGRADE;
+                else if (strcmp (mode_string, "firmware-upgrade") == 0)
+                        state.mode = PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE;
                 else
-                        state.mode = PLY_MODE_BOOT;
+                        state.mode = PLY_BOOT_SPLASH_MODE_BOOT_UP;
 
                 free (mode_string);
         }
@@ -2355,4 +2327,4 @@ main (int    argc,
 
         return exit_code;
 }
-/* vim: set sts=4 ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */
+/* vim: set ts=4 ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

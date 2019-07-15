@@ -51,6 +51,7 @@ struct _ply_pixel_display
 
         unsigned long                    width;
         unsigned long                    height;
+        int                              device_scale;
         unsigned int                     bits_per_pixel;
 
         ply_pixel_display_draw_handler_t draw_handler;
@@ -78,6 +79,7 @@ ply_pixel_display_new (ply_renderer_t      *renderer,
 
         display->width = size.width;
         display->height = size.height;
+        display->device_scale = ply_pixel_buffer_get_device_scale (pixel_buffer);
 
         display->bits_per_pixel = ply_renderer_get_bits_per_pixel_for_head (renderer,
                                                                             head);
@@ -107,6 +109,12 @@ unsigned long
 ply_pixel_display_get_height (ply_pixel_display_t *display)
 {
         return display->height;
+}
+
+int
+ply_pixel_display_get_device_scale (ply_pixel_display_t *display)
+{
+        return display->device_scale;
 }
 
 unsigned int
@@ -191,4 +199,4 @@ ply_pixel_display_set_draw_handler (ply_pixel_display_t             *display,
         display->draw_handler_user_data = user_data;
 }
 
-/* vim: set ts=4 sw=4 et ai ci cino={.5s,^-2,+.5s,t0,g0,e-2,n-2,p2s,(0,=.5s,:.5s */
+/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

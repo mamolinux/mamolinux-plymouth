@@ -24,11 +24,6 @@ case "$1" in
 		--slave /usr/share/plymouth/themes/default.grub default.plymouth.grub \
 		/usr/share/plymouth/themes/ubuntu-logo/ubuntu-logo.grub
 
-	if dpkg --compare-versions "$2" lt-nl "0.9.3-1ubuntu1~"; then
-	    update-alternatives \
-		--remove default.plymouth /usr/share/plymouth/themes/ubuntu-logo/ubuntu-logo-scale-2.plymouth || :
-	fi
-
 	if which update-initramfs >/dev/null 2>&1
 	then
 	    update-initramfs -u
