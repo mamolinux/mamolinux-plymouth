@@ -1773,6 +1773,7 @@ attach_to_running_session (state_t *state)
                 session = ply_terminal_session_new (NULL);
 
                 ply_terminal_session_attach_to_event_loop (session, state->loop);
+                state->session = session;
         } else {
                 session = state->session;
                 ply_trace ("session already created");
@@ -1784,12 +1785,6 @@ attach_to_running_session (state_t *state)
                                           (ply_terminal_session_hangup_handler_t)
                                           (should_be_redirected ? on_session_hangup : NULL),
                                           -1, state)) {
-                ply_save_errno ();
-                ply_terminal_session_free (session);
-                ply_buffer_free (state->boot_buffer);
-                state->boot_buffer = NULL;
-                ply_restore_errno ();
-
                 state->is_redirected = false;
                 state->is_attached = false;
                 return false;
@@ -1801,7 +1796,6 @@ attach_to_running_session (state_t *state)
 
         state->is_redirected = should_be_redirected;
         state->is_attached = true;
-        state->session = session;
 
         return true;
 }
@@ -2256,9 +2250,6 @@ main (int    argc,
                 state.should_be_attached = attach_to_session;
                 if (!attach_to_running_session (&state)) {
                         ply_trace ("could not redirect console session: %m");
-                        if (!no_daemon)
-                                ply_detach_daemon (daemon_handle, EX_UNAVAILABLE);
-                        return EX_UNAVAILABLE;
                 }
         }
 
