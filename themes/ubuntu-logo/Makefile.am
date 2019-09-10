@@ -4,6 +4,7 @@ dist_theme_DATA =   ubuntu-logo.script                                \
                     ubuntu-logo.grub                                  \
                     ubuntu-logo.png                                   \
                     ubuntu-logo16.png                                 \
+                    noise-texture.png                                 \
                     password-field.png                                \
                     password-field16.png                              \
                     progress-dot-off.png                              \

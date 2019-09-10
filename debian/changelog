@@ -1,3 +1,10 @@
+plymouth (0.9.4git20190712-0ubuntu2) eoan; urgency=medium
+
+  * Add tile support in script plugin, use it to create background
+    matching gnome-shell.
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Tue, 10 Sep 2019 14:41:56 +0100
+
 plymouth (0.9.4git20190712-0ubuntu1) eoan; urgency=medium
 
   * Update to a new upstream git snapshot including those changes:

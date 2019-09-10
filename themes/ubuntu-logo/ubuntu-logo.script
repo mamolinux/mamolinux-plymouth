@@ -166,13 +166,16 @@ fun StringToInteger (str) {
 }
 
 #-----------------------------------------------------------------------------
+# Aubergine evolution
 # Previous background colour
 # #300a24 --> 0.19, 0.04, 0.14
 # New background colour
 # #2c001e --> 0.16, 0.00, 0.12
+# Yaru background colour
+# #4f194c --> 0.3098, 0.0980, 0.2980
 #
-Window.SetBackgroundTopColor (0.16, 0.00, 0.12);     # Nice colour on top of the screen fading to
-Window.SetBackgroundBottomColor (0.16, 0.00, 0.12);  # an equally nice colour on the bottom
+Window.SetBackgroundTopColor (0.3098, 0.0980, 0.2980);     # Nice colour on top of the screen fading to
+Window.SetBackgroundBottomColor (0.3098, 0.0980, 0.2980);  # an equally nice colour on the bottom
 
 bits_per_pixel = Window.GetBitsPerPixel ();
 if (bits_per_pixel == 4) {
@@ -187,6 +190,21 @@ if (bits_per_pixel == 4) {
     progress_dot_on_filename = "progress-dot-on.png";
     password_field_filename = "password-field.png";
     question_field_filename = "password-field.png";
+
+    noise_filename = "noise-texture.png";
+    noise.image = Image(noise_filename);
+    noise.width = Window.GetWidth();
+    noise.height = Window.GetHeight();
+    noise.image = noise.image.Tile(noise.width, noise.height);
+    noise.sprite = Sprite ();
+    noise.sprite.SetImage (noise.image);
+    noise.x = 0;
+    noise.y = 0;
+    noise.z = 100;
+    noise.sprite.SetX (noise.x);
+    noise.sprite.SetY (noise.y);
+    noise.sprite.SetZ (noise.z);
+    noise.sprite.SetOpacity (1);
 }
 
 logo.image = Image (logo_filename);
@@ -235,6 +253,10 @@ top_of_the_text = TextYOffset();
 
 # Call this when updating the screen
 fun draw_logo () {
+    noise.sprite.SetX (noise.x);
+    noise.sprite.SetY (noise.y);
+    noise.sprite.SetZ (noise.z);
+    noise.sprite.SetOpacity (1);
     logo.sprite.SetX (logo.x);
     logo.sprite.SetY (logo.y);
     logo.sprite.SetZ (logo.z);

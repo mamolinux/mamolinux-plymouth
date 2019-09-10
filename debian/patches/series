@@ -11,6 +11,7 @@ ubuntu-default-devicetimeout.patch
 timeout-for-ping.patch
 
 # Ubuntu themes
+0001-script-Add-image-tile-support.patch
 ubuntu-logo.patch
 ubuntu-text.patch
 
