@@ -1,3 +1,9 @@
+plymouth (0.9.4git20190712-0ubuntu3) eoan; urgency=medium
+
+  * Update grub script to yaru aubergine.
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Wed, 11 Sep 2019 11:42:46 +0100
+
 plymouth (0.9.4git20190712-0ubuntu2) eoan; urgency=medium
 
   * Add tile support in script plugin, use it to create background
