@@ -1,3 +1,11 @@
+plymouth (0.9.4git20190712-0ubuntu4) eoan; urgency=medium
+
+  * debian/plymouth-theme-spinner.postinst/rm:
+    - call update-grub when installing/removing the theme so grub isn't
+      stucked on colors from the old theme (lp: #1837360)
+
+ -- Sebastien Bacher <seb128@debian.org>  Wed, 09 Oct 2019 17:23:40 +0200
+
 plymouth (0.9.4git20190712-0ubuntu3) eoan; urgency=medium
 
   * Update grub script to yaru aubergine.
