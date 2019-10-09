@@ -7,6 +7,10 @@ if [ "x$1" = xremove ]; then
 	then
 		update-initramfs -u
 	fi
+
+	if [ -e /boot/grub/grub.cfg ] && which update-grub >/dev/null 2>&1; then
+		update-grub || true
+	fi
 fi
 
 #DEBHELPER#
