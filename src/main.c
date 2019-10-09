@@ -2273,6 +2273,10 @@ main (int    argc,
         find_system_default_splash (&state);
         find_distribution_default_splash (&state);
 
+        /* Device timeout may not be NAN or zero */
+        if (isnan (state.device_timeout) || state.device_timeout <= 0.0)
+                state.device_timeout = 5.0;
+
         if (ply_kernel_command_line_has_argument ("plymouth.ignore-serial-consoles"))
                 device_manager_flags |= PLY_DEVICE_MANAGER_FLAGS_IGNORE_SERIAL_CONSOLES;
 
