@@ -274,6 +274,7 @@ ply_boot_client_process_incoming_replies (ply_boot_client_t *client)
                 assert (request != NULL);
 
                 if (! strcmp (request->command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_PASSWORD)
+                    || ! strcmp (request->command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_CACHED_PASSWORD)
                     || ! strcmp (request->command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_QUESTION)
                     || ! strcmp (request->command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_KEYSTROKE)) {
                         if (! memcmp (byte, PLY_BOOT_PROTOCOL_RESPONSE_TYPE_ANSWER, sizeof (uint8_t))
