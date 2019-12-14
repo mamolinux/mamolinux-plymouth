@@ -11,7 +11,7 @@ Index: plymouth-0.9.4git20190712/src/main.c
 ===================================================================
 --- plymouth-0.9.4git20190712.orig/src/main.c
 +++ plymouth-0.9.4git20190712/src/main.c
-@@ -115,6 +115,7 @@ typedef struct
+@@ -115,6 +115,7 @@
          const char             *default_tty;
  
          int                     number_of_errors;
@@ -19,7 +19,7 @@ Index: plymouth-0.9.4git20190712/src/main.c
  } state_t;
  
  static void show_splash (state_t *state);
-@@ -179,8 +180,9 @@ on_update (state_t    *state,
+@@ -179,8 +180,9 @@
             const char *status)
  {
          ply_trace ("updating status to '%s'", status);
@@ -31,7 +31,7 @@ Index: plymouth-0.9.4git20190712/src/main.c
          if (state->boot_splash != NULL)
                  ply_boot_splash_update_status (state->boot_splash,
                                                 status);
-@@ -234,6 +236,25 @@ on_system_update (state_t *state,
+@@ -234,6 +236,25 @@
  }
  
  static void
@@ -57,7 +57,7 @@ Index: plymouth-0.9.4git20190712/src/main.c
  show_messages (state_t *state)
  {
          if (state->boot_splash == NULL) {
-@@ -467,7 +488,7 @@ show_default_splash (state_t *state)
+@@ -467,7 +488,7 @@
          if (state->boot_splash == NULL) {
                  ply_trace ("Could not start default splash screen,"
                             "showing text splash screen");
@@ -66,7 +66,7 @@ Index: plymouth-0.9.4git20190712/src/main.c
          }
  
          if (state->boot_splash == NULL) {
-@@ -477,7 +498,8 @@ show_default_splash (state_t *state)
+@@ -477,7 +498,8 @@
          }
  
          if (state->boot_splash == NULL) {
@@ -76,7 +76,7 @@ Index: plymouth-0.9.4git20190712/src/main.c
                  return;
          }
  
-@@ -564,8 +586,8 @@ on_display_message (state_t    *state,
+@@ -564,8 +586,8 @@
                  ply_boot_splash_display_message (state->boot_splash, message);
          } else {
                  ply_trace ("not displaying message %s as no splash", message);
@@ -86,7 +86,7 @@ Index: plymouth-0.9.4git20190712/src/main.c
  }
  
  static void
-@@ -794,6 +816,7 @@ prepare_logging (state_t *state)
+@@ -794,6 +816,7 @@
                  if (state->number_of_errors > 0)
                          spool_error (state);
          }
@@ -94,7 +94,7 @@ Index: plymouth-0.9.4git20190712/src/main.c
  }
  
  static void
-@@ -1974,6 +1997,7 @@ initialize_environment (state_t *state)
+@@ -1974,6 +1997,7 @@
          state->keystroke_triggers = ply_list_new ();
          state->entry_triggers = ply_list_new ();
          state->entry_buffer = ply_buffer_new ();
@@ -106,7 +106,7 @@ Index: plymouth-0.9.4git20190712/src/plugins/splash/script/script-lib-image.c
 ===================================================================
 --- plymouth-0.9.4git20190712.orig/src/plugins/splash/script/script-lib-image.c
 +++ plymouth-0.9.4git20190712/src/plugins/splash/script/script-lib-image.c
-@@ -166,7 +166,7 @@ static script_return_t image_text (scrip
+@@ -166,7 +166,7 @@
  
          alpha_obj = script_obj_hash_peek_element (state->local, "alpha");
  
@@ -119,7 +119,7 @@ Index: plymouth-0.9.4git20190712/src/plugins/splash/script/script-lib-sprite.c
 ===================================================================
 --- plymouth-0.9.4git20190712.orig/src/plugins/splash/script/script-lib-sprite.c
 +++ plymouth-0.9.4git20190712/src/plugins/splash/script/script-lib-sprite.c
-@@ -387,6 +387,45 @@ static script_return_t sprite_window_set
+@@ -387,6 +387,45 @@
          return script_return_obj_null ();
  }
  
@@ -165,7 +165,7 @@ Index: plymouth-0.9.4git20190712/src/plugins/splash/script/script-lib-sprite.c
  static uint32_t extract_rgb_color (script_state_t *state)
  {
          uint8_t red = CLAMP (255 * script_obj_hash_get_number (state->local, "red"), 0, 255);
-@@ -663,6 +702,12 @@ script_lib_sprite_data_t *script_lib_spr
+@@ -663,6 +702,12 @@
                                      "value",
                                      NULL);
          script_add_native_function (window_hash,
@@ -182,7 +182,7 @@ Index: plymouth-0.9.4git20190712/src/plugins/splash/text/plugin.c
 ===================================================================
 --- plymouth-0.9.4git20190712.orig/src/plugins/splash/text/plugin.c
 +++ plymouth-0.9.4git20190712/src/plugins/splash/text/plugin.c
-@@ -465,8 +465,10 @@ add_text_display (ply_boot_splash_plugin
+@@ -465,8 +465,10 @@
          view = view_new (plugin, display);
  
          terminal = ply_text_display_get_terminal (view->display);
@@ -198,7 +198,7 @@ Index: plymouth-0.9.4git20190712/src/libply-splash-core/ply-renderer.c
 ===================================================================
 --- plymouth-0.9.4git20190712.orig/src/libply-splash-core/ply-renderer.c
 +++ plymouth-0.9.4git20190712/src/libply-splash-core/ply-renderer.c
-@@ -353,6 +353,21 @@ ply_renderer_get_buffer_for_head (ply_re
+@@ -353,6 +353,21 @@
                                                                  head);
  }
  
@@ -224,7 +224,7 @@ Index: plymouth-0.9.4git20190712/src/libply-splash-core/ply-renderer.h
 ===================================================================
 --- plymouth-0.9.4git20190712.orig/src/libply-splash-core/ply-renderer.h
 +++ plymouth-0.9.4git20190712/src/libply-splash-core/ply-renderer.h
-@@ -64,6 +64,8 @@ const char *ply_renderer_get_device_name
+@@ -64,6 +64,8 @@
  ply_list_t *ply_renderer_get_heads (ply_renderer_t *renderer);
  ply_pixel_buffer_t *ply_renderer_get_buffer_for_head (ply_renderer_t      *renderer,
                                                        ply_renderer_head_t *head);
@@ -237,7 +237,7 @@ Index: plymouth-0.9.4git20190712/src/libply-splash-core/ply-pixel-display.c
 ===================================================================
 --- plymouth-0.9.4git20190712.orig/src/libply-splash-core/ply-pixel-display.c
 +++ plymouth-0.9.4git20190712/src/libply-splash-core/ply-pixel-display.c
-@@ -52,6 +52,7 @@ struct _ply_pixel_display
+@@ -52,6 +52,7 @@
          unsigned long                    width;
          unsigned long                    height;
          int                              device_scale;
@@ -245,7 +245,7 @@ Index: plymouth-0.9.4git20190712/src/libply-splash-core/ply-pixel-display.c
  
          ply_pixel_display_draw_handler_t draw_handler;
          void                            *draw_handler_user_data;
-@@ -80,6 +81,9 @@ ply_pixel_display_new (ply_renderer_t
+@@ -80,6 +81,9 @@
          display->height = size.height;
          display->device_scale = ply_pixel_buffer_get_device_scale (pixel_buffer);
  
@@ -255,7 +255,7 @@ Index: plymouth-0.9.4git20190712/src/libply-splash-core/ply-pixel-display.c
          return display;
  }
  
-@@ -113,6 +117,12 @@ ply_pixel_display_get_device_scale (ply_
+@@ -113,6 +117,12 @@
          return display->device_scale;
  }
  
@@ -272,7 +272,7 @@ Index: plymouth-0.9.4git20190712/src/libply-splash-core/ply-renderer-plugin.h
 ===================================================================
 --- plymouth-0.9.4git20190712.orig/src/libply-splash-core/ply-renderer-plugin.h
 +++ plymouth-0.9.4git20190712/src/libply-splash-core/ply-renderer-plugin.h
-@@ -55,6 +55,8 @@ typedef struct
+@@ -55,6 +55,8 @@
  
          ply_pixel_buffer_t * (*get_buffer_for_head)(ply_renderer_backend_t * backend,
                                                      ply_renderer_head_t * head);
@@ -285,7 +285,7 @@ Index: plymouth-0.9.4git20190712/src/client/ply-boot-client.c
 ===================================================================
 --- plymouth-0.9.4git20190712.orig/src/client/ply-boot-client.c
 +++ plymouth-0.9.4git20190712/src/client/ply-boot-client.c
-@@ -262,14 +262,29 @@ ply_boot_client_process_incoming_replies
+@@ -262,14 +262,30 @@
                  return;
          }
  
@@ -307,6 +307,7 @@ Index: plymouth-0.9.4git20190712/src/client/ply-boot-client.c
 -        if (!ply_read (client->socket_fd, byte, sizeof(uint8_t)))
 -                goto out;
 +                if (! strcmp (request->command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_PASSWORD)
++                    || ! strcmp (request->command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_CACHED_PASSWORD)
 +                    || ! strcmp (request->command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_QUESTION)
 +                    || ! strcmp (request->command, PLY_BOOT_PROTOCOL_REQUEST_TYPE_KEYSTROKE)) {
 +                        if (! memcmp (byte, PLY_BOOT_PROTOCOL_RESPONSE_TYPE_ANSWER, sizeof (uint8_t))
@@ -325,7 +326,7 @@ Index: plymouth-0.9.4git20190712/src/plugins/renderers/frame-buffer/plugin.c
 ===================================================================
 --- plymouth-0.9.4git20190712.orig/src/plugins/renderers/frame-buffer/plugin.c
 +++ plymouth-0.9.4git20190712/src/plugins/renderers/frame-buffer/plugin.c
-@@ -637,6 +637,16 @@ get_buffer_for_head (ply_renderer_backen
+@@ -637,6 +637,16 @@
          return backend->head.pixel_buffer;
  }
  
@@ -342,7 +343,7 @@ Index: plymouth-0.9.4git20190712/src/plugins/renderers/frame-buffer/plugin.c
  static bool
  has_input_source (ply_renderer_backend_t      *backend,
                    ply_renderer_input_source_t *input_source)
-@@ -735,6 +745,7 @@ ply_renderer_backend_get_interface (void
+@@ -735,6 +745,7 @@
                  .flush_head                   = flush_head,
                  .get_heads                    = get_heads,
                  .get_buffer_for_head          = get_buffer_for_head,
