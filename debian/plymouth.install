@@ -1,5 +1,6 @@
 bin
 lib/systemd
+etc/logrotate.d/bootlog
 sbin
 usr/lib/*/plymouth/*-initrd
 usr/lib/*/plymouth/details.so

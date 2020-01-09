@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: plymouth 0.9.5\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/plymouth/plymouth/"
 "issues\n"
-"POT-Creation-Date: 2019-06-12 11:54+0200\n"
+"POT-Creation-Date: 2020-01-09 10:09+0000\n"
 "PO-Revision-Date: 2019-03-02 08:34+0000\n"
 "Last-Translator: Thomas Eichhorn <tomislav@posteo.de>\n"
 "Language-Team: German\n"
@@ -15,7 +15,7 @@ msgstr ""
 "X-Generator: Zanata 4.6.2\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
-#: src/plugins/splash/two-step/plugin.c:1885
+#: src/plugins/splash/two-step/plugin.c:1697
 #, c-format
 msgid "%d%% complete"
 msgstr "%d%% abgeschlossen"

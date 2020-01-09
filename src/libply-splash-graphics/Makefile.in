@@ -145,8 +145,10 @@ libply_splash_graphics_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 am__objects_1 =
 am_libply_splash_graphics_la_OBJECTS = $(am__objects_1) \
 	libply_splash_graphics_la-ply-animation.lo \
+	libply_splash_graphics_la-ply-capslock-icon.lo \
 	libply_splash_graphics_la-ply-entry.lo \
 	libply_splash_graphics_la-ply-image.lo \
+	libply_splash_graphics_la-ply-keymap-icon.lo \
 	libply_splash_graphics_la-ply-label.lo \
 	libply_splash_graphics_la-ply-progress-animation.lo \
 	libply_splash_graphics_la-ply-progress-bar.lo \
@@ -178,8 +180,10 @@ depcomp = $(SHELL) $(top_srcdir)/build-tools/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade =  \
 	./$(DEPDIR)/libply_splash_graphics_la-ply-animation.Plo \
+	./$(DEPDIR)/libply_splash_graphics_la-ply-capslock-icon.Plo \
 	./$(DEPDIR)/libply_splash_graphics_la-ply-entry.Plo \
 	./$(DEPDIR)/libply_splash_graphics_la-ply-image.Plo \
+	./$(DEPDIR)/libply_splash_graphics_la-ply-keymap-icon.Plo \
 	./$(DEPDIR)/libply_splash_graphics_la-ply-label.Plo \
 	./$(DEPDIR)/libply_splash_graphics_la-ply-progress-animation.Plo \
 	./$(DEPDIR)/libply_splash_graphics_la-ply-progress-bar.Plo \
@@ -423,8 +427,11 @@ lib_LTLIBRARIES = libply-splash-graphics.la
 libply_splash_graphicsdir = $(includedir)/plymouth-1/ply-splash-graphics
 libply_splash_graphics_HEADERS = \
                                  ply-animation.h                              \
+                                 ply-capslock-icon.h                          \
                                  ply-entry.h                                  \
                                  ply-image.h                                  \
+                                 ply-keymap-icon.h                            \
+                                 ply-keymap-metadata.h                        \
                                  ply-label.h                                  \
                                  ply-label-plugin.h                           \
                                  ply-progress-animation.h                     \
@@ -446,8 +453,10 @@ libply_splash_graphics_la_LDFLAGS = -export-symbols-regex '^[^_].*' \
 libply_splash_graphics_la_SOURCES = \
                                     $(libply_splash_graphics_HEADERS)         \
                                     ply-animation.c                           \
+                                    ply-capslock-icon.c                       \
                                     ply-entry.c                               \
                                     ply-image.c                               \
+                                    ply-keymap-icon.c                         \
                                     ply-label.c                               \
                                     ply-progress-animation.c                  \
                                     ply-progress-bar.c                        \
@@ -533,8 +542,10 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libply_splash_graphics_la-ply-animation.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libply_splash_graphics_la-ply-capslock-icon.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libply_splash_graphics_la-ply-entry.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libply_splash_graphics_la-ply-image.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libply_splash_graphics_la-ply-keymap-icon.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libply_splash_graphics_la-ply-label.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libply_splash_graphics_la-ply-progress-animation.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libply_splash_graphics_la-ply-progress-bar.Plo@am__quote@ # am--include-marker
@@ -574,6 +585,13 @@ libply_splash_graphics_la-ply-animation.lo: ply-animation.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libply_splash_graphics_la_CFLAGS) $(CFLAGS) -c -o libply_splash_graphics_la-ply-animation.lo `test -f 'ply-animation.c' || echo '$(srcdir)/'`ply-animation.c
 
+libply_splash_graphics_la-ply-capslock-icon.lo: ply-capslock-icon.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libply_splash_graphics_la_CFLAGS) $(CFLAGS) -MT libply_splash_graphics_la-ply-capslock-icon.lo -MD -MP -MF $(DEPDIR)/libply_splash_graphics_la-ply-capslock-icon.Tpo -c -o libply_splash_graphics_la-ply-capslock-icon.lo `test -f 'ply-capslock-icon.c' || echo '$(srcdir)/'`ply-capslock-icon.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libply_splash_graphics_la-ply-capslock-icon.Tpo $(DEPDIR)/libply_splash_graphics_la-ply-capslock-icon.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ply-capslock-icon.c' object='libply_splash_graphics_la-ply-capslock-icon.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libply_splash_graphics_la_CFLAGS) $(CFLAGS) -c -o libply_splash_graphics_la-ply-capslock-icon.lo `test -f 'ply-capslock-icon.c' || echo '$(srcdir)/'`ply-capslock-icon.c
+
 libply_splash_graphics_la-ply-entry.lo: ply-entry.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libply_splash_graphics_la_CFLAGS) $(CFLAGS) -MT libply_splash_graphics_la-ply-entry.lo -MD -MP -MF $(DEPDIR)/libply_splash_graphics_la-ply-entry.Tpo -c -o libply_splash_graphics_la-ply-entry.lo `test -f 'ply-entry.c' || echo '$(srcdir)/'`ply-entry.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libply_splash_graphics_la-ply-entry.Tpo $(DEPDIR)/libply_splash_graphics_la-ply-entry.Plo
@@ -587,6 +605,13 @@ libply_splash_graphics_la-ply-image.lo: ply-image.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ply-image.c' object='libply_splash_graphics_la-ply-image.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libply_splash_graphics_la_CFLAGS) $(CFLAGS) -c -o libply_splash_graphics_la-ply-image.lo `test -f 'ply-image.c' || echo '$(srcdir)/'`ply-image.c
+
+libply_splash_graphics_la-ply-keymap-icon.lo: ply-keymap-icon.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libply_splash_graphics_la_CFLAGS) $(CFLAGS) -MT libply_splash_graphics_la-ply-keymap-icon.lo -MD -MP -MF $(DEPDIR)/libply_splash_graphics_la-ply-keymap-icon.Tpo -c -o libply_splash_graphics_la-ply-keymap-icon.lo `test -f 'ply-keymap-icon.c' || echo '$(srcdir)/'`ply-keymap-icon.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libply_splash_graphics_la-ply-keymap-icon.Tpo $(DEPDIR)/libply_splash_graphics_la-ply-keymap-icon.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ply-keymap-icon.c' object='libply_splash_graphics_la-ply-keymap-icon.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libply_splash_graphics_la_CFLAGS) $(CFLAGS) -c -o libply_splash_graphics_la-ply-keymap-icon.lo `test -f 'ply-keymap-icon.c' || echo '$(srcdir)/'`ply-keymap-icon.c
 
 libply_splash_graphics_la-ply-label.lo: ply-label.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libply_splash_graphics_la_CFLAGS) $(CFLAGS) -MT libply_splash_graphics_la-ply-label.lo -MD -MP -MF $(DEPDIR)/libply_splash_graphics_la-ply-label.Tpo -c -o libply_splash_graphics_la-ply-label.lo `test -f 'ply-label.c' || echo '$(srcdir)/'`ply-label.c
@@ -773,8 +798,10 @@ clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/libply_splash_graphics_la-ply-animation.Plo
+	-rm -f ./$(DEPDIR)/libply_splash_graphics_la-ply-capslock-icon.Plo
 	-rm -f ./$(DEPDIR)/libply_splash_graphics_la-ply-entry.Plo
 	-rm -f ./$(DEPDIR)/libply_splash_graphics_la-ply-image.Plo
+	-rm -f ./$(DEPDIR)/libply_splash_graphics_la-ply-keymap-icon.Plo
 	-rm -f ./$(DEPDIR)/libply_splash_graphics_la-ply-label.Plo
 	-rm -f ./$(DEPDIR)/libply_splash_graphics_la-ply-progress-animation.Plo
 	-rm -f ./$(DEPDIR)/libply_splash_graphics_la-ply-progress-bar.Plo
@@ -825,8 +852,10 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/libply_splash_graphics_la-ply-animation.Plo
+	-rm -f ./$(DEPDIR)/libply_splash_graphics_la-ply-capslock-icon.Plo
 	-rm -f ./$(DEPDIR)/libply_splash_graphics_la-ply-entry.Plo
 	-rm -f ./$(DEPDIR)/libply_splash_graphics_la-ply-image.Plo
+	-rm -f ./$(DEPDIR)/libply_splash_graphics_la-ply-keymap-icon.Plo
 	-rm -f ./$(DEPDIR)/libply_splash_graphics_la-ply-label.Plo
 	-rm -f ./$(DEPDIR)/libply_splash_graphics_la-ply-progress-animation.Plo
 	-rm -f ./$(DEPDIR)/libply_splash_graphics_la-ply-progress-bar.Plo

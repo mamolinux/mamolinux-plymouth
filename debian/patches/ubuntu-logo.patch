@@ -1,10 +1,10 @@
 Description: Add ubuntu-logo theme
 Author: Alberto Milone <alberto.milone@canonical.com>
 Forwarded: not-needed
-Index: plymouth-0.9.4git20190712/themes/ubuntu-logo/Makefile.am
+Index: plymouth-0.9.4git20200109/themes/ubuntu-logo/Makefile.am
 ===================================================================
 --- /dev/null
-+++ plymouth-0.9.4git20190712/themes/ubuntu-logo/Makefile.am
++++ plymouth-0.9.4git20200109/themes/ubuntu-logo/Makefile.am
 @@ -0,0 +1,24 @@
 +themedir = $(datadir)/plymouth/themes/ubuntu-logo
 +nodist_theme_DATA = ubuntu-logo.plymouth
@@ -30,10 +30,10 @@ Index: plymouth-0.9.4git20190712/themes/ubuntu-logo/Makefile.am
 +	       $(srcdir)/ubuntu-logo.plymouth.in > ubuntu-logo.plymouth
 +
 +EXTRA_DIST = ubuntu-logo.plymouth.in
-Index: plymouth-0.9.4git20190712/themes/ubuntu-logo/ubuntu-logo.plymouth.in
+Index: plymouth-0.9.4git20200109/themes/ubuntu-logo/ubuntu-logo.plymouth.in
 ===================================================================
 --- /dev/null
-+++ plymouth-0.9.4git20190712/themes/ubuntu-logo/ubuntu-logo.plymouth.in
++++ plymouth-0.9.4git20200109/themes/ubuntu-logo/ubuntu-logo.plymouth.in
 @@ -0,0 +1,8 @@
 +[Plymouth Theme]
 +Name=Ubuntu Logo
@@ -43,10 +43,10 @@ Index: plymouth-0.9.4git20190712/themes/ubuntu-logo/ubuntu-logo.plymouth.in
 +[script]
 +ImageDir=@PLYMOUTH_THEME_PATH@/ubuntu-logo
 +ScriptFile=@PLYMOUTH_THEME_PATH@/ubuntu-logo/ubuntu-logo.script
-Index: plymouth-0.9.4git20190712/themes/ubuntu-logo/ubuntu-logo.script
+Index: plymouth-0.9.4git20200109/themes/ubuntu-logo/ubuntu-logo.script
 ===================================================================
 --- /dev/null
-+++ plymouth-0.9.4git20190712/themes/ubuntu-logo/ubuntu-logo.script
++++ plymouth-0.9.4git20200109/themes/ubuntu-logo/ubuntu-logo.script
 @@ -0,0 +1,1178 @@
 +#  ubuntu-logo.script - boot splash plugin
 +# 
@@ -1226,21 +1226,21 @@ Index: plymouth-0.9.4git20190712/themes/ubuntu-logo/ubuntu-logo.script
 +}
 +
 +Plymouth.SetQuitFunction(quit_callback);
-Index: plymouth-0.9.4git20190712/themes/ubuntu-logo/ubuntu-logo.grub
+Index: plymouth-0.9.4git20200109/themes/ubuntu-logo/ubuntu-logo.grub
 ===================================================================
 --- /dev/null
-+++ plymouth-0.9.4git20190712/themes/ubuntu-logo/ubuntu-logo.grub
++++ plymouth-0.9.4git20200109/themes/ubuntu-logo/ubuntu-logo.grub
 @@ -0,0 +1,5 @@
 +# previously #2c001e 44,0,30,0
 +# now yaru #4f194c 79,25,76
 +if background_color 79,25,76,0; then
 +  clear
 +fi
-Index: plymouth-0.9.4git20190712/configure.ac
+Index: plymouth-0.9.4git20200109/configure.ac
 ===================================================================
---- plymouth-0.9.4git20190712.orig/configure.ac
-+++ plymouth-0.9.4git20190712/configure.ac
-@@ -325,6 +325,7 @@ AC_CONFIG_FILES([Makefile po/Makefile.in
+--- plymouth-0.9.4git20200109.orig/configure.ac
++++ plymouth-0.9.4git20200109/configure.ac
+@@ -332,6 +332,7 @@ AC_CONFIG_FILES([Makefile po/Makefile.in
             themes/glow/Makefile
             themes/spinner/Makefile
             themes/script/Makefile
@@ -1248,10 +1248,10 @@ Index: plymouth-0.9.4git20190712/configure.ac
             themes/bgrt/Makefile
             images/Makefile
  	   scripts/plymouth-generate-initrd
-Index: plymouth-0.9.4git20190712/themes/Makefile.am
+Index: plymouth-0.9.4git20200109/themes/Makefile.am
 ===================================================================
---- plymouth-0.9.4git20190712.orig/themes/Makefile.am
-+++ plymouth-0.9.4git20190712/themes/Makefile.am
+--- plymouth-0.9.4git20200109.orig/themes/Makefile.am
++++ plymouth-0.9.4git20200109/themes/Makefile.am
 @@ -1,2 +1,2 @@
 -SUBDIRS = spinfinity fade-in text details solar glow script spinner tribar bgrt
 +SUBDIRS = spinfinity fade-in text details solar glow script spinner tribar ubuntu-logo bgrt

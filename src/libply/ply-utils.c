@@ -403,32 +403,6 @@ ply_fd_has_data (int fd)
 }
 
 bool
-ply_fd_can_take_data (int fd)
-{
-        struct pollfd poll_data;
-        int result;
-
-        poll_data.fd = fd;
-        poll_data.events = POLLOUT;
-        poll_data.revents = 0;
-        result = poll (&poll_data, 1, 10);
-
-        return result == 1;
-}
-
-bool
-ply_fd_may_block (int fd)
-{
-        int flags;
-
-        assert (fd >= 0);
-
-        flags = fcntl (fd, F_GETFL);
-
-        return (flags & O_NONBLOCK) != 0;
-}
-
-bool
 ply_set_fd_as_blocking (int fd)
 {
         int flags;
@@ -483,103 +457,6 @@ ply_free_string_array (char **array)
         }
 
         free (array);
-}
-
-bool
-ply_string_has_prefix (const char *string,
-                       const char *prefix)
-{
-        if (string == NULL)
-                return false;
-
-        if (prefix == NULL)
-                return false;
-
-        if (strlen (prefix) > strlen (string))
-                return false;
-
-        return strncmp (string, prefix, strlen (prefix)) == 0;
-}
-
-static int
-ply_get_max_open_fds (void)
-{
-        struct rlimit open_fd_limit;
-
-        if (getrlimit (RLIMIT_NOFILE, &open_fd_limit) < 0)
-                return -1;
-
-        if (open_fd_limit.rlim_cur == RLIM_INFINITY)
-                return -1;
-
-        return (int) open_fd_limit.rlim_cur;
-}
-
-static bool
-ply_close_open_fds (void)
-{
-        DIR *dir;
-        struct dirent *entry;
-        int fd, opendir_fd;
-
-        opendir_fd = -1;
-        dir = opendir (PLY_OPEN_FILE_DESCRIPTORS_DIR);
-
-        if (dir == NULL)
-                return false;
-
-        while ((entry = readdir (dir)) != NULL) {
-                long filename_as_number;
-                char *byte_after_number;
-
-                errno = 0;
-                if (entry->d_name[0] == '.')
-                        continue;
-
-                fd = -1;
-                filename_as_number = strtol (entry->d_name, &byte_after_number, 10);
-
-                if ((*byte_after_number != '\0') ||
-                    (filename_as_number < 0) ||
-                    (filename_as_number > INT_MAX)) {
-                        closedir (dir);
-                        return false;
-                }
-
-                fd = (int) filename_as_number;
-
-                if (fd != opendir_fd)
-                        close (fd);
-        }
-
-        assert (entry == NULL);
-        closedir (dir);
-
-        return true;
-}
-
-void
-ply_close_all_fds (void)
-{
-        int max_open_fds, fd;
-
-        max_open_fds = ply_get_max_open_fds ();
-
-        /* if there isn't a reported maximum for some
-         * reason, then open up /proc/self/fd and close
-         * the ones we can find.  If that doesn't work
-         * out, then just bite the bullet and close the
-         * entire integer range
-         */
-        if (max_open_fds < 0) {
-                if (ply_close_open_fds ())
-                        return;
-
-                max_open_fds = INT_MAX;
-        } else { for (fd = 0; fd < max_open_fds; fd++) {
-                         close (fd);
-                 }
-        }
 }
 
 double
@@ -1100,6 +977,18 @@ ply_kernel_command_line_has_argument (const char *argument)
                 return false;
 
         return true;
+}
+
+char *
+ply_kernel_command_line_get_key_value (const char *key)
+{
+        const char *value;
+
+        value = ply_kernel_command_line_get_string_after_prefix (key);
+        if (value == NULL || value[0] == '\0')
+                return NULL;
+
+        return strndup(value, strcspn (value, " \n"));
 }
 
 void

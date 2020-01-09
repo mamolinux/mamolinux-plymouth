@@ -14,6 +14,7 @@
 
 @SET_MAKE@
 
+
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -135,7 +136,7 @@ am__uninstall_files_from_dir = { \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
 am__installdirs = "$(DESTDIR)$(initrdscriptdir)" \
-	"$(DESTDIR)$(sbinscriptsdir)"
+	"$(DESTDIR)$(sbinscriptsdir)" "$(DESTDIR)$(bootlogdir)"
 SCRIPTS = $(initrdscript_SCRIPTS) $(noinst_SCRIPTS) \
 	$(sbinscripts_SCRIPTS)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -157,6 +158,7 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
+DATA = $(bootlog_DATA)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 am__DIST_COMMON = $(srcdir)/Makefile.in \
 	$(srcdir)/plymouth-generate-initrd.in \
@@ -348,11 +350,14 @@ initrdscriptdir = $(libexecdir)/plymouth
 initrdscript_SCRIPTS = plymouth-update-initrd plymouth-generate-initrd plymouth-populate-initrd
 sbinscriptsdir = $(sbindir)
 sbinscripts_SCRIPTS = plymouth-set-default-theme
+bootlogdir = $(sysconfdir)/logrotate.d
+bootlog_DATA = bootlog
 EXTRA_DIST = plymouth-update-initrd                                             \
 	    plymouth-generate-initrd.in                                        \
 	    plymouth-populate-initrd.in                                        \
-	    plymouth-set-default-theme.in                                     \
+	    plymouth-set-default-theme.in                                      \
 	    $(noinst_SCRIPTS)                                                  \
+	    bootlog                                                            \
 	    default.cfg
 
 all: all-am
@@ -469,6 +474,27 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
+install-bootlogDATA: $(bootlog_DATA)
+	@$(NORMAL_INSTALL)
+	@list='$(bootlog_DATA)'; test -n "$(bootlogdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(bootlogdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(bootlogdir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(bootlogdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(bootlogdir)" || exit $$?; \
+	done
+
+uninstall-bootlogDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(bootlog_DATA)'; test -n "$(bootlogdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(bootlogdir)'; $(am__uninstall_files_from_dir)
 tags TAGS:
 
 ctags CTAGS:
@@ -511,9 +537,9 @@ distdir-am: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(SCRIPTS)
+all-am: Makefile $(SCRIPTS) $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(initrdscriptdir)" "$(DESTDIR)$(sbinscriptsdir)"; do \
+	for dir in "$(DESTDIR)$(initrdscriptdir)" "$(DESTDIR)$(sbinscriptsdir)" "$(DESTDIR)$(bootlogdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -566,7 +592,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-initrdscriptSCRIPTS \
+install-data-am: install-bootlogDATA install-initrdscriptSCRIPTS \
 	install-sbinscriptsSCRIPTS
 
 install-dvi: install-dvi-am
@@ -611,7 +637,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-initrdscriptSCRIPTS \
+uninstall-am: uninstall-bootlogDATA uninstall-initrdscriptSCRIPTS \
 	uninstall-sbinscriptsSCRIPTS
 
 .MAKE: install-am install-strip
@@ -619,17 +645,17 @@ uninstall-am: uninstall-initrdscriptSCRIPTS \
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
 	cscopelist-am ctags-am distclean distclean-generic \
 	distclean-libtool distdir dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am \
-	install-initrdscriptSCRIPTS install-man install-pdf \
-	install-pdf-am install-ps install-ps-am \
+	install install-am install-bootlogDATA install-data \
+	install-data-am install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-initrdscriptSCRIPTS install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
 	install-sbinscriptsSCRIPTS install-strip installcheck \
 	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am tags-am uninstall \
-	uninstall-am uninstall-initrdscriptSCRIPTS \
-	uninstall-sbinscriptsSCRIPTS
+	uninstall-am uninstall-bootlogDATA \
+	uninstall-initrdscriptSCRIPTS uninstall-sbinscriptsSCRIPTS
 
 .PRECIOUS: Makefile
 
