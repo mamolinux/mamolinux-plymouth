@@ -1,3 +1,22 @@
+plymouth (0.9.4git20200109-0ubuntu1) focal; urgency=medium
+
+  * New upstream version:
+    - includes a new keyboard layout/capslock indicator
+  * debian/control, debian/libplymouth5.lintian-overrides, debian/rules:
+    - updated for the library soname change
+  * debian/libplymouth5.*:
+    - updated for the soname change
+  * debian/patches/misc-changes.patch:
+    - updated to fix an implicity declaration warning
+  * debian/patches/0001-script-Add-image-tile-support.patch:
+    - removed, included in the new version
+  * debian/plymouth.install:
+    - install the new logrotate.d boot.log entry
+  * debian/plymouth-themes.install:
+    - updated for the throbgress plugin removal
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 09 Jan 2020 17:03:09 +0100
+
 plymouth (0.9.4git20190712-0ubuntu5) focal; urgency=medium
 
   * debian/patches/misc-changes.patch: fix an Ubuntu-specific bug in
