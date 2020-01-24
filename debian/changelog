@@ -1,5 +1,36 @@
+plymouth (0.9.4-2) unstable; urgency=medium
+
+  [ Laurent Bigonville ]
+  * debian/plymouth.links: Drop the manpage symlink plymouth-log-viewer.8, the
+    executable is not installed anymore (Closes: #922320)
+  * debian/rules: Stop passing start and stop actions for update-rc.d to
+    dh_installinit. update-rc.d is not supporting that for quite some time
+  * debian/plymouth.postinst: Remove old cleanup code needed for early 0.9.0
+    uploads
+  * debian/control: Bump Standards-Version to 4.5.0 (no further changes)
+  * Bump debhelper compatibility to 12, switch from dh_systemd_start to
+    dh_installsystemd
+  * debian/rules: Disable call to dh_installinitramfs, let's manage that
+    ourself but update the maintainer scripts to mimic what it's doing.
+  * debian/rules: Drop dh_strip override, plymouth-dbg is gone for at least
+    one release and we don't need the migration bits to the -dbgsym package
+  * Move everything from / to /usr now that the later is mounted at early
+    boot, add compatibility symlinks for the executable in case the system is
+    not migrated to usr-merge.
+  * debian/control: Add Rules-Requires-Root: no
+  * Move some executables to /usr/libexec now that's allowed in the policy
+  * debian/rules: Rely on dh_autoreconf to update config.guess and config.sub
+  * Drop debian/patches/0004-return-code.patch, this doesn't seem needed
+    anymore, thanks to Sebastien Bacher for noticing
+
+  [ Alper Nebi Yasak ]
+  * Include less modules when appropriate. (Closes: #940014)
+
+ -- Laurent Bigonville <bigon@debian.org>  Fri, 24 Jan 2020 08:31:05 +0100
+
 plymouth (0.9.4-1.1) unstable; urgency=medium
 
+  * Non-maintainer upload.
   [ Andreas Henriksson ]
   * Pass SYSTEMD_ASK_PASSWORD_AGENT=/bin/systemd-tty-ask-password-agent
     to configure for reproducibility on merged-usr vs non-merged.
