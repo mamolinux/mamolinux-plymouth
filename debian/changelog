@@ -1,3 +1,9 @@
+plymouth (0.9.4git20200109-0ubuntu2) focal; urgency=medium
+
+  * No-change rebuild with fixed binutils on arm64.
+
+ -- Matthias Klose <doko@ubuntu.com>  Sat, 08 Feb 2020 11:17:22 +0000
+
 plymouth (0.9.4git20200109-0ubuntu1) focal; urgency=medium
 
   * New upstream version:
