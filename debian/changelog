@@ -1,3 +1,11 @@
+plymouth (0.9.4git20200109-0ubuntu3) focal; urgency=medium
+
+  * Drop setting purple on grub boot for now, until we have a good plan
+    for flickerless boot either by tweaking our theme for new world order,
+    or changing to a different theme.
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Thu, 20 Feb 2020 16:34:20 +0000
+
 plymouth (0.9.4git20200109-0ubuntu2) focal; urgency=medium
 
   * No-change rebuild with fixed binutils on arm64.
