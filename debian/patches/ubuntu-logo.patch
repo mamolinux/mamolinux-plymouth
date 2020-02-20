@@ -1233,9 +1233,9 @@ Index: plymouth-0.9.4git20200109/themes/ubuntu-logo/ubuntu-logo.grub
 @@ -0,0 +1,5 @@
 +# previously #2c001e 44,0,30,0
 +# now yaru #4f194c 79,25,76
-+if background_color 79,25,76,0; then
-+  clear
-+fi
++#if background_color 79,25,76,0; then
++#  clear
++#fi
 Index: plymouth-0.9.4git20200109/configure.ac
 ===================================================================
 --- plymouth-0.9.4git20200109.orig/configure.ac
