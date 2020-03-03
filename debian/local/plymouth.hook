@@ -20,8 +20,13 @@ esac
 . /usr/share/initramfs-tools/hook-functions
 
 THEME_PATH="$(update-alternatives --query default.plymouth 2>/dev/null | sed -e '/^Value:/!d' -e 's/^Value: \(.*\)/\1/')"
+IMAGE_PATH=$(grep "ImageDir *= *" ${THEME_PATH} | sed 's/ImageDir *= *//')
 THEME="$(basename ${THEME_PATH:-none} .plymouth || true)"
 THEMES="/usr/share/plymouth/themes"
+
+if [ "${THEME_PATH}" != "${IMAGE_PATH}" ]; then
+	IMAGE_NAME="$(basename ${IMAGE_PATH:-none})"
+fi
 
 mkdir -p "${DESTDIR}/${THEMES}"
 
@@ -54,7 +59,7 @@ then
 fi
 
 # copy base themes content
-currthemes="${THEME_NAME} ${TEXTTHEME_NAME}"
+currthemes="${THEME_NAME} ${TEXTTHEME_NAME} ${IMAGE_NAME}"
 for currtheme in $currthemes
 do
 	case "${currtheme}" in
