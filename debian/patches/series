@@ -1,5 +1,6 @@
 0005-cmdline.patch
 drop-systemd-vconsole-setup-service.patch
+git_assert_fix.patch
 
 ## Ubuntu
 misc-changes.patch
