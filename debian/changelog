@@ -1,3 +1,11 @@
+plymouth (0.9.4git20200109-0ubuntu3.1) focal; urgency=medium
+
+  * debian/local/plymouth.hook:
+    - if the current theme has an ImageDir includes the directory
+      in the initramfs (lp: #1864586) 
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 03 Mar 2020 17:02:28 +0100
+
 plymouth (0.9.4git20200109-0ubuntu3) focal; urgency=medium
 
   * Drop setting purple on grub boot for now, until we have a good plan
