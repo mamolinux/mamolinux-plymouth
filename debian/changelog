@@ -1,3 +1,11 @@
+plymouth (0.9.4git20200109-0ubuntu3.3) focal; urgency=medium
+
+  * debian/local/plymouth.hook:
+    - handle the case when there is no theme alternative defined
+      (lp: #1865959)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Wed, 04 Mar 2020 12:23:07 +0100
+
 plymouth (0.9.4git20200109-0ubuntu3.2) focal; urgency=medium
 
   * debian/patches/git_assert_fix.patch:
