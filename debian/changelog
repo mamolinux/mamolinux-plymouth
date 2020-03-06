@@ -1,3 +1,11 @@
+plymouth (0.9.4git20200109-0ubuntu6) focal; urgency=medium
+
+  * themes/ubuntu-logo/ubuntu-logo.png:
+    - update the logo using in plymouth/gdm to be monochrome,
+      thanks Wayne!
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 06 Mar 2020 10:27:38 +0100
+
 plymouth (0.9.4git20200109-0ubuntu5) focal; urgency=medium
 
   * debian/local/plymouth.hook,
