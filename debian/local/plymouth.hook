@@ -120,6 +120,7 @@ case "${THEME_NAME}" in
 
 	*)
 		cp /usr/share/plymouth/ubuntu-logo.png "${DESTDIR}/usr/share/plymouth"
+		cp /usr/share/plymouth/ubuntu-logo.png "${DESTDIR}/usr/share/plymouth/themes/spinner/watermark.png"
 
 		# fontconfig
 		mkdir -p "${DESTDIR}/etc/fonts/conf.d"

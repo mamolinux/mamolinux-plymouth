@@ -1,3 +1,11 @@
+plymouth (0.9.4git20200109-0ubuntu5) focal; urgency=medium
+
+  * debian/local/plymouth.hook,
+    debian/rules:
+    - install the ubuntu-logo asset as a watermark for the bgrt theme
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 06 Mar 2020 10:09:07 +0100
+
 plymouth (0.9.4git20200109-0ubuntu3.3) focal; urgency=medium
 
   * debian/local/plymouth.hook:
