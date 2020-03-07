@@ -1,3 +1,11 @@
+plymouth (0.9.4git20200109-0ubuntu7) focal; urgency=medium
+
+  * debian/local/plymouth.hook:
+    - try to copy the watermark image in the initramfs only if the spinner
+      theme is installed (lp: #1866377)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Sat, 07 Mar 2020 10:26:16 +0100
+
 plymouth (0.9.4git20200109-0ubuntu6) focal; urgency=medium
 
   * themes/ubuntu-logo/ubuntu-logo.png:
