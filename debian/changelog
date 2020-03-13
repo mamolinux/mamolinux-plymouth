@@ -1,3 +1,11 @@
+plymouth (0.9.4git20200109-0ubuntu8) focal; urgency=medium
+
+  * debian/local/spinner, debian/rules:
+    - Install the Ubuntu yaru spinner assets, thanks Frederik for working
+      on/providing the new images!
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 13 Mar 2020 11:05:07 +0100
+
 plymouth (0.9.4git20200109-0ubuntu7) focal; urgency=medium
 
   * debian/local/plymouth.hook:
