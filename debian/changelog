@@ -1,3 +1,13 @@
+plymouth (0.9.4git20200323-0ubuntu1) focal; urgency=medium
+
+  * New git snapshot
+  * debian/patches/git_assert_fix.patch:
+    - removed, included in the new version
+  * themes/ubuntu-logo/ubuntu-logo.png:
+    - updated logo from design with better resolution (lp: #1866413)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 23 Mar 2020 13:07:07 +0100
+
 plymouth (0.9.4git20200109-0ubuntu8) focal; urgency=medium
 
   * debian/local/spinner, debian/rules:
