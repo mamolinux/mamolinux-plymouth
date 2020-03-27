@@ -13,4 +13,4 @@ timeout-for-ping.patch
 # Ubuntu themes
 ubuntu-logo.patch
 ubuntu-text.patch
-
+ubuntu-spinner-style.patch
