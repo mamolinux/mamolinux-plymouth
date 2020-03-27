@@ -1,3 +1,18 @@
+plymouth (0.9.4git20200323-0ubuntu2) focal; urgency=medium
+
+  * debian/patches/ubuntu-spinner-style.patch:
+    - Ubuntu style for the spinner/bgrt theme.
+      Use the Ubuntu font instead of cantarell (lp: #1869170)
+      Display the password entry under the bios logo (lp: #1867131)
+  * debian/local/lock.png, debian/local/entry.png, debian/rules:
+    - theme the spinner password entry assets to have an Ubuntu orange
+      color rather than an upstream blue one
+  * themes/ubuntu-logo/ubuntu-logo.png:
+    - updated the logo image to be correctly center again, thanks Daniel
+      (lp: #1869150)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 27 Mar 2020 16:31:27 +0100
+
 plymouth (0.9.4git20200323-0ubuntu1) focal; urgency=medium
 
   * New git snapshot

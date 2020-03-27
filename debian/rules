@@ -90,6 +90,8 @@ override_dh_install:
 
 	# Install the ubuntu spinner assets
 	cp debian/local/spinner/* debian/plymouth-theme-spinner/usr/share/plymouth/themes/spinner
+	cp debian/local/entry.png debian/plymouth-theme-spinner/usr/share/plymouth/themes/spinner
+	cp debian/local/lock.png debian/plymouth-theme-spinner/usr/share/plymouth/themes/spinner
 
 override_dh_systemd_start:
 	dh_systemd_start --no-start
