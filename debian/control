@@ -200,6 +200,7 @@ Depends:
  ${misc:Depends},
  ${shlibs:Depends},
  plymouth (= ${binary:Version}),
+ plymouth-label (= ${binary:Version}),
  lsb-release,
 Breaks: plymouth-themes (<< 0.9.4git20190712-0ubuntu1~)
 Replaces: plymouth-themes (<< 0.9.4git20190712-0ubuntu1~)
