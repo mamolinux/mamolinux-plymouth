@@ -1,3 +1,11 @@
+plymouth (0.9.4git20200323-0ubuntu6) focal; urgency=medium
+
+  * debian/patches/ubuntu-default-devicetimeout.patch: Increase the graphics
+    probing timeout to 8 seconds to match upstream. This also fixes missing
+    graphics when booting some ThinkPads. (LP: #1838725)
+
+ -- Daniel van Vugt <daniel.van.vugt@canonical.com>  Wed, 01 Apr 2020 17:49:08 +0800
+
 plymouth (0.9.4git20200323-0ubuntu5) focal; urgency=medium
 
   * debian/patches/git-drm-improve.patch:
