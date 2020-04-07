@@ -45,7 +45,15 @@ function list_themes ()
 function read_theme_name_from_file ()
 {
         echo $(grep -v '^#' $1 2> /dev/null |
-		awk -F= '/Theme=/ { print $2 }')
+               awk '
+                     BEGIN {
+                        RS="[[][[:blank:]]*[^[:space:]]+[:blank:]*[]\n]";
+                        FS="[=[:space:]]+";
+                        OFS="";
+                        ORS=""
+                     }
+                     $1 ~/Theme/ { print $2 }
+               ')
 }
 
 function get_default_theme ()

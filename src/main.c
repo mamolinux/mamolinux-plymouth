@@ -162,6 +162,7 @@ static void on_quit (state_t       *state,
                      ply_trigger_t *quit_trigger);
 static bool sh_is_init (state_t *state);
 static void cancel_pending_delayed_show (state_t *state);
+static void prepare_logging (state_t *state);
 
 static ply_boot_splash_mode_t
 get_splash_mode_from_mode (ply_mode_t mode)
@@ -222,11 +223,6 @@ on_change_mode (state_t    *state,
 {
         ply_boot_splash_mode_t splash_mode;
 
-        if (state->boot_splash == NULL) {
-                ply_trace ("no splash set");
-                return;
-        }
-
         ply_trace ("updating mode to '%s'", mode);
         if (strcmp (mode, "boot-up") == 0)
                 state->mode = PLY_MODE_BOOT;
@@ -236,6 +232,15 @@ on_change_mode (state_t    *state,
                 state->mode = PLY_MODE_UPDATES;
         else
                 return;
+
+        if (state->session != NULL) {
+                prepare_logging (state);
+        }
+
+        if (state->boot_splash == NULL) {
+                ply_trace ("no splash set");
+                return;
+        }
 
         splash_mode = get_splash_mode_from_mode (state->mode);
 
@@ -794,6 +799,8 @@ prepare_logging (state_t *state)
                 ply_trace ("not preparing logging, no session");
                 return;
         }
+
+        ply_terminal_session_close_log (state->session);
 
         logfile = get_log_file_for_state (state);
         if (logfile != NULL) {
