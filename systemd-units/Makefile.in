@@ -34,11 +34,16 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = scripts
+subdir = systemd-units
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/plymouth-generate-initrd.in \
-	$(srcdir)/plymouth-populate-initrd.in \
-	$(srcdir)/plymouth-set-default-theme.in
+	$(srcdir)/plymouth-halt.service.in \
+	$(srcdir)/plymouth-kexec.service.in \
+	$(srcdir)/plymouth-poweroff.service.in \
+	$(srcdir)/plymouth-quit-wait.service.in \
+	$(srcdir)/plymouth-quit.service.in \
+	$(srcdir)/plymouth-read-write.service.in \
+	$(srcdir)/plymouth-reboot.service.in \
+	$(srcdir)/plymouth-start.service.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
@@ -46,9 +51,19 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
-CONFIG_CLEAN_FILES = plymouth-generate-initrd plymouth-populate-initrd \
-	plymouth-set-default-theme
+CONFIG_CLEAN_FILES = plymouth-halt.service plymouth-kexec.service \
+	plymouth-poweroff.service plymouth-quit.service \
+	plymouth-quit-wait.service plymouth-read-write.service \
+	plymouth-reboot.service plymouth-start.service
 CONFIG_CLEAN_VPATH_FILES =
+AM_V_GEN = $(am__v_GEN_@AM_V@)
+am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
+am__v_GEN_0 = @echo "  GEN   " $@;
+AM_V_at = $(am__v_at_@AM_V@)
+am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
+am__v_at_0 = @
+SOURCES =
+DIST_SOURCES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -76,18 +91,8 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(initrdscriptdir)" \
-	"$(DESTDIR)$(sbinscriptsdir)"
-SCRIPTS = $(initrdscript_SCRIPTS) $(noinst_SCRIPTS) \
-	$(sbinscripts_SCRIPTS)
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN   " $@;
-AM_V_at = $(am__v_at_@AM_V@)
-am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
-am__v_at_0 = @
-SOURCES =
-DIST_SOURCES =
+am__installdirs = "$(DESTDIR)$(systemdunitdir)"
+DATA = $(systemdunit_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -251,18 +256,20 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-noinst_SCRIPTS = new-object.sh 
-initrdscriptdir = $(libexecdir)/plymouth
-initrdscript_SCRIPTS = plymouth-update-initrd plymouth-generate-initrd plymouth-populate-initrd
-sbinscriptsdir = $(sbindir)
-sbinscripts_SCRIPTS = plymouth-set-default-theme
-EXTRA_DIST = plymouth-update-initrd                                             \
-	    plymouth-generate-initrd.in                                        \
-	    plymouth-populate-initrd.in                                        \
-	    plymouth-set-default-theme.in                                     \
-	    $(noinst_SCRIPTS)                                                  \
-	    default.cfg
+systemd_unit_templates = \
+        plymouth-start.service.in                                            \
+        plymouth-read-write.service.in                                       \
+        plymouth-quit.service.in                                             \
+        plymouth-quit-wait.service.in                                        \
+        plymouth-reboot.service.in                                           \
+        plymouth-kexec.service.in                                            \
+        plymouth-poweroff.service.in                                         \
+        plymouth-halt.service.in
 
+@ENABLE_SYSTEMD_INTEGRATION_TRUE@systemdunitdir = $(SYSTEMD_UNIT_DIR)
+@ENABLE_SYSTEMD_INTEGRATION_TRUE@systemdunit_DATA = $(systemd_unit_templates:.service.in=.service)
+EXTRA_DIST = $(systemd_unit_templates) $(systemdunit_DATA)
+DISTCLEANFILES = $(systemdunit_DATA)
 all: all-am
 
 .SUFFIXES:
@@ -275,9 +282,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu scripts/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu systemd-units/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu scripts/Makefile
+	  $(AUTOMAKE) --gnu systemd-units/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -296,82 +303,46 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-plymouth-generate-initrd: $(top_builddir)/config.status $(srcdir)/plymouth-generate-initrd.in
+plymouth-halt.service: $(top_builddir)/config.status $(srcdir)/plymouth-halt.service.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-plymouth-populate-initrd: $(top_builddir)/config.status $(srcdir)/plymouth-populate-initrd.in
+plymouth-kexec.service: $(top_builddir)/config.status $(srcdir)/plymouth-kexec.service.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-plymouth-set-default-theme: $(top_builddir)/config.status $(srcdir)/plymouth-set-default-theme.in
+plymouth-poweroff.service: $(top_builddir)/config.status $(srcdir)/plymouth-poweroff.service.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-install-initrdscriptSCRIPTS: $(initrdscript_SCRIPTS)
-	@$(NORMAL_INSTALL)
-	test -z "$(initrdscriptdir)" || $(MKDIR_P) "$(DESTDIR)$(initrdscriptdir)"
-	@list='$(initrdscript_SCRIPTS)'; test -n "$(initrdscriptdir)" || list=; \
-	for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  if test -f "$$d$$p"; then echo "$$d$$p"; echo "$$p"; else :; fi; \
-	done | \
-	sed -e 'p;s,.*/,,;n' \
-	    -e 'h;s|.*|.|' \
-	    -e 'p;x;s,.*/,,;$(transform)' | sed 'N;N;N;s,\n, ,g' | \
-	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1; } \
-	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
-	    if ($$2 == $$4) { files[d] = files[d] " " $$1; \
-	      if (++n[d] == $(am__install_max)) { \
-		print "f", d, files[d]; n[d] = 0; files[d] = "" } } \
-	    else { print "f", d "/" $$4, $$1 } } \
-	  END { for (d in files) print "f", d, files[d] }' | \
-	while read type dir files; do \
-	     if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
-	     test -z "$$files" || { \
-	       echo " $(INSTALL_SCRIPT) $$files '$(DESTDIR)$(initrdscriptdir)$$dir'"; \
-	       $(INSTALL_SCRIPT) $$files "$(DESTDIR)$(initrdscriptdir)$$dir" || exit $$?; \
-	     } \
-	; done
-
-uninstall-initrdscriptSCRIPTS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(initrdscript_SCRIPTS)'; test -n "$(initrdscriptdir)" || exit 0; \
-	files=`for p in $$list; do echo "$$p"; done | \
-	       sed -e 's,.*/,,;$(transform)'`; \
-	dir='$(DESTDIR)$(initrdscriptdir)'; $(am__uninstall_files_from_dir)
-install-sbinscriptsSCRIPTS: $(sbinscripts_SCRIPTS)
-	@$(NORMAL_INSTALL)
-	test -z "$(sbinscriptsdir)" || $(MKDIR_P) "$(DESTDIR)$(sbinscriptsdir)"
-	@list='$(sbinscripts_SCRIPTS)'; test -n "$(sbinscriptsdir)" || list=; \
-	for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  if test -f "$$d$$p"; then echo "$$d$$p"; echo "$$p"; else :; fi; \
-	done | \
-	sed -e 'p;s,.*/,,;n' \
-	    -e 'h;s|.*|.|' \
-	    -e 'p;x;s,.*/,,;$(transform)' | sed 'N;N;N;s,\n, ,g' | \
-	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1; } \
-	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
-	    if ($$2 == $$4) { files[d] = files[d] " " $$1; \
-	      if (++n[d] == $(am__install_max)) { \
-		print "f", d, files[d]; n[d] = 0; files[d] = "" } } \
-	    else { print "f", d "/" $$4, $$1 } } \
-	  END { for (d in files) print "f", d, files[d] }' | \
-	while read type dir files; do \
-	     if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
-	     test -z "$$files" || { \
-	       echo " $(INSTALL_SCRIPT) $$files '$(DESTDIR)$(sbinscriptsdir)$$dir'"; \
-	       $(INSTALL_SCRIPT) $$files "$(DESTDIR)$(sbinscriptsdir)$$dir" || exit $$?; \
-	     } \
-	; done
-
-uninstall-sbinscriptsSCRIPTS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(sbinscripts_SCRIPTS)'; test -n "$(sbinscriptsdir)" || exit 0; \
-	files=`for p in $$list; do echo "$$p"; done | \
-	       sed -e 's,.*/,,;$(transform)'`; \
-	dir='$(DESTDIR)$(sbinscriptsdir)'; $(am__uninstall_files_from_dir)
+plymouth-quit.service: $(top_builddir)/config.status $(srcdir)/plymouth-quit.service.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+plymouth-quit-wait.service: $(top_builddir)/config.status $(srcdir)/plymouth-quit-wait.service.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+plymouth-read-write.service: $(top_builddir)/config.status $(srcdir)/plymouth-read-write.service.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+plymouth-reboot.service: $(top_builddir)/config.status $(srcdir)/plymouth-reboot.service.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+plymouth-start.service: $(top_builddir)/config.status $(srcdir)/plymouth-start.service.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
 	-rm -rf .libs _libs
+install-systemdunitDATA: $(systemdunit_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(systemdunitdir)" || $(MKDIR_P) "$(DESTDIR)$(systemdunitdir)"
+	@list='$(systemdunit_DATA)'; test -n "$(systemdunitdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(systemdunitdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(systemdunitdir)" || exit $$?; \
+	done
+
+uninstall-systemdunitDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(systemdunit_DATA)'; test -n "$(systemdunitdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(systemdunitdir)'; $(am__uninstall_files_from_dir)
 tags: TAGS
 TAGS:
 
@@ -411,9 +382,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(SCRIPTS)
+all-am: Makefile $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(initrdscriptdir)" "$(DESTDIR)$(sbinscriptsdir)"; do \
+	for dir in "$(DESTDIR)$(systemdunitdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -442,6 +413,7 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -466,8 +438,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-initrdscriptSCRIPTS \
-	install-sbinscriptsSCRIPTS
+install-data-am: install-systemdunitDATA
 
 install-dvi: install-dvi-am
 
@@ -511,8 +482,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-initrdscriptSCRIPTS \
-	uninstall-sbinscriptsSCRIPTS
+uninstall-am: uninstall-systemdunitDATA
 
 .MAKE: install-am install-strip
 
@@ -521,13 +491,12 @@ uninstall-am: uninstall-initrdscriptSCRIPTS \
 	dvi-am html html-am info info-am install install-am \
 	install-data install-data-am install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-initrdscriptSCRIPTS \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-sbinscriptsSCRIPTS install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
-	uninstall-initrdscriptSCRIPTS uninstall-sbinscriptsSCRIPTS
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	install-systemdunitDATA installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
+	ps ps-am uninstall uninstall-am uninstall-systemdunitDATA
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
