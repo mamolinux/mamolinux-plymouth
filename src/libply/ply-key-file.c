@@ -60,6 +60,7 @@ struct _ply_key_file
         FILE            *fp;
 
         ply_hashtable_t *groups;
+        ply_key_file_group_t *groupless_group;
 };
 
 typedef struct
@@ -152,6 +153,8 @@ ply_key_file_free (ply_key_file_t *key_file)
                                ply_key_file_free_group,
                                NULL);
 
+        if (key_file->groupless_group)
+                ply_key_file_free_group (NULL, key_file->groupless_group, NULL);
 
         ply_hashtable_free (key_file->groups);
         free (key_file->filename);
@@ -303,6 +306,9 @@ static ply_key_file_group_t *
 ply_key_file_find_group (ply_key_file_t *key_file,
                          const char     *group_name)
 {
+        if (!group_name)
+                return key_file->groupless_group;
+
         return ply_hashtable_lookup (key_file->groups, (void *) group_name);
 }
 
@@ -332,10 +338,10 @@ ply_key_file_has_key (ply_key_file_t *key_file,
         return entry != NULL;
 }
 
-char *
-ply_key_file_get_value (ply_key_file_t *key_file,
-                        const char     *group_name,
-                        const char     *key)
+static char *
+ply_key_file_get_raw_value (ply_key_file_t *key_file,
+                            const char     *group_name,
+                            const char     *key)
 {
         ply_key_file_group_t *group;
         ply_key_file_entry_t *entry;
@@ -354,39 +360,65 @@ ply_key_file_get_value (ply_key_file_t *key_file,
                 return NULL;
         }
 
-        return strdup (entry->value);
+        return entry->value;
+}
+
+char *
+ply_key_file_get_value (ply_key_file_t *key_file,
+                        const char     *group,
+                        const char     *key)
+{
+        char *raw_value = ply_key_file_get_raw_value (key_file, group, key);
+
+        return raw_value ? strdup (raw_value) : NULL;
 }
 
 bool
 ply_key_file_get_bool (ply_key_file_t *key_file,
-                       const char     *group_name,
+                       const char     *group,
                        const char     *key)
 {
-        ply_key_file_group_t *group;
-        ply_key_file_entry_t *entry;
+        char *raw_value = ply_key_file_get_raw_value (key_file, group, key);
 
-        group = ply_key_file_find_group (key_file, group_name);
-
-        if (group == NULL) {
-                ply_trace ("key file does not have group '%s'", group_name);
+        if (!raw_value)
                 return false;
-        }
-
-        entry = ply_key_file_find_entry (key_file, group, key);
-
-        if (entry == NULL) {
-                ply_trace ("key file does not have entry for key '%s'", key);
-                return false;
-        }
 
         /* We treat "1", "y" and "yes" and "true" as true, all else is false */
-        if (strcasecmp (entry->value, "1")    == 0 ||
-            strcasecmp (entry->value, "y")    == 0 ||
-            strcasecmp (entry->value, "yes")  == 0 ||
-            strcasecmp (entry->value, "true") == 0)
+        if (strcasecmp (raw_value, "1")    == 0 ||
+            strcasecmp (raw_value, "y")    == 0 ||
+            strcasecmp (raw_value, "yes")  == 0 ||
+            strcasecmp (raw_value, "true") == 0)
                 return true;
 
         return false;
+}
+
+double
+ply_key_file_get_double (ply_key_file_t *key_file,
+                         const char     *group,
+                         const char     *key,
+                         double          default_value)
+{
+        char *raw_value = ply_key_file_get_raw_value (key_file, group, key);
+
+        if (!raw_value)
+                return default_value;
+
+        return ply_strtod (raw_value);
+}
+
+double
+ply_key_file_get_long (ply_key_file_t *key_file,
+                       const char     *group,
+                       const char     *key,
+                       long            default_value)
+{
+        char *raw_value = ply_key_file_get_raw_value (key_file, group, key);
+
+        if (!raw_value)
+                return default_value;
+
+        return strtol (raw_value, NULL, 0);
 }
 
 static void
@@ -435,6 +467,20 @@ ply_key_file_foreach_entry (ply_key_file_t             *key_file,
         ply_hashtable_foreach (key_file->groups,
                                ply_key_file_foreach_entry_groups,
                                &func_data);
+}
+
+bool
+ply_key_file_load_groupless_file (ply_key_file_t *key_file)
+{
+        if (!ply_key_file_open_file (key_file))
+                return false;
+
+        key_file->groupless_group =
+                ply_key_file_load_group (key_file, "NONE");
+
+        ply_key_file_close_file (key_file);
+
+        return key_file->groupless_group != NULL;
 }
 
 /* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

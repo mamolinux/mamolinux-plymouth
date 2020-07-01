@@ -1,4 +1,4 @@
-AC_INIT([plymouth],[0.9.5],[https://bugs.freedesktop.org/enter_bug.cgi?product=plymouth])
+AC_INIT([plymouth],[0.9.5],[https://gitlab.freedesktop.org/plymouth/plymouth/issues])
 AC_CONFIG_SRCDIR(src/main.c)
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_AUX_DIR(build-tools)
@@ -26,7 +26,7 @@ PKG_PROG_PKG_CONFIG
 LT_INIT([dlopen disable-static pic-only])
 
 ## increment if the interface has additions, changes, removals.
-LT_CURRENT=4
+LT_CURRENT=5
 
 ## increment any time the source changes; set to
 ##  0 if you increment CURRENT
@@ -143,17 +143,25 @@ if test x$enable_systemd_integration = xyes; then
   AC_SUBST(SYSTEMD_UNIT_DIR)
 fi
 
+AC_ARG_WITH([runtimedir],
+            AC_HELP_STRING([--with-runtimedir=DIR], [runtime data dir [LOCALSTATEDIR/run]]),
+            [plymouthruntimedir=${withval}/plymouth], [plymouthruntimedir=""])
+
 AC_ARG_WITH(system-root-install, AS_HELP_STRING([--with-system-root-install],[Install client in /bin and daemon in /sbin]),with_system_root_install=${withval},with_system_root_install=no)
 AM_CONDITIONAL(WITH_SYSTEM_ROOT_INSTALL,  [test "$with_system_root_install" = yes])
 
 if test x$with_system_root_install = xyes; then
   plymouthclientdir=/bin
   plymouthdaemondir=/sbin
-  plymouthruntimedir=/run/plymouth
+  if (test -z "${plymouthruntimedir}"); then
+    plymouthruntimedir=/run/plymouth
+  fi
 else
   plymouthclientdir=$bindir
   plymouthdaemondir=$sbindir
-  plymouthruntimedir=$localstatedir/run/plymouth
+  if (test -z "${plymouthruntimedir}"); then
+    plymouthruntimedir=$localstatedir/run/plymouth
+  fi
 fi
 AC_SUBST(plymouthclientdir)
 AC_SUBST(plymouthdaemondir)
@@ -301,7 +309,6 @@ AC_CONFIG_FILES([Makefile po/Makefile.in
            src/plugins/renderers/drm/Makefile
            src/plugins/renderers/x11/Makefile
            src/plugins/splash/Makefile
-           src/plugins/splash/throbgress/Makefile
            src/plugins/splash/fade-throbber/Makefile
            src/plugins/splash/tribar/Makefile
            src/plugins/splash/text/Makefile

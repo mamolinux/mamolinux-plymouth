@@ -42,6 +42,7 @@
 
 #include "ply-boot-splash-plugin.h"
 #include "ply-buffer.h"
+#include "ply-capslock-icon.h"
 #include "ply-entry.h"
 #include "ply-event-loop.h"
 #include "ply-label.h"
@@ -49,6 +50,7 @@
 #include "ply-logger.h"
 #include "ply-image.h"
 #include "ply-key-file.h"
+#include "ply-keymap-icon.h"
 #include "ply-trigger.h"
 #include "ply-pixel-buffer.h"
 #include "ply-pixel-display.h"
@@ -97,6 +99,8 @@ typedef struct
         ply_boot_splash_plugin_t *plugin;
         ply_pixel_display_t      *display;
         ply_entry_t              *entry;
+        ply_keymap_icon_t        *keymap_icon;
+        ply_capslock_icon_t      *capslock_icon;
         ply_animation_t          *end_animation;
         ply_progress_animation_t *progress_animation;
         ply_progress_bar_t       *progress_bar;
@@ -116,6 +120,7 @@ typedef struct
         bool                      suppress_messages;
         bool                      progress_bar_show_percent_complete;
         bool                      use_progress_bar;
+        bool                      use_animation;
         bool                      use_firmware_background;
         char                     *title;
         char                     *subtitle;
@@ -158,7 +163,12 @@ struct _ply_boot_splash_plugin
         uint32_t                            background_start_color;
         uint32_t                            background_end_color;
         int                                 background_bgrt_raw_width;
+        int                                 background_bgrt_raw_height;
 
+        double                              progress_bar_horizontal_alignment;
+        double                              progress_bar_vertical_alignment;
+        long                                progress_bar_width;
+        long                                progress_bar_height;
         uint32_t                            progress_bar_bg_color;
         uint32_t                            progress_bar_fg_color;
 
@@ -178,14 +188,13 @@ struct _ply_boot_splash_plugin
 
 ply_boot_splash_plugin_interface_t *ply_boot_splash_plugin_get_interface (void);
 
-static void stop_animation (ply_boot_splash_plugin_t *plugin,
-                            ply_trigger_t            *idle_trigger);
-
+static void stop_animation (ply_boot_splash_plugin_t *plugin);
 static void detach_from_event_loop (ply_boot_splash_plugin_t *plugin);
 static void display_message (ply_boot_splash_plugin_t *plugin,
                              const char               *message);
 static void become_idle (ply_boot_splash_plugin_t *plugin,
                          ply_trigger_t            *idle_trigger);
+static void view_show_message (view_t *view, const char *message);
 
 static view_t *
 view_new (ply_boot_splash_plugin_t *plugin,
@@ -198,8 +207,14 @@ view_new (ply_boot_splash_plugin_t *plugin,
         view->display = display;
 
         view->entry = ply_entry_new (plugin->animation_dir);
+        view->keymap_icon = ply_keymap_icon_new (display, plugin->animation_dir);
+        view->capslock_icon = ply_capslock_icon_new (plugin->animation_dir);
         view->progress_animation = ply_progress_animation_new (plugin->animation_dir,
                                                                "progress-");
+        ply_progress_animation_set_transition (view->progress_animation,
+                                               plugin->transition,
+                                               plugin->transition_duration);
+
         view->progress_bar = ply_progress_bar_new ();
         ply_progress_bar_set_colors (view->progress_bar,
                                      plugin->progress_bar_fg_color,
@@ -207,9 +222,6 @@ view_new (ply_boot_splash_plugin_t *plugin,
 
         view->throbber = ply_throbber_new (plugin->animation_dir,
                                            "throbber-");
-        ply_progress_animation_set_transition (view->progress_animation,
-                                               plugin->transition,
-                                               plugin->transition_duration);
 
         view->label = ply_label_new ();
         ply_label_set_font (view->label, plugin->font);
@@ -230,6 +242,8 @@ static void
 view_free (view_t *view)
 {
         ply_entry_free (view->entry);
+        ply_keymap_icon_free (view->keymap_icon);
+        ply_capslock_icon_free (view->capslock_icon);
         ply_animation_free (view->end_animation);
         ply_progress_animation_free (view->progress_animation);
         ply_progress_bar_free (view->progress_bar);
@@ -409,6 +423,23 @@ view_set_bgrt_background (view_t *view)
                                                               &panel_rotation, &panel_scale);
 
         /*
+         * Some buggy Lenovo 2-in-1s with a 90 degree rotated panel, behave as
+         * if the panel is mounted up-right / not rotated at all. These devices
+         * have a buggy efifb size (landscape resolution instead of the actual
+         * portrait resolution of the panel), this gets fixed-up by the kernel.
+         * These buggy devices also do not pre-rotate the bgrt_image nor do
+         * they set the ACPI-6.2 rotation status-bits. We can detect this by
+         * checking that the bgrt_image is perfectly centered horizontally
+         * when we use the panel's height as the width.
+         */
+        if (have_panel_props &&
+            (panel_rotation == PLY_PIXEL_BUFFER_ROTATE_CLOCKWISE ||
+             panel_rotation == PLY_PIXEL_BUFFER_ROTATE_COUNTER_CLOCKWISE) &&
+            (panel_width  - view->plugin->background_bgrt_raw_width) / 2 != sysfs_x_offset &&
+            (panel_height - view->plugin->background_bgrt_raw_width) / 2 == sysfs_x_offset)
+                bgrt_rotation = panel_rotation;
+
+        /*
          * Before the ACPI 6.2 specification, the BGRT table did not contain
          * any rotation information, so to make sure that the firmware-splash
          * showed the right way up the firmware would contain a pre-rotated
@@ -437,11 +468,7 @@ view_set_bgrt_background (view_t *view)
         }
 
         if (have_panel_props) {        
-                /* Upside-down panels are fixed up in HW by the GOP, so the
-                 * bgrt image is not rotated in this case.
-                 */
-                if (panel_rotation != PLY_PIXEL_BUFFER_ROTATE_UPSIDE_DOWN)
-                        ply_pixel_buffer_set_device_rotation (bgrt_buffer, panel_rotation);
+                ply_pixel_buffer_set_device_rotation (bgrt_buffer, panel_rotation);
                 ply_pixel_buffer_set_device_scale (bgrt_buffer, panel_scale);
         }
 
@@ -473,6 +500,16 @@ view_set_bgrt_background (view_t *view)
             (panel_width - view->plugin->background_bgrt_raw_width) / 2 == sysfs_x_offset) {
                 if (panel_rotation == PLY_PIXEL_BUFFER_ROTATE_CLOCKWISE ||
                     panel_rotation == PLY_PIXEL_BUFFER_ROTATE_COUNTER_CLOCKWISE) {
+                        /*
+                         * For left side up panels the y_offset is from the
+                         * right side of the image once rotated upright (the
+                         * top of the physicial LCD panel is on the right side).
+                         * Our coordinates have the left side as 0, so we need
+                         * to "flip" the y_offset in this case.
+                         */
+                        if (panel_rotation == PLY_PIXEL_BUFFER_ROTATE_COUNTER_CLOCKWISE)
+                                sysfs_y_offset = panel_height - view->plugin->background_bgrt_raw_height - sysfs_y_offset;
+
                         /* 90 degrees rotated, swap x and y */
                         x_offset = sysfs_y_offset / panel_scale;
                         y_offset = sysfs_x_offset / panel_scale;
@@ -487,6 +524,24 @@ view_set_bgrt_background (view_t *view)
                         x_offset += (screen_width - panel_width / panel_scale) / 2;
                         y_offset += (screen_height - panel_height / panel_scale) * 382 / 1000;
                 }
+        }
+
+        /*
+         * On desktops (no panel) we normally do not use the BGRT provided
+         * xoffset and yoffset because the resolution they are intended for
+         * may be differtent then the resolution of the current display.
+         *
+         * On some desktops (no panel) the image gets centered not only
+         * horizontally, but also vertically. In this case our default of using
+         * the golden ratio for the vertical position causes the BGRT image
+         * to jump.  To avoid this we check here if the provided xoffset and
+         * yoffset perfectly center the image and in that case we use them.
+         */
+        if (!have_panel_props && screen_scale == 1 &&
+            (screen_width  - width ) / 2 == sysfs_x_offset &&
+            (screen_height - height) / 2 == sysfs_y_offset) {
+                x_offset = sysfs_x_offset;
+                y_offset = sysfs_y_offset;
         }
 
         ply_trace ("using %dx%d bgrt image centered at %dx%d for %dx%d screen",
@@ -557,6 +612,9 @@ view_load (view_t *view)
         if (!ply_entry_load (view->entry))
                 return false;
 
+        ply_keymap_icon_load (view->keymap_icon);
+        ply_capslock_icon_load (view->capslock_icon);
+
         view_load_end_animation (view);
 
         if (view->progress_animation != NULL) {
@@ -625,21 +683,18 @@ load_views (ply_boot_splash_plugin_t *plugin)
 {
         ply_list_node_t *node;
         bool view_loaded;
+        view_t *view;
 
         view_loaded = false;
         node = ply_list_get_first_node (plugin->views);
 
         while (node != NULL) {
-                ply_list_node_t *next_node;
-                view_t *view;
-
                 view = ply_list_node_get_data (node);
-                next_node = ply_list_get_next_node (plugin->views, node);
 
                 if (view_load (view))
                         view_loaded = true;
 
-                node = next_node;
+                node = ply_list_get_next_node (plugin->views, node);
         }
 
         return view_loaded;
@@ -661,18 +716,13 @@ static void
 redraw_views (ply_boot_splash_plugin_t *plugin)
 {
         ply_list_node_t *node;
+        view_t *view;
 
         node = ply_list_get_first_node (plugin->views);
         while (node != NULL) {
-                ply_list_node_t *next_node;
-                view_t *view;
-
                 view = ply_list_node_get_data (node);
-                next_node = ply_list_get_next_node (plugin->views, node);
-
                 view_redraw (view);
-
-                node = next_node;
+                node = ply_list_get_next_node (plugin->views, node);
         }
 }
 
@@ -680,20 +730,15 @@ static void
 pause_views (ply_boot_splash_plugin_t *plugin)
 {
         ply_list_node_t *node;
+        view_t *view;
 
         ply_trace ("pausing views");
 
         node = ply_list_get_first_node (plugin->views);
         while (node != NULL) {
-                ply_list_node_t *next_node;
-                view_t *view;
-
                 view = ply_list_node_get_data (node);
-                next_node = ply_list_get_next_node (plugin->views, node);
-
                 ply_pixel_display_pause_updates (view->display);
-
-                node = next_node;
+                node = ply_list_get_next_node (plugin->views, node);
         }
 }
 
@@ -701,20 +746,15 @@ static void
 unpause_views (ply_boot_splash_plugin_t *plugin)
 {
         ply_list_node_t *node;
+        view_t *view;
 
         ply_trace ("unpausing views");
 
         node = ply_list_get_first_node (plugin->views);
         while (node != NULL) {
-                ply_list_node_t *next_node;
-                view_t *view;
-
                 view = ply_list_node_get_data (node);
-                next_node = ply_list_get_next_node (plugin->views, node);
-
                 ply_pixel_display_unpause_updates (view->display);
-
-                node = next_node;
+                node = ply_list_get_next_node (plugin->views, node);
         }
 }
 
@@ -722,13 +762,13 @@ static void
 view_start_end_animation (view_t        *view,
                           ply_trigger_t *trigger)
 {
-        ply_boot_splash_plugin_t *plugin;
-
-        long x, y;
-        long width, height;
+        ply_boot_splash_plugin_t *plugin = view->plugin;
         unsigned long screen_width, screen_height;
+        long x, y, width, height;
 
-        plugin = view->plugin;
+        ply_progress_bar_hide (view->progress_bar);
+        if (view->progress_animation != NULL)
+                ply_progress_animation_hide (view->progress_animation);
 
         screen_width = ply_pixel_display_get_width (view->display);
         screen_height = ply_pixel_display_get_height (view->display);
@@ -747,9 +787,6 @@ view_start_end_animation (view_t        *view,
 static void
 on_view_throbber_stopped (view_t *view)
 {
-        ply_trace ("hiding progress animation");
-        if (view->progress_animation != NULL)
-                ply_progress_animation_hide (view->progress_animation);
         view_start_end_animation (view, view->end_trigger);
         view->end_trigger = NULL;
 }
@@ -776,15 +813,21 @@ view_start_progress_animation (view_t *view)
                                      screen_width, screen_height);
 
         if (plugin->mode_settings[plugin->mode].use_progress_bar) {
-                width = PROGRESS_BAR_WIDTH;
-                height = PROGRESS_BAR_HEIGHT;
-                x = plugin->animation_horizontal_alignment * screen_width - width / 2.0;
-                y = plugin->animation_vertical_alignment * screen_height - height / 2.0;
+                if (plugin->progress_bar_width != -1)
+                        width = plugin->progress_bar_width;
+                else
+                        width = screen_width;
+                height = plugin->progress_bar_height;
+                x = plugin->progress_bar_horizontal_alignment * (screen_width - width);
+                y = plugin->progress_bar_vertical_alignment * (screen_height - height);
                 ply_progress_bar_show (view->progress_bar, view->display,
                                        x, y, width, height);
                 ply_pixel_display_draw_area (view->display, x, y, width, height);
                 view->animation_bottom = y + height;
-        } else if (view->throbber != NULL) {
+        }
+
+        if (plugin->mode_settings[plugin->mode].use_animation &&
+            view->throbber != NULL) {
                 width = ply_throbber_get_width (view->throbber);
                 height = ply_throbber_get_height (view->throbber);
                 x = plugin->animation_horizontal_alignment * screen_width - width / 2.0;
@@ -803,7 +846,8 @@ view_start_progress_animation (view_t *view)
             plugin->mode == PLY_BOOT_SPLASH_MODE_REBOOT)
                 return;
 
-        if (view->progress_animation != NULL) {
+        if (plugin->mode_settings[plugin->mode].use_animation &&
+            view->progress_animation != NULL) {
                 width = ply_progress_animation_get_width (view->progress_animation);
                 height = ply_progress_animation_get_height (view->progress_animation);
                 x = plugin->animation_horizontal_alignment * screen_width - width / 2.0;
@@ -818,10 +862,15 @@ view_start_progress_animation (view_t *view)
 
 static void
 view_show_prompt (view_t     *view,
-                  const char *prompt)
+                  const char *prompt,
+                  const char *entry_text,
+                  int         number_of_bullets)
 {
         ply_boot_splash_plugin_t *plugin;
         unsigned long screen_width, screen_height, entry_width, entry_height;
+        unsigned long keyboard_indicator_width, keyboard_indicator_height;
+        bool show_keyboard_indicators = false;
+        long dialog_bottom;
         int x, y;
 
         assert (view != NULL);
@@ -864,7 +913,17 @@ view_show_prompt (view_t     *view,
                     (view->dialog_area.height - entry_height) / 2.0;
 
                 ply_entry_show (view->entry, plugin->loop, view->display, x, y);
+
+                show_keyboard_indicators = true;
         }
+
+        if (entry_text != NULL)
+                ply_entry_set_text (view->entry, entry_text);
+
+        if (number_of_bullets != -1)
+                ply_entry_set_bullet_count (view->entry, number_of_bullets);
+
+        dialog_bottom = view->dialog_area.y + view->dialog_area.height;
 
         if (prompt != NULL) {
                 ply_label_set_text (view->label, prompt);
@@ -875,9 +934,29 @@ view_show_prompt (view_t     *view,
                 ply_label_set_width (view->label, label_width);
 
                 x = (screen_width - label_width) / 2;
-                y = view->dialog_area.y + view->dialog_area.height;
+                y = dialog_bottom;
 
                 ply_label_show (view->label, view->display, x, y);
+
+                dialog_bottom += ply_label_get_height (view->label);
+        }
+
+        if (show_keyboard_indicators) {
+                keyboard_indicator_width =
+                        ply_keymap_icon_get_width (view->keymap_icon);
+                keyboard_indicator_height = MAX(
+                        ply_capslock_icon_get_height (view->capslock_icon),
+                        ply_keymap_icon_get_height (view->keymap_icon));
+
+                x = (screen_width - keyboard_indicator_width) * plugin->dialog_horizontal_alignment;
+                y = dialog_bottom + keyboard_indicator_height / 2 +
+                    (keyboard_indicator_height - ply_keymap_icon_get_height (view->keymap_icon)) / 2.0;
+                ply_keymap_icon_show (view->keymap_icon, x, y);
+
+                x += ply_keymap_icon_get_width (view->keymap_icon);
+                y = dialog_bottom + keyboard_indicator_height / 2 +
+                    (keyboard_indicator_height - ply_capslock_icon_get_height (view->capslock_icon)) / 2.0;
+                ply_capslock_icon_show (view->capslock_icon, plugin->loop, view->display, x, y);
         }
 }
 
@@ -887,6 +966,8 @@ view_hide_prompt (view_t *view)
         assert (view != NULL);
 
         ply_entry_hide (view->entry);
+        ply_capslock_icon_hide (view->capslock_icon);
+        ply_keymap_icon_hide (view->keymap_icon);
         ply_label_hide (view->label);
 }
 
@@ -907,6 +988,13 @@ load_mode_settings (ply_boot_splash_plugin_t *plugin,
         settings->use_firmware_background =
                 ply_key_file_get_bool (key_file, group_name, "UseFirmwareBackground");
 
+        /* This defaults to !use_progress_bar for compat. with older themes */
+        if (ply_key_file_has_key (key_file, group_name, "UseAnimation"))
+                settings->use_animation =
+                        ply_key_file_get_bool (key_file, group_name, "UseAnimation");
+        else
+                settings->use_animation = !settings->use_progress_bar;
+
         /* If any mode uses the firmware background, then we need to load it */
         if (settings->use_firmware_background)
                 plugin->use_firmware_background = true;
@@ -920,10 +1008,7 @@ create_plugin (ply_key_file_t *key_file)
 {
         ply_boot_splash_plugin_t *plugin;
         char *image_dir, *image_path;
-        char *alignment;
         char *transition;
-        char *transition_duration;
-        char *color;
         char *progress_function;
 
         srand ((int) ply_get_timestamp ());
@@ -962,61 +1047,49 @@ create_plugin (ply_key_file_t *key_file)
         plugin->font = ply_key_file_get_value (key_file, "two-step", "Font");
         plugin->title_font = ply_key_file_get_value (key_file, "two-step", "TitleFont");
 
-        alignment = ply_key_file_get_value (key_file, "two-step", "HorizontalAlignment");
-        if (alignment != NULL)
-                plugin->animation_horizontal_alignment = ply_strtod (alignment);
-        else
-                plugin->animation_horizontal_alignment = .5;
-        free (alignment);
+        /* Throbber, progress- and end-animation alignment */
+        plugin->animation_horizontal_alignment =
+                ply_key_file_get_double (key_file, "two-step",
+                                         "HorizontalAlignment", 0.5);
+        plugin->animation_vertical_alignment =
+                ply_key_file_get_double (key_file, "two-step",
+                                         "VerticalAlignment", 0.5);
 
-        alignment = ply_key_file_get_value (key_file, "two-step", "VerticalAlignment");
-        if (alignment != NULL)
-                plugin->animation_vertical_alignment = ply_strtod (alignment);
-        else
-                plugin->animation_vertical_alignment = .5;
-        free (alignment);
+        /* Progressbar alignment, this defaults to the animation alignment
+         * for compatibility with older themes.
+         */
+        plugin->progress_bar_horizontal_alignment =
+                ply_key_file_get_double (key_file, "two-step",
+                                         "ProgressBarHorizontalAlignment",
+                                         plugin->animation_horizontal_alignment);
+        plugin->progress_bar_vertical_alignment =
+                ply_key_file_get_double (key_file, "two-step",
+                                         "ProgressBarVerticalAlignment",
+                                         plugin->animation_vertical_alignment);
 
-        alignment = ply_key_file_get_value (key_file, "two-step", "WatermarkHorizontalAlignment");
-        if (alignment != NULL)
-                plugin->watermark_horizontal_alignment = ply_strtod (alignment);
-        else
-                plugin->watermark_horizontal_alignment = 1.0;
-        free (alignment);
+        /* Watermark alignment */
+        plugin->watermark_horizontal_alignment =
+                ply_key_file_get_double (key_file, "two-step",
+                                         "WatermarkHorizontalAlignment", 1.0);
+        plugin->watermark_vertical_alignment =
+                ply_key_file_get_double (key_file, "two-step",
+                                         "WatermarkVerticalAlignment", 0.5);
 
-        alignment = ply_key_file_get_value (key_file, "two-step", "WatermarkVerticalAlignment");
-        if (alignment != NULL)
-                plugin->watermark_vertical_alignment = ply_strtod (alignment);
-        else
-                plugin->watermark_vertical_alignment = .5;
-        free (alignment);
+        /* Password (or other) dialog alignment */
+        plugin->dialog_horizontal_alignment =
+                ply_key_file_get_double (key_file, "two-step",
+                                         "DialogHorizontalAlignment", 0.5);
+        plugin->dialog_vertical_alignment =
+                ply_key_file_get_double (key_file, "two-step",
+                                         "DialogVerticalAlignment", 0.5);
 
-        alignment = ply_key_file_get_value (key_file, "two-step", "DialogHorizontalAlignment");
-        if (alignment != NULL)
-                plugin->dialog_horizontal_alignment = ply_strtod (alignment);
-        else
-                plugin->dialog_horizontal_alignment = .5;
-        free (alignment);
-
-        alignment = ply_key_file_get_value (key_file, "two-step", "DialogVerticalAlignment");
-        if (alignment != NULL)
-                plugin->dialog_vertical_alignment = ply_strtod (alignment);
-        else
-                plugin->dialog_vertical_alignment = .5;
-        free (alignment);
-
-        alignment = ply_key_file_get_value (key_file, "two-step", "TitleHorizontalAlignment");
-        if (alignment != NULL)
-                plugin->title_horizontal_alignment = ply_strtod (alignment);
-        else
-                plugin->title_horizontal_alignment = .5;
-        free (alignment);
-
-        alignment = ply_key_file_get_value (key_file, "two-step", "TitleVerticalAlignment");
-        if (alignment != NULL)
-                plugin->title_vertical_alignment = ply_strtod (alignment);
-        else
-                plugin->title_vertical_alignment = .5;
-        free (alignment);
+        /* Title alignment */
+        plugin->title_horizontal_alignment =
+                ply_key_file_get_double (key_file, "two-step",
+                                         "TitleHorizontalAlignment", 0.5);
+        plugin->title_vertical_alignment =
+                ply_key_file_get_double (key_file, "two-step",
+                                         "TitleVerticalAlignment", 0.5);
 
         plugin->transition = PLY_PROGRESS_ANIMATION_TRANSITION_NONE;
         transition = ply_key_file_get_value (key_file, "two-step", "Transition");
@@ -1030,49 +1103,35 @@ create_plugin (ply_key_file_t *key_file)
         }
         free (transition);
 
-        transition_duration = ply_key_file_get_value (key_file, "two-step", "TransitionDuration");
-        if (transition_duration != NULL)
-                plugin->transition_duration = ply_strtod (transition_duration);
-        else
-                plugin->transition_duration = 0.0;
-        free (transition_duration);
+        plugin->transition_duration =
+                ply_key_file_get_double (key_file, "two-step",
+                                         "TransitionDuration", 0.0);
 
-        color = ply_key_file_get_value (key_file, "two-step", "BackgroundStartColor");
+        plugin->background_start_color =
+                ply_key_file_get_long (key_file, "two-step",
+                                       "BackgroundStartColor",
+                                       PLYMOUTH_BACKGROUND_START_COLOR);
+        plugin->background_end_color =
+                ply_key_file_get_long (key_file, "two-step",
+                                       "BackgroundEndColor",
+                                       PLYMOUTH_BACKGROUND_END_COLOR);
 
-        if (color != NULL)
-                plugin->background_start_color = strtol (color, NULL, 0);
-        else
-                plugin->background_start_color = PLYMOUTH_BACKGROUND_START_COLOR;
-
-        free (color);
-
-        color = ply_key_file_get_value (key_file, "two-step", "BackgroundEndColor");
-
-        if (color != NULL)
-                plugin->background_end_color = strtol (color, NULL, 0);
-        else
-                plugin->background_end_color = PLYMOUTH_BACKGROUND_END_COLOR;
-
-        free (color);
-
-        color = ply_key_file_get_value (key_file, "two-step", "ProgressBarBackgroundColor");
-
-        if (color != NULL)
-                plugin->progress_bar_bg_color = strtol (color, NULL, 0);
-        else
-                plugin->progress_bar_bg_color = 0xffffff; /* white */
-
-        free (color);
-
-        color = ply_key_file_get_value (key_file, "two-step", "ProgressBarForegroundColor");
-
-        if (color != NULL)
-                plugin->progress_bar_fg_color = strtol (color, NULL, 0);
-        else
-                plugin->progress_bar_fg_color = 0x000000; /* black */
-
-        free (color);
-
+        plugin->progress_bar_bg_color =
+                ply_key_file_get_long (key_file, "two-step",
+                                       "ProgressBarBackgroundColor",
+                                       0xffffff /* white */);
+        plugin->progress_bar_fg_color =
+                ply_key_file_get_long (key_file, "two-step",
+                                       "ProgressBarForegroundColor",
+                                       0x000000 /* black */);
+        plugin->progress_bar_width =
+                ply_key_file_get_long (key_file, "two-step",
+                                       "ProgressBarWidth",
+                                       PROGRESS_BAR_WIDTH);
+        plugin->progress_bar_height =
+                ply_key_file_get_long (key_file, "two-step",
+                                       "ProgressBarHeight",
+                                       PROGRESS_BAR_HEIGHT);
 
         load_mode_settings (plugin, key_file, "boot-up", PLY_BOOT_SPLASH_MODE_BOOT_UP);
         load_mode_settings (plugin, key_file, "shutdown", PLY_BOOT_SPLASH_MODE_SHUTDOWN);
@@ -1149,7 +1208,7 @@ destroy_plugin (ply_boot_splash_plugin_t *plugin)
         ply_trace ("destroying plugin");
 
         if (plugin->loop != NULL) {
-                stop_animation (plugin, NULL);
+                stop_animation (plugin);
 
                 ply_event_loop_stop_watching_for_exit (plugin->loop, (ply_event_loop_exit_handler_t)
                                                        detach_from_event_loop,
@@ -1193,28 +1252,24 @@ static void
 start_end_animation (ply_boot_splash_plugin_t *plugin,
                      ply_trigger_t            *trigger)
 {
-        if (plugin->mode_settings[plugin->mode].use_progress_bar) {
-                /* Leave the progress-bar at 100% rather then showing the end animation */
+        ply_list_node_t *node;
+        view_t *view;
+
+        if (!plugin->mode_settings[plugin->mode].use_animation) {
                 ply_trigger_pull (trigger, NULL);
                 return;
         }
 
         ply_trace ("starting end animation");
 
-        ply_list_node_t *node;
-
         node = ply_list_get_first_node (plugin->views);
         while (node != NULL) {
-                ply_list_node_t *next_node;
-                view_t *view;
-                ply_trigger_t *throbber_trigger;
-
                 view = ply_list_node_get_data (node);
-                next_node = ply_list_get_next_node (plugin->views, node);
 
                 ply_trigger_ignore_next_pull (trigger);
 
                 if (view->throbber != NULL) {
+                        ply_trigger_t *throbber_trigger;
                         ply_trace ("stopping throbber");
                         view->end_trigger = trigger;
                         throbber_trigger = ply_trigger_new (NULL);
@@ -1224,14 +1279,10 @@ start_end_animation (ply_boot_splash_plugin_t *plugin,
                                                  view);
                         ply_throbber_stop (view->throbber, throbber_trigger);
                 } else {
-                        if (view->progress_animation != NULL) {
-                                ply_trace ("hiding progress animation");
-                                ply_progress_animation_hide (view->progress_animation);
-                        }
                         view_start_end_animation (view, trigger);
                 }
 
-                node = next_node;
+                node = ply_list_get_next_node (plugin->views, node);
         }
         ply_trigger_pull (trigger, NULL);
 }
@@ -1240,6 +1291,7 @@ static void
 start_progress_animation (ply_boot_splash_plugin_t *plugin)
 {
         ply_list_node_t *node;
+        view_t *view;
 
         if (plugin->is_animating)
                 return;
@@ -1248,15 +1300,9 @@ start_progress_animation (ply_boot_splash_plugin_t *plugin)
 
         node = ply_list_get_first_node (plugin->views);
         while (node != NULL) {
-                ply_list_node_t *next_node;
-                view_t *view;
-
                 view = ply_list_node_get_data (node);
-                next_node = ply_list_get_next_node (plugin->views, node);
-
                 view_start_progress_animation (view);
-
-                node = next_node;
+                node = ply_list_get_next_node (plugin->views, node);
         }
 
         plugin->is_animating = true;
@@ -1271,10 +1317,10 @@ start_progress_animation (ply_boot_splash_plugin_t *plugin)
 }
 
 static void
-stop_animation (ply_boot_splash_plugin_t *plugin,
-                ply_trigger_t            *trigger)
+stop_animation (ply_boot_splash_plugin_t *plugin)
 {
         ply_list_node_t *node;
+        view_t *view;
 
         assert (plugin != NULL);
         assert (plugin->loop != NULL);
@@ -1282,34 +1328,23 @@ stop_animation (ply_boot_splash_plugin_t *plugin,
         if (!plugin->is_animating)
                 return;
 
-        ply_trace ("stopping animation%s",
-                   trigger != NULL ? " with trigger" : "");
-
+        ply_trace ("stopping animation");
         plugin->is_animating = false;
 
         node = ply_list_get_first_node (plugin->views);
         while (node != NULL) {
-                ply_list_node_t *next_node;
-                view_t *view;
-
                 view = ply_list_node_get_data (node);
-                next_node = ply_list_get_next_node (plugin->views, node);
 
-                if (view->progress_animation != NULL) {
-                        ply_trace ("hiding progress animation");
+                ply_progress_bar_hide (view->progress_bar);
+                if (view->progress_animation != NULL)
                         ply_progress_animation_hide (view->progress_animation);
-                }
-                if (trigger != NULL)
-                        ply_trigger_ignore_next_pull (trigger);
                 if (view->throbber != NULL)
-                        ply_throbber_stop (view->throbber, trigger);
-                ply_animation_stop (view->end_animation);
+                        ply_throbber_stop (view->throbber, NULL);
+                if (view->end_animation != NULL)
+                        ply_animation_stop (view->end_animation);
 
-                node = next_node;
+                node = ply_list_get_next_node (plugin->views, node);
         }
-
-        if (trigger != NULL)
-                ply_trigger_pull (trigger, NULL);
 }
 
 static void
@@ -1404,6 +1439,12 @@ on_draw (view_t             *view,
                 ply_entry_draw_area (view->entry,
                                      pixel_buffer,
                                      x, y, width, height);
+                ply_keymap_icon_draw_area (view->keymap_icon,
+                                           pixel_buffer,
+                                           x, y, width, height);
+                ply_capslock_icon_draw_area (view->capslock_icon,
+                                             pixel_buffer,
+                                             x, y, width, height);
                 ply_label_draw_area (view->label,
                                      pixel_buffer,
                                      x, y, width, height);
@@ -1416,19 +1457,23 @@ on_draw (view_t             *view,
                 if (plugin->mode_settings[plugin->mode].use_progress_bar)
                         ply_progress_bar_draw_area (view->progress_bar, pixel_buffer,
                                                     x, y, width, height);
-                else if (view->throbber != NULL &&
-                    !ply_throbber_is_stopped (view->throbber))
+
+                if (plugin->mode_settings[plugin->mode].use_animation &&
+                    view->throbber != NULL)
                         ply_throbber_draw_area (view->throbber, pixel_buffer,
                                                 x, y, width, height);
-                if (view->progress_animation != NULL && !ply_progress_animation_is_hidden (view->progress_animation)) {
+
+                if (plugin->mode_settings[plugin->mode].use_animation &&
+                    view->progress_animation != NULL)
                         ply_progress_animation_draw_area (view->progress_animation,
                                                           pixel_buffer,
                                                           x, y, width, height);
-                } else if (!ply_animation_is_stopped (view->end_animation)) {
+
+                if (plugin->mode_settings[plugin->mode].use_animation &&
+                    view->end_animation != NULL)
                         ply_animation_draw_area (view->end_animation,
                                                  pixel_buffer,
                                                  x, y, width, height);
-                }
 
                 if (plugin->corner_image != NULL) {
                         image_area.width = ply_image_get_width (plugin->corner_image);
@@ -1578,6 +1623,7 @@ show_splash_screen (ply_boot_splash_plugin_t *plugin,
                 ply_trace ("loading background bgrt image");
                 if (ply_image_load (plugin->background_bgrt_image)) {
                         plugin->background_bgrt_raw_width = ply_image_get_width (plugin->background_bgrt_image);
+                        plugin->background_bgrt_raw_height = ply_image_get_height (plugin->background_bgrt_image);
                 } else {
                         ply_image_free (plugin->background_bgrt_image);
                         plugin->background_bgrt_image = NULL;
@@ -1634,20 +1680,25 @@ update_progress_animation (ply_boot_splash_plugin_t *plugin,
                            double                    percent_done)
 {
         ply_list_node_t *node;
+        view_t *view;
+        char buf[64];
 
         node = ply_list_get_first_node (plugin->views);
         while (node != NULL) {
-                ply_list_node_t *next_node;
-                view_t *view;
-
                 view = ply_list_node_get_data (node);
-                next_node = ply_list_get_next_node (plugin->views, node);
 
                 if (view->progress_animation != NULL)
                         ply_progress_animation_set_percent_done (view->progress_animation,
                                                                  percent_done);
 
-                node = next_node;
+                ply_progress_bar_set_percent_done (view->progress_bar, percent_done);
+                if (!ply_progress_bar_is_hidden (view->progress_bar) &&
+                    plugin->mode_settings[plugin->mode].progress_bar_show_percent_complete) {
+                        snprintf (buf, sizeof(buf), _("%d%% complete"), (int)(percent_done * 100));
+                        view_show_message (view, buf);
+                }
+
+                node = ply_list_get_next_node (plugin->views, node);
         }
 }
 
@@ -1707,7 +1758,7 @@ hide_splash_screen (ply_boot_splash_plugin_t *plugin,
 
         ply_trace ("hiding splash");
         if (plugin->loop != NULL) {
-                stop_animation (plugin, NULL);
+                stop_animation (plugin);
 
                 ply_event_loop_stop_watching_for_exit (plugin->loop, (ply_event_loop_exit_handler_t)
                                                        detach_from_event_loop,
@@ -1719,48 +1770,20 @@ hide_splash_screen (ply_boot_splash_plugin_t *plugin,
 }
 
 static void
-show_password_prompt (ply_boot_splash_plugin_t *plugin,
-                      const char               *text,
-                      int                       number_of_bullets)
-{
-        ply_list_node_t *node;
-
-        ply_trace ("showing password prompt");
-        node = ply_list_get_first_node (plugin->views);
-        while (node != NULL) {
-                ply_list_node_t *next_node;
-                view_t *view;
-
-                view = ply_list_node_get_data (node);
-                next_node = ply_list_get_next_node (plugin->views, node);
-
-                view_show_prompt (view, text);
-                ply_entry_set_bullet_count (view->entry, number_of_bullets);
-
-                node = next_node;
-        }
-}
-
-static void
 show_prompt (ply_boot_splash_plugin_t *plugin,
              const char               *prompt,
-             const char               *entry_text)
+             const char               *entry_text,
+             int                       number_of_bullets)
 {
         ply_list_node_t *node;
+        view_t *view;
 
         ply_trace ("showing prompt");
         node = ply_list_get_first_node (plugin->views);
         while (node != NULL) {
-                ply_list_node_t *next_node;
-                view_t *view;
-
                 view = ply_list_node_get_data (node);
-                next_node = ply_list_get_next_node (plugin->views, node);
-
-                view_show_prompt (view, prompt);
-                ply_entry_set_text (view->entry, entry_text);
-
-                node = next_node;
+                view_show_prompt (view, prompt, entry_text, number_of_bullets);
+                node = ply_list_get_next_node (plugin->views, node);
         }
 }
 
@@ -1801,22 +1824,16 @@ static void
 hide_prompt (ply_boot_splash_plugin_t *plugin)
 {
         ply_list_node_t *node;
+        view_t *view;
 
         ply_trace ("hiding prompt");
         node = ply_list_get_first_node (plugin->views);
         while (node != NULL) {
-                ply_list_node_t *next_node;
-                view_t *view;
-
                 view = ply_list_node_get_data (node);
-                next_node = ply_list_get_next_node (plugin->views, node);
-
                 view_hide_prompt (view);
-
-                node = next_node;
+                node = ply_list_get_next_node (plugin->views, node);
         }
 }
-
 
 static void
 view_show_message (view_t     *view,
@@ -1845,15 +1862,18 @@ static void
 show_message (ply_boot_splash_plugin_t *plugin,
               const char               *message)
 {
+        ply_list_node_t *node;
+        view_t *view;
+
         if (plugin->mode_settings[plugin->mode].suppress_messages) {
                 ply_trace ("Suppressing message '%s'", message);
                 return;
         }
         ply_trace ("Showing message '%s'", message);
-        ply_list_node_t *node;
         node = ply_list_get_first_node (plugin->views);
         while (node != NULL) {
-                view_show_message (ply_list_node_get_data (node), message);
+                view = ply_list_node_get_data (node);
+                view_show_message (view, message);
                 node = ply_list_get_next_node (plugin->views, node);
         }
 }
@@ -1862,31 +1882,12 @@ static void
 system_update (ply_boot_splash_plugin_t *plugin,
                int                       progress)
 {
-        ply_list_node_t *node;
-        char buf[64];
-
         if (plugin->mode != PLY_BOOT_SPLASH_MODE_UPDATES &&
             plugin->mode != PLY_BOOT_SPLASH_MODE_SYSTEM_UPGRADE &&
             plugin->mode != PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE)
                 return;
 
-        node = ply_list_get_first_node (plugin->views);
-        while (node != NULL) {
-                ply_list_node_t *next_node;
-                view_t *view;
-
-                view = ply_list_node_get_data (node);
-                next_node = ply_list_get_next_node (plugin->views, node);
-                if (view->progress_animation != NULL)
-                        ply_progress_animation_set_percent_done (view->progress_animation, (double) progress / 100.f);
-                ply_progress_bar_set_percent_done (view->progress_bar, (double) progress / 100.f);
-                if (!ply_progress_bar_is_hidden (view->progress_bar) &&
-                    plugin->mode_settings[plugin->mode].progress_bar_show_percent_complete) {
-                        snprintf (buf, sizeof(buf), _("%d%% complete"), progress);
-                        view_show_message (view, buf);
-                }
-                node = next_node;
-        }
+        update_progress_animation (plugin, progress / 100.0);
 }
 
 static void
@@ -1909,10 +1910,10 @@ display_password (ply_boot_splash_plugin_t *plugin,
 {
         pause_views (plugin);
         if (plugin->state == PLY_BOOT_SPLASH_DISPLAY_NORMAL)
-                stop_animation (plugin, NULL);
+                stop_animation (plugin);
 
         plugin->state = PLY_BOOT_SPLASH_DISPLAY_PASSWORD_ENTRY;
-        show_password_prompt (plugin, prompt, bullets);
+        show_prompt (plugin, prompt, NULL, bullets);
         redraw_views (plugin);
         unpause_views (plugin);
 }
@@ -1924,10 +1925,10 @@ display_question (ply_boot_splash_plugin_t *plugin,
 {
         pause_views (plugin);
         if (plugin->state == PLY_BOOT_SPLASH_DISPLAY_NORMAL)
-                stop_animation (plugin, NULL);
+                stop_animation (plugin);
 
         plugin->state = PLY_BOOT_SPLASH_DISPLAY_QUESTION_ENTRY;
-        show_prompt (plugin, prompt, entry_text);
+        show_prompt (plugin, prompt, entry_text, -1);
         redraw_views (plugin);
         unpause_views (plugin);
 }

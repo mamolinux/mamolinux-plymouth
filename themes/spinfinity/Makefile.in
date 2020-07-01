@@ -345,6 +345,10 @@ dist_theme_DATA = \
                   bullet.png                                          \
                   entry.png                                           \
                   lock.png                                            \
+                  capslock.png                                        \
+                  keyboard.png                                        \
+                  keymap-render.png                                   \
+                  animation-0001.png                                  \
                   throbber-00.png                                     \
                   throbber-01.png                                     \
                   throbber-02.png                                     \
@@ -563,7 +567,8 @@ info: info-am
 info-am:
 
 install-data-am: install-dist_themeDATA install-nodist_themeDATA
-
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
 install-dvi: install-dvi-am
 
 install-dvi-am:
@@ -608,21 +613,21 @@ ps-am:
 
 uninstall-am: uninstall-dist_themeDATA uninstall-nodist_themeDATA
 
-.MAKE: install-am install-strip
+.MAKE: install-am install-data-am install-strip
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
 	cscopelist-am ctags-am distclean distclean-generic \
 	distclean-libtool distdir dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am \
-	install-dist_themeDATA install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-nodist_themeDATA \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags-am uninstall uninstall-am uninstall-dist_themeDATA \
-	uninstall-nodist_themeDATA
+	install-data-hook install-dist_themeDATA install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-nodist_themeDATA install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
+	ps ps-am tags-am uninstall uninstall-am \
+	uninstall-dist_themeDATA uninstall-nodist_themeDATA
 
 .PRECIOUS: Makefile
 
@@ -630,6 +635,9 @@ uninstall-am: uninstall-dist_themeDATA uninstall-nodist_themeDATA
 spinfinity.plymouth: $(srcdir)/spinfinity.plymouth.in
 	sed -e 's,[@]PLYMOUTH_THEME_PATH[@],$(PLYMOUTH_THEME_PATH),g' \
 	       $(srcdir)/spinfinity.plymouth.in > spinfinity.plymouth
+
+install-data-hook:
+	ln -sf /usr/share/pixmaps/system-logo-white.png $(DESTDIR)$(themedir)/header-image.png
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
