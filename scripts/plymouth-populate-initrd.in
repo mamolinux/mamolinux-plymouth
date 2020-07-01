@@ -5,10 +5,12 @@
 [ -z "$PLYMOUTH_LIBEXECDIR" ] && PLYMOUTH_LIBEXECDIR="@PLYMOUTH_LIBEXECDIR@"
 [ -z "$PLYMOUTH_DATADIR" ] && PLYMOUTH_DATADIR="@PLYMOUTH_DATADIR@"
 [ -z "$PLYMOUTH_PLUGIN_PATH" ] && PLYMOUTH_PLUGIN_PATH="$(plymouth --get-splash-plugin-path)"
-[ -z "$PLYMOUTH_LOGO_FILE" ] && PLYMOUTH_LOGO_FILE="@logofile@"
+[ -z "$PLYMOUTH_LOGO_FILE" ] && PLYMOUTH_LOGO_FILE="@PLYMOUTH_LOGO_FILE@"
 [ -z "$PLYMOUTH_THEME_NAME" ] && PLYMOUTH_THEME_NAME=$(plymouth-set-default-theme)
 [ -z "$PLYMOUTH_CONFDIR" ] && PLYMOUTH_CONFDIR="@PLYMOUTH_CONF_DIR@"
 [ -z "$PLYMOUTH_POLICYDIR" ] && PLYMOUTH_POLICYDIR="@PLYMOUTH_POLICY_DIR@"
+[ -z "$PLYMOUTH_DAEMON_PATH" ] && PLYMOUTH_DAEMON_PATH="@PLYMOUTH_DAEMON_DIR@/plymouthd"
+[ -z "$PLYMOUTH_CLIENT_PATH" ] && PLYMOUTH_CLIENT_PATH="@PLYMOUTH_CLIENT_DIR@/plymouth"
 
 if [ -z "$PLYMOUTH_POPULATE_SOURCE_FUNCTIONS" ]; then
 
@@ -16,7 +18,9 @@ if [ -z "$PLYMOUTH_POPULATE_SOURCE_FUNCTIONS" ]; then
         PLYMOUTH_POPULATE_SOURCE_FUNCTIONS="${PLYMOUTH_LIBEXECDIR}/initrd-functions"
     fi
 
-    if [ -f "${PLYMOUTH_DATADIR}/dracut/dracut-functions" ]; then
+    if [ -f "${PLYMOUTH_DATADIR}/dracut/dracut-functions.sh" ]; then
+        PLYMOUTH_POPULATE_SOURCE_FUNCTIONS="${PLYMOUTH_DATADIR}/dracut/dracut-functions.sh"
+    elif [ -f "${PLYMOUTH_DATADIR}/dracut/dracut-functions" ]; then
         PLYMOUTH_POPULATE_SOURCE_FUNCTIONS="${PLYMOUTH_DATADIR}/dracut/dracut-functions"
     fi
 fi
@@ -72,8 +76,8 @@ set_verbose $verbose || :
 [ -z "$INITRDDIR" ] && usage error
 
 mkdir -p ${INITRDDIR}${PLYMOUTH_DATADIR}/plymouth/themes
-inst /sbin/plymouthd $INITRDDIR /bin/plymouthd
-inst /bin/plymouth $INITRDDIR
+inst ${PLYMOUTH_DAEMON_PATH} $INITRDDIR /bin/plymouthd
+inst ${PLYMOUTH_CLIENT_PATH} $INITRDDIR /bin/plymouth
 inst ${PLYMOUTH_DATADIR}/plymouth/themes/text/text.plymouth $INITRDDIR
 inst ${PLYMOUTH_PLUGIN_PATH}/text.so $INITRDDIR
 inst ${PLYMOUTH_DATADIR}/plymouth/themes/details/details.plymouth $INITRDDIR
@@ -97,12 +101,12 @@ fi
 
 inst ${PLYMOUTH_PLUGIN_PATH}/${PLYMOUTH_MODULE_NAME}.so $INITRDDIR
 
-inst ${PLYMOUTH_PLUGIN_PATH}/renderers/drm.so $INITRDDIR
+[ -f "${PLYMOUTH_PLUGIN_PATH}/renderers/drm.so" ] && inst ${PLYMOUTH_PLUGIN_PATH}/renderers/drm.so $INITRDDIR
 inst ${PLYMOUTH_PLUGIN_PATH}/renderers/frame-buffer.so $INITRDDIR
 
 if [ -d ${PLYMOUTH_DATADIR}/plymouth/themes/${PLYMOUTH_THEME_NAME} ]; then
     for x in ${PLYMOUTH_DATADIR}/plymouth/themes/${PLYMOUTH_THEME_NAME}/* ; do
-        [ ! -f "$x" ] && break
+        [ ! -f "$x" ] && continue
         inst $x $INITRDDIR
     done
 fi

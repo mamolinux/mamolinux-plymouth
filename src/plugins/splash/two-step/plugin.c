@@ -126,6 +126,8 @@ struct _ply_boot_splash_plugin
   uint32_t is_idle : 1;
 };
 
+ply_boot_splash_plugin_interface_t * ply_boot_splash_plugin_get_interface (void);
+
 static void stop_animation (ply_boot_splash_plugin_t *plugin,
                             ply_trigger_t            *idle_trigger);
 
@@ -188,13 +190,19 @@ view_load (view_t *view)
   ply_trace ("loading animation");
   if (!ply_animation_load (view->end_animation))
     {
+      ply_trace ("Default animation wouldn't load, "
+                 "falling back to old naming scheme");
+
       /* fallback to throbber- for compatibility
        */
       ply_animation_free (view->end_animation);
       view->end_animation = ply_animation_new (view->plugin->animation_dir,
                                                "throbber-");
       if (!ply_animation_load (view->end_animation))
-        return false;
+        {
+          ply_trace ("old naming scheme didn't work either");
+          return false;
+        }
 
       ply_throbber_free (view->throbber);
       view->throbber = NULL;
@@ -202,7 +210,11 @@ view_load (view_t *view)
 
   ply_trace ("loading progress animation");
   if (!ply_progress_animation_load (view->progress_animation))
-    return false;
+    {
+      ply_trace ("optional progress animation wouldn't load");
+      ply_progress_animation_free (view->progress_animation);
+      view->progress_animation = NULL;
+    }
 
   if (view->throbber != NULL)
     {
@@ -213,6 +225,10 @@ view_load (view_t *view)
           ply_throbber_free (view->throbber);
           view->throbber = NULL;
         }
+    }
+  else
+    {
+      ply_trace ("this theme has no throbber\n");
     }
 
   return true;
@@ -281,6 +297,8 @@ pause_views (ply_boot_splash_plugin_t *plugin)
 {
   ply_list_node_t *node;
 
+  ply_trace ("pausing views");
+
   node = ply_list_get_first_node (plugin->views);
   while (node != NULL)
     {
@@ -300,6 +318,8 @@ static void
 unpause_views (ply_boot_splash_plugin_t *plugin)
 {
   ply_list_node_t *node;
+
+  ply_trace ("unpausing views");
 
   node = ply_list_get_first_node (plugin->views);
   while (node != NULL)
@@ -335,6 +355,7 @@ view_start_end_animation (view_t        *view,
   x = plugin->animation_horizontal_alignment * screen_width - width / 2.0;
   y = plugin->animation_vertical_alignment * screen_height - height / 2.0;
 
+  ply_trace ("starting end sequence animation for %ldx%ld view", width, height);
   ply_animation_start (view->end_animation,
                        view->display,
                        trigger, x, y);
@@ -343,7 +364,9 @@ view_start_end_animation (view_t        *view,
 static void
 on_view_throbber_stopped (view_t *view)
 {
-  ply_progress_animation_hide (view->progress_animation);
+  ply_trace ("hiding progress animation");
+  if (view->progress_animation != NULL)
+      ply_progress_animation_hide (view->progress_animation);
   view_start_end_animation (view, view->end_trigger);
   view->end_trigger = NULL;
 }
@@ -401,15 +424,17 @@ view_start_progress_animation (view_t *view)
       return;
     }
 
-  width = ply_progress_animation_get_width (view->progress_animation);
-  height = ply_progress_animation_get_height (view->progress_animation);
-  x = plugin->animation_horizontal_alignment * screen_width - width / 2.0;
-  y = plugin->animation_vertical_alignment * screen_height - height / 2.0;
-  ply_progress_animation_show (view->progress_animation,
-                               view->display, x, y);
+  if (view->progress_animation != NULL)
+    {
+      width = ply_progress_animation_get_width (view->progress_animation);
+      height = ply_progress_animation_get_height (view->progress_animation);
+      x = plugin->animation_horizontal_alignment * screen_width - width / 2.0;
+      y = plugin->animation_vertical_alignment * screen_height - height / 2.0;
+      ply_progress_animation_show (view->progress_animation,
+                                   view->display, x, y);
 
-  ply_pixel_display_draw_area (view->display, x, y, width, height);
-
+      ply_pixel_display_draw_area (view->display, x, y, width, height);
+    }
 }
 
 static void
@@ -453,11 +478,7 @@ view_show_prompt (view_t     *view,
 
   if (prompt != NULL)
     {
-      int label_width, label_height;
-
       ply_label_set_text (view->label, prompt);
-      label_width = ply_label_get_width (view->label);
-      label_height = ply_label_get_height (view->label);
 
       x = view->box_area.x + view->lock_area.width / 2;
       y = view->box_area.y + view->box_area.height;
@@ -490,6 +511,8 @@ create_plugin (ply_key_file_t *key_file)
   plugin = calloc (1, sizeof (ply_boot_splash_plugin_t));
 
   image_dir = ply_key_file_get_value (key_file, "two-step", "ImageDir");
+
+  ply_trace ("Using '%s' as working directory", image_dir);
 
   asprintf (&image_path, "%s/lock.png", image_dir);
   plugin->lock_image = ply_image_new (image_path);
@@ -592,6 +615,8 @@ free_views (ply_boot_splash_plugin_t *plugin)
 {
   ply_list_node_t *node;
 
+  ply_trace ("freeing views");
+
   node = ply_list_get_first_node (plugin->views);
 
   while (node != NULL)
@@ -618,6 +643,8 @@ destroy_plugin (ply_boot_splash_plugin_t *plugin)
   if (plugin == NULL)
     return;
 
+  ply_trace ("destroying plugin");
+
   if (plugin->loop != NULL)
     {
       stop_animation (plugin, NULL);
@@ -637,6 +664,7 @@ destroy_plugin (ply_boot_splash_plugin_t *plugin)
   if (plugin->header_image != NULL)
     ply_image_free (plugin->header_image);
 
+  free (plugin->animation_dir);
   free_views (plugin);
   free (plugin);
 }
@@ -645,8 +673,10 @@ static void
 start_end_animation (ply_boot_splash_plugin_t *plugin,
                      ply_trigger_t            *trigger)
 {
+  ply_trace ("starting end animation");
 
   ply_list_node_t *node;
+
   node = ply_list_get_first_node (plugin->views);
   while (node != NULL)
     {
@@ -661,6 +691,7 @@ start_end_animation (ply_boot_splash_plugin_t *plugin,
 
       if (view->throbber != NULL)
         {
+          ply_trace ("stopping throbber");
           view->end_trigger = trigger;
           throbber_trigger = ply_trigger_new (NULL);
           ply_trigger_add_handler (throbber_trigger,
@@ -671,7 +702,11 @@ start_end_animation (ply_boot_splash_plugin_t *plugin,
         }
       else
         {
-          ply_progress_animation_hide (view->progress_animation);
+          if (view->progress_animation != NULL)
+            {
+              ply_trace ("hiding progress animation");
+              ply_progress_animation_hide (view->progress_animation);
+            }
           view_start_end_animation (view, trigger);
         }
 
@@ -687,6 +722,8 @@ start_progress_animation (ply_boot_splash_plugin_t *plugin)
 
   if (plugin->is_animating)
      return;
+
+  ply_trace ("starting animation");
 
   node = ply_list_get_first_node (plugin->views);
   while (node != NULL)
@@ -717,6 +754,9 @@ stop_animation (ply_boot_splash_plugin_t *plugin,
   if (!plugin->is_animating)
      return;
 
+  ply_trace ("stopping animation%s",
+             trigger != NULL? " with trigger" : "");
+
   plugin->is_animating = false;
 
   node = ply_list_get_first_node (plugin->views);
@@ -728,10 +768,15 @@ stop_animation (ply_boot_splash_plugin_t *plugin,
       view = ply_list_node_get_data (node);
       next_node = ply_list_get_next_node (plugin->views, node);
 
-      ply_progress_animation_hide (view->progress_animation);
+      if (view->progress_animation != NULL)
+        {
+          ply_trace ("hiding progress animation");
+          ply_progress_animation_hide (view->progress_animation);
+        }
       if (trigger != NULL)
         ply_trigger_ignore_next_pull (trigger);
-      ply_throbber_stop (view->throbber, trigger);
+      if (view->throbber != NULL)
+        ply_throbber_stop (view->throbber, trigger);
       ply_animation_stop (view->end_animation);
 
       node = next_node;
@@ -790,14 +835,8 @@ on_draw (view_t                   *view,
          int                       height)
 {
   ply_boot_splash_plugin_t *plugin;
-  ply_rectangle_t area;
   ply_rectangle_t screen_area;
   ply_rectangle_t image_area;
-
-  area.x = x;
-  area.y = y;
-  area.width = width;
-  area.height = height;
 
   plugin = view->plugin;
 
@@ -835,7 +874,7 @@ on_draw (view_t                   *view,
           ply_throbber_draw_area (view->throbber, pixel_buffer,
                                   x, y, width, height);
         }
-      if (!ply_progress_animation_is_hidden (view->progress_animation))
+      if (view->progress_animation != NULL && !ply_progress_animation_is_hidden (view->progress_animation))
         {
           ply_progress_animation_draw_area (view->progress_animation,
                                             pixel_buffer,
@@ -861,7 +900,11 @@ on_draw (view_t                   *view,
         {
           long sprite_height;
 
-          sprite_height = ply_progress_animation_get_height (view->progress_animation);
+
+          if (view->progress_animation != NULL)
+            sprite_height = ply_progress_animation_get_height (view->progress_animation);
+          else
+            sprite_height = 0;
 
           if (view->throbber != NULL)
             sprite_height = MAX (ply_throbber_get_height (view->throbber),
@@ -886,6 +929,7 @@ add_pixel_display (ply_boot_splash_plugin_t *plugin,
 {
   view_t *view;
 
+  ply_trace ("adding pixel display to plugin");
   view = view_new (plugin, display);
 
   ply_pixel_display_set_draw_handler (view->display,
@@ -900,6 +944,7 @@ remove_pixel_display (ply_boot_splash_plugin_t *plugin,
 {
   ply_list_node_t *node;
 
+  ply_trace ("removing pixel display from plugin");
   node = ply_list_get_first_node (plugin->views);
   while (node != NULL)
     {
@@ -1019,8 +1064,9 @@ update_progress_animation (ply_boot_splash_plugin_t *plugin,
       view = ply_list_node_get_data (node);
       next_node = ply_list_get_next_node (plugin->views, node);
 
-      ply_progress_animation_set_percent_done (view->progress_animation,
-                                               percent_done);
+      if (view->progress_animation != NULL)
+        ply_progress_animation_set_percent_done (view->progress_animation,
+                                                 percent_done);
 
       node = next_node;
     }
@@ -1037,6 +1083,8 @@ on_boot_progress (ply_boot_splash_plugin_t *plugin,
     {
       if (plugin->stop_trigger == NULL)
         {
+          ply_trace ("boot progressed to end");
+
           plugin->stop_trigger = ply_trigger_new (&plugin->stop_trigger);
           ply_trigger_add_handler (plugin->stop_trigger,
                                    (ply_trigger_handler_t)
@@ -1074,6 +1122,7 @@ hide_splash_screen (ply_boot_splash_plugin_t *plugin,
 {
   assert (plugin != NULL);
 
+  ply_trace ("hiding splash");
   if (plugin->loop != NULL)
     {
       stop_animation (plugin, NULL);
@@ -1094,6 +1143,7 @@ show_password_prompt (ply_boot_splash_plugin_t *plugin,
 {
   ply_list_node_t *node;
 
+  ply_trace ("showing password prompt");
   node = ply_list_get_first_node (plugin->views);
   while (node != NULL)
     {
@@ -1117,6 +1167,7 @@ show_prompt (ply_boot_splash_plugin_t *plugin,
 {
   ply_list_node_t *node;
 
+  ply_trace ("showing prompt");
   node = ply_list_get_first_node (plugin->views);
   while (node != NULL)
     {
@@ -1136,6 +1187,7 @@ show_prompt (ply_boot_splash_plugin_t *plugin,
 static void
 on_root_mounted (ply_boot_splash_plugin_t *plugin)
 {
+  ply_trace ("root filesystem mounted");
   plugin->root_is_mounted = true;
 }
 
@@ -1143,8 +1195,10 @@ static void
 become_idle (ply_boot_splash_plugin_t *plugin,
              ply_trigger_t            *idle_trigger)
 {
+  ply_trace ("deactivation requested");
   if (plugin->is_idle)
     {
+      ply_trace ("plugin is already idle");
       ply_trigger_pull (idle_trigger, NULL);
       return;
     }
@@ -1153,12 +1207,17 @@ become_idle (ply_boot_splash_plugin_t *plugin,
 
   if (plugin->stop_trigger == NULL)
     {
+      ply_trace ("waiting for plugin to stop");
       plugin->stop_trigger = ply_trigger_new (&plugin->stop_trigger);
       ply_trigger_add_handler (plugin->stop_trigger,
                                (ply_trigger_handler_t)
                                on_animation_stopped,
                                plugin);
       start_end_animation (plugin, plugin->stop_trigger);
+    }
+  else
+    {
+      ply_trace ("already waiting for plugin to stop");
     }
 }
 
@@ -1167,6 +1226,7 @@ hide_prompt (ply_boot_splash_plugin_t *plugin)
 {
   ply_list_node_t *node;
 
+  ply_trace ("hiding prompt");
   node = ply_list_get_first_node (plugin->views);
   while (node != NULL)
     {
@@ -1187,6 +1247,7 @@ static void
 show_message (ply_boot_splash_plugin_t *plugin,
               const char               *message)
 {
+  ply_trace ("Showing message '%s'", message);
   ply_list_node_t *node;
   node = ply_list_get_first_node (plugin->views);
   while (node != NULL)
