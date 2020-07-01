@@ -302,7 +302,8 @@ view_start_animation (view_t *view)
         ply_pixel_display_draw_area (view->display, 0, 0,
                                      screen_width, screen_height);
 
-        if (plugin->mode == PLY_BOOT_SPLASH_MODE_SHUTDOWN)
+        if (plugin->mode == PLY_BOOT_SPLASH_MODE_SHUTDOWN ||
+            plugin->mode == PLY_BOOT_SPLASH_MODE_REBOOT)
                 return;
 
         plugin->is_idle = false;
@@ -316,7 +317,10 @@ view_start_animation (view_t *view)
                             view->logo_area.y + view->logo_area.height + height / 2);
         ply_progress_bar_show (view->progress_bar,
                                view->display,
-                               0, screen_height - ply_progress_bar_get_height (view->progress_bar));
+                               0,
+                               screen_height - BAR_HEIGHT,
+                               screen_width,
+                               BAR_HEIGHT);
         view_redraw (view);
 }
 
@@ -525,7 +529,8 @@ start_animation (ply_boot_splash_plugin_t *plugin)
 
         plugin->is_animating = true;
 
-        if (plugin->mode == PLY_BOOT_SPLASH_MODE_SHUTDOWN)
+        if (plugin->mode == PLY_BOOT_SPLASH_MODE_SHUTDOWN ||
+            plugin->mode == PLY_BOOT_SPLASH_MODE_REBOOT)
                 plugin->is_idle = true;
 }
 
@@ -717,7 +722,9 @@ on_boot_progress (ply_boot_splash_plugin_t *plugin,
         ply_list_node_t *node;
         double total_duration;
 
-        if (plugin->mode == PLY_BOOT_SPLASH_MODE_UPDATES)
+        if (plugin->mode == PLY_BOOT_SPLASH_MODE_UPDATES ||
+            plugin->mode == PLY_BOOT_SPLASH_MODE_SYSTEM_UPGRADE ||
+            plugin->mode == PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE)
                 return;
 
         total_duration = duration / percent_done;
@@ -736,7 +743,6 @@ on_boot_progress (ply_boot_splash_plugin_t *plugin,
                 next_node = ply_list_get_next_node (plugin->views, node);
 
                 ply_progress_bar_set_percent_done (view->progress_bar, percent_done);
-                ply_progress_bar_draw (view->progress_bar);
 
                 node = next_node;
         }
@@ -929,7 +935,9 @@ system_update (ply_boot_splash_plugin_t *plugin,
 {
         ply_list_node_t *node;
 
-        if (plugin->mode != PLY_BOOT_SPLASH_MODE_UPDATES)
+        if (plugin->mode != PLY_BOOT_SPLASH_MODE_UPDATES &&
+            plugin->mode != PLY_BOOT_SPLASH_MODE_SYSTEM_UPGRADE &&
+            plugin->mode != PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE)
                 return;
 
         node = ply_list_get_first_node (plugin->views);
@@ -940,7 +948,6 @@ system_update (ply_boot_splash_plugin_t *plugin,
                 view = ply_list_node_get_data (node);
                 next_node = ply_list_get_next_node (plugin->views, node);
                 ply_progress_bar_set_percent_done (view->progress_bar, (double) progress / 100.f);
-                ply_progress_bar_draw (view->progress_bar);
                 node = next_node;
         }
 }
