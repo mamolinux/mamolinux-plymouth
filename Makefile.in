@@ -165,7 +165,7 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 CSCOPE = cscope
-DIST_SUBDIRS = po src themes images scripts systemd-units docs
+DIST_SUBDIRS = src themes images scripts systemd-units po docs
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/config.h.in \
 	$(top_srcdir)/build-tools/compile \
 	$(top_srcdir)/build-tools/config.guess \
@@ -265,7 +265,6 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTLLIBS = @INTLLIBS@
-INTLTOOL_EXTRACT = @INTLTOOL_EXTRACT@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
@@ -392,7 +391,6 @@ plymouthruntimedir = @plymouthruntimedir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
-runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -401,7 +399,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = po src themes images scripts systemd-units $(am__append_1)
+SUBDIRS = src themes images scripts systemd-units po $(am__append_1)
 DISTCHECK_CONFIGURE_FLAGS = --disable-tests --disable-systemd-integration
 EXTRA_DIST = build-tools/config.rpath ChangeLog                                \
              README

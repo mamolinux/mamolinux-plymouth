@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: plymouth master\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/plymouth/plymouth/"
 "issues\n"
-"POT-Creation-Date: 2020-01-09 10:09+0000\n"
+"POT-Creation-Date: 2019-06-12 11:54+0200\n"
 "PO-Revision-Date: 2019-09-07 23:16+0300\n"
 "Last-Translator: Sabri Ünal <libreajans@gmail.com>\n"
 "Language-Team: Türkçe <gnome-turk@gnome.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 2.0.6\n"
 
-#: src/plugins/splash/two-step/plugin.c:1697
+#: src/plugins/splash/two-step/plugin.c:1885
 #, c-format
 msgid "%d%% complete"
 msgstr "%d%% tamamlandı"

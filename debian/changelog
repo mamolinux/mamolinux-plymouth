@@ -1,3 +1,18 @@
+plymouth (0.9.5-0ubuntu1) groovy; urgency=medium
+
+  * New upstream version (lp: #1886886)
+  * debian/control:
+    - remove the intltool Build-Depends, the new version uses gettext
+  * debian/patches/git-drm-improve.patch,
+    debian/patches/gitlab-center-messages.patchs:
+    - removed, the changes are in the new version
+  * debian/libplymouth5.symbols:
+    - refreshed for the new version
+  * debian/patches/gitlab_correct_keynames.patch:
+    - use the correct title and subtitle key names
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 31 Jul 2020 15:07:01 +0200
+
 plymouth (0.9.4git20200323-0ubuntu6) focal; urgency=medium
 
   * debian/patches/ubuntu-default-devicetimeout.patch: Increase the graphics

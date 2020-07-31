@@ -157,6 +157,7 @@ static void on_quit (state_t       *state,
                      ply_trigger_t *quit_trigger);
 static bool sh_is_init (state_t *state);
 static void cancel_pending_delayed_show (state_t *state);
+static void prepare_logging (state_t *state);
 
 static void
 on_session_output (state_t    *state,
@@ -191,11 +192,6 @@ static void
 on_change_mode (state_t    *state,
                 const char *mode)
 {
-        if (state->boot_splash == NULL) {
-                ply_trace ("no splash set");
-                return;
-        }
-
         ply_trace ("updating mode to '%s'", mode);
         if (strcmp (mode, "boot-up") == 0)
                 state->mode = PLY_BOOT_SPLASH_MODE_BOOT_UP;
@@ -211,6 +207,15 @@ on_change_mode (state_t    *state,
                 state->mode = PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE;
         else
                 return;
+
+        if (state->session != NULL) {
+                prepare_logging (state);
+        }
+
+        if (state->boot_splash == NULL) {
+                ply_trace ("no splash set");
+                return;
+        }
 
         if (!ply_boot_splash_show (state->boot_splash, state->mode)) {
                 ply_trace ("failed to update splash");
@@ -273,19 +278,18 @@ load_settings (state_t    *state,
 
         splash_string = ply_key_file_get_value (key_file, "Daemon", "Theme");
 
-        if (splash_string == NULL)
-                goto out;
-
-        asprintf (theme_path,
-                  PLYMOUTH_RUNTIME_THEME_PATH "%s/%s.plymouth",
-                  splash_string, splash_string);
-        ply_trace ("Checking if %s exists", *theme_path);
-        if (!ply_file_exists (*theme_path)) {
-                ply_trace ("%s not found, fallbacking to " PLYMOUTH_THEME_PATH,
-                           *theme_path);
+        if (splash_string != NULL) {
                 asprintf (theme_path,
-                          PLYMOUTH_THEME_PATH "%s/%s.plymouth",
+                          PLYMOUTH_RUNTIME_THEME_PATH "%s/%s.plymouth",
                           splash_string, splash_string);
+                ply_trace ("Checking if %s exists", *theme_path);
+                if (!ply_file_exists (*theme_path)) {
+                        ply_trace ("%s not found, fallbacking to " PLYMOUTH_THEME_PATH,
+                                   *theme_path);
+                        asprintf (theme_path,
+                                  PLYMOUTH_THEME_PATH "%s/%s.plymouth",
+                                  splash_string, splash_string);
+                }
         }
 
         if (isnan (state->splash_delay)) {
@@ -777,6 +781,8 @@ prepare_logging (state_t *state)
                 ply_trace ("not preparing logging, no session");
                 return;
         }
+
+        ply_terminal_session_close_log (state->session);
 
         logfile = get_log_file_for_state (state);
         if (logfile != NULL) {

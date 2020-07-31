@@ -278,7 +278,6 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTLLIBS = @INTLLIBS@
-INTLTOOL_EXTRACT = @INTLTOOL_EXTRACT@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
@@ -405,7 +404,6 @@ plymouthruntimedir = @plymouthruntimedir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
-runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -593,60 +591,63 @@ $(am__depfiles_remade):
 am--depfiles: $(am__depfiles_remade)
 
 .c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .c.lo:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
+@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
-libply_boot_client_la-ply-boot-client.lo: $(srcdir)/ply-boot-client.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libply_boot_client_la_CFLAGS) $(CFLAGS) -MT libply_boot_client_la-ply-boot-client.lo -MD -MP -MF $(DEPDIR)/libply_boot_client_la-ply-boot-client.Tpo -c -o libply_boot_client_la-ply-boot-client.lo `test -f '$(srcdir)/ply-boot-client.c' || echo '$(srcdir)/'`$(srcdir)/ply-boot-client.c
+libply_boot_client_la-ply-boot-client.lo: ply-boot-client.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libply_boot_client_la_CFLAGS) $(CFLAGS) -MT libply_boot_client_la-ply-boot-client.lo -MD -MP -MF $(DEPDIR)/libply_boot_client_la-ply-boot-client.Tpo -c -o libply_boot_client_la-ply-boot-client.lo `test -f 'ply-boot-client.c' || echo '$(srcdir)/'`ply-boot-client.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libply_boot_client_la-ply-boot-client.Tpo $(DEPDIR)/libply_boot_client_la-ply-boot-client.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/ply-boot-client.c' object='libply_boot_client_la-ply-boot-client.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ply-boot-client.c' object='libply_boot_client_la-ply-boot-client.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libply_boot_client_la_CFLAGS) $(CFLAGS) -c -o libply_boot_client_la-ply-boot-client.lo `test -f '$(srcdir)/ply-boot-client.c' || echo '$(srcdir)/'`$(srcdir)/ply-boot-client.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libply_boot_client_la_CFLAGS) $(CFLAGS) -c -o libply_boot_client_la-ply-boot-client.lo `test -f 'ply-boot-client.c' || echo '$(srcdir)/'`ply-boot-client.c
 
-plymouth-ply-boot-client.o: $(srcdir)/ply-boot-client.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -MT plymouth-ply-boot-client.o -MD -MP -MF $(DEPDIR)/plymouth-ply-boot-client.Tpo -c -o plymouth-ply-boot-client.o `test -f '$(srcdir)/ply-boot-client.c' || echo '$(srcdir)/'`$(srcdir)/ply-boot-client.c
+plymouth-ply-boot-client.o: ply-boot-client.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -MT plymouth-ply-boot-client.o -MD -MP -MF $(DEPDIR)/plymouth-ply-boot-client.Tpo -c -o plymouth-ply-boot-client.o `test -f 'ply-boot-client.c' || echo '$(srcdir)/'`ply-boot-client.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/plymouth-ply-boot-client.Tpo $(DEPDIR)/plymouth-ply-boot-client.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/ply-boot-client.c' object='plymouth-ply-boot-client.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ply-boot-client.c' object='plymouth-ply-boot-client.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -c -o plymouth-ply-boot-client.o `test -f '$(srcdir)/ply-boot-client.c' || echo '$(srcdir)/'`$(srcdir)/ply-boot-client.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -c -o plymouth-ply-boot-client.o `test -f 'ply-boot-client.c' || echo '$(srcdir)/'`ply-boot-client.c
 
-plymouth-ply-boot-client.obj: $(srcdir)/ply-boot-client.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -MT plymouth-ply-boot-client.obj -MD -MP -MF $(DEPDIR)/plymouth-ply-boot-client.Tpo -c -o plymouth-ply-boot-client.obj `if test -f '$(srcdir)/ply-boot-client.c'; then $(CYGPATH_W) '$(srcdir)/ply-boot-client.c'; else $(CYGPATH_W) '$(srcdir)/$(srcdir)/ply-boot-client.c'; fi`
+plymouth-ply-boot-client.obj: ply-boot-client.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -MT plymouth-ply-boot-client.obj -MD -MP -MF $(DEPDIR)/plymouth-ply-boot-client.Tpo -c -o plymouth-ply-boot-client.obj `if test -f 'ply-boot-client.c'; then $(CYGPATH_W) 'ply-boot-client.c'; else $(CYGPATH_W) '$(srcdir)/ply-boot-client.c'; fi`
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/plymouth-ply-boot-client.Tpo $(DEPDIR)/plymouth-ply-boot-client.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/ply-boot-client.c' object='plymouth-ply-boot-client.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='ply-boot-client.c' object='plymouth-ply-boot-client.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -c -o plymouth-ply-boot-client.obj `if test -f '$(srcdir)/ply-boot-client.c'; then $(CYGPATH_W) '$(srcdir)/ply-boot-client.c'; else $(CYGPATH_W) '$(srcdir)/$(srcdir)/ply-boot-client.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -c -o plymouth-ply-boot-client.obj `if test -f 'ply-boot-client.c'; then $(CYGPATH_W) 'ply-boot-client.c'; else $(CYGPATH_W) '$(srcdir)/ply-boot-client.c'; fi`
 
-plymouth-plymouth.o: $(srcdir)/plymouth.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -MT plymouth-plymouth.o -MD -MP -MF $(DEPDIR)/plymouth-plymouth.Tpo -c -o plymouth-plymouth.o `test -f '$(srcdir)/plymouth.c' || echo '$(srcdir)/'`$(srcdir)/plymouth.c
+plymouth-plymouth.o: plymouth.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -MT plymouth-plymouth.o -MD -MP -MF $(DEPDIR)/plymouth-plymouth.Tpo -c -o plymouth-plymouth.o `test -f 'plymouth.c' || echo '$(srcdir)/'`plymouth.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/plymouth-plymouth.Tpo $(DEPDIR)/plymouth-plymouth.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/plymouth.c' object='plymouth-plymouth.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='plymouth.c' object='plymouth-plymouth.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -c -o plymouth-plymouth.o `test -f '$(srcdir)/plymouth.c' || echo '$(srcdir)/'`$(srcdir)/plymouth.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -c -o plymouth-plymouth.o `test -f 'plymouth.c' || echo '$(srcdir)/'`plymouth.c
 
-plymouth-plymouth.obj: $(srcdir)/plymouth.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -MT plymouth-plymouth.obj -MD -MP -MF $(DEPDIR)/plymouth-plymouth.Tpo -c -o plymouth-plymouth.obj `if test -f '$(srcdir)/plymouth.c'; then $(CYGPATH_W) '$(srcdir)/plymouth.c'; else $(CYGPATH_W) '$(srcdir)/$(srcdir)/plymouth.c'; fi`
+plymouth-plymouth.obj: plymouth.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -MT plymouth-plymouth.obj -MD -MP -MF $(DEPDIR)/plymouth-plymouth.Tpo -c -o plymouth-plymouth.obj `if test -f 'plymouth.c'; then $(CYGPATH_W) 'plymouth.c'; else $(CYGPATH_W) '$(srcdir)/plymouth.c'; fi`
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/plymouth-plymouth.Tpo $(DEPDIR)/plymouth-plymouth.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/plymouth.c' object='plymouth-plymouth.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='plymouth.c' object='plymouth-plymouth.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -c -o plymouth-plymouth.obj `if test -f '$(srcdir)/plymouth.c'; then $(CYGPATH_W) '$(srcdir)/plymouth.c'; else $(CYGPATH_W) '$(srcdir)/$(srcdir)/plymouth.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouth_CFLAGS) $(CFLAGS) -c -o plymouth-plymouth.obj `if test -f 'plymouth.c'; then $(CYGPATH_W) 'plymouth.c'; else $(CYGPATH_W) '$(srcdir)/plymouth.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
