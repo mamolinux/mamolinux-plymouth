@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: plymouth 0.9.5\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/plymouth/plymouth/"
 "issues\n"
-"POT-Creation-Date: 2020-01-09 10:09+0000\n"
+"POT-Creation-Date: 2019-06-12 11:54+0200\n"
 "PO-Revision-Date: 2019-02-27 09:41+0000\n"
 "Last-Translator: Jean-Baptiste Holcroft <jean-baptiste@holcroft.fr>\n"
 "Language-Team: French\n"
@@ -15,7 +15,7 @@ msgstr ""
 "X-Generator: Zanata 4.6.2\n"
 "Plural-Forms: nplurals=2; plural=(n > 1)\n"
 
-#: src/plugins/splash/two-step/plugin.c:1697
+#: src/plugins/splash/two-step/plugin.c:1885
 #, c-format
 msgid "%d%% complete"
 msgstr "%d%%"
@@ -34,5 +34,6 @@ msgstr "Mise à jour du système…"
 
 #: themes/bgrt/bgrt.plymouth.in.h:4 themes/spinner/spinner.plymouth.in.h:4
 #, fuzzy
+#| msgid "Upgrading System..."
 msgid "Upgrading Firmware..."
 msgstr "Mise à jour du système…"

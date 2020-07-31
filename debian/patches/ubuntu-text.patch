@@ -3,11 +3,11 @@ Author: Scott James Remnant <scott@ubuntu.com>
 Forwarded: not-needed
 Last-Update: 2011-01-21
 
-Index: plymouth-0.9.4git20200323/configure.ac
+Index: plymouth-0.9.5/configure.ac
 ===================================================================
---- plymouth-0.9.4git20200323.orig/configure.ac
-+++ plymouth-0.9.4git20200323/configure.ac
-@@ -309,6 +309,7 @@ AC_CONFIG_FILES([Makefile po/Makefile.in
+--- plymouth-0.9.5.orig/configure.ac
++++ plymouth-0.9.5/configure.ac
+@@ -305,6 +305,7 @@ AC_CONFIG_FILES([Makefile po/Makefile.in
             src/plugins/splash/Makefile
             src/plugins/splash/fade-throbber/Makefile
             src/plugins/splash/tribar/Makefile
@@ -15,7 +15,7 @@ Index: plymouth-0.9.4git20200323/configure.ac
             src/plugins/splash/text/Makefile
             src/plugins/splash/details/Makefile
             src/plugins/splash/space-flares/Makefile
-@@ -332,6 +333,7 @@ AC_CONFIG_FILES([Makefile po/Makefile.in
+@@ -328,6 +329,7 @@ AC_CONFIG_FILES([Makefile po/Makefile.in
             themes/script/Makefile
             themes/ubuntu-logo/Makefile
             themes/bgrt/Makefile
@@ -23,18 +23,18 @@ Index: plymouth-0.9.4git20200323/configure.ac
             images/Makefile
  	   scripts/plymouth-generate-initrd
  	   scripts/plymouth-populate-initrd
-Index: plymouth-0.9.4git20200323/themes/Makefile.am
+Index: plymouth-0.9.5/themes/Makefile.am
 ===================================================================
---- plymouth-0.9.4git20200323.orig/themes/Makefile.am
-+++ plymouth-0.9.4git20200323/themes/Makefile.am
+--- plymouth-0.9.5.orig/themes/Makefile.am
++++ plymouth-0.9.5/themes/Makefile.am
 @@ -1,2 +1,2 @@
 -SUBDIRS = spinfinity fade-in text details solar glow script spinner tribar ubuntu-logo bgrt
 +SUBDIRS = spinfinity fade-in text details solar glow script spinner tribar ubuntu-logo bgrt ubuntu-text
  MAINTAINERCLEANFILES = Makefile.in
-Index: plymouth-0.9.4git20200323/themes/ubuntu-text/ubuntu-text.plymouth.in
+Index: plymouth-0.9.5/themes/ubuntu-text/ubuntu-text.plymouth.in
 ===================================================================
 --- /dev/null
-+++ plymouth-0.9.4git20200323/themes/ubuntu-text/ubuntu-text.plymouth.in
++++ plymouth-0.9.5/themes/ubuntu-text/ubuntu-text.plymouth.in
 @@ -0,0 +1,11 @@
 +[Plymouth Theme]
 +Name=Ubuntu Text
@@ -47,27 +47,27 @@ Index: plymouth-0.9.4git20200323/themes/ubuntu-text/ubuntu-text.plymouth.in
 +white=0xffffff
 +brown=0xff4012
 +blue=0x988592
-Index: plymouth-0.9.4git20200323/themes/ubuntu-text/Makefile.am
+Index: plymouth-0.9.5/themes/ubuntu-text/Makefile.am
 ===================================================================
 --- /dev/null
-+++ plymouth-0.9.4git20200323/themes/ubuntu-text/Makefile.am
++++ plymouth-0.9.5/themes/ubuntu-text/Makefile.am
 @@ -0,0 +1,4 @@
 +themedir = $(datadir)/plymouth/themes/ubuntu-text
 +dist_theme_DATA = ubuntu-text.plymouth.in
 +
 +MAINTAINERCLEANFILES = Makefile.in
-Index: plymouth-0.9.4git20200323/src/plugins/splash/Makefile.am
+Index: plymouth-0.9.5/src/plugins/splash/Makefile.am
 ===================================================================
---- plymouth-0.9.4git20200323.orig/src/plugins/splash/Makefile.am
-+++ plymouth-0.9.4git20200323/src/plugins/splash/Makefile.am
+--- plymouth-0.9.5.orig/src/plugins/splash/Makefile.am
++++ plymouth-0.9.5/src/plugins/splash/Makefile.am
 @@ -1,2 +1,2 @@
 -SUBDIRS = fade-throbber text details space-flares two-step script tribar
 +SUBDIRS = fade-throbber text details space-flares two-step script tribar ubuntu-text
  MAINTAINERCLEANFILES = Makefile.in
-Index: plymouth-0.9.4git20200323/src/plugins/splash/ubuntu-text/Makefile.am
+Index: plymouth-0.9.5/src/plugins/splash/ubuntu-text/Makefile.am
 ===================================================================
 --- /dev/null
-+++ plymouth-0.9.4git20200323/src/plugins/splash/ubuntu-text/Makefile.am
++++ plymouth-0.9.5/src/plugins/splash/ubuntu-text/Makefile.am
 @@ -0,0 +1,23 @@
 +INCLUDES = -I$(top_srcdir)                                                    \
 +           -I$(srcdir)/../../../libply                                        \
@@ -92,10 +92,10 @@ Index: plymouth-0.9.4git20200323/src/plugins/splash/ubuntu-text/Makefile.am
 +ubuntu_text_la_SOURCES = $(srcdir)/plugin.c
 +
 +MAINTAINERCLEANFILES = Makefile.in
-Index: plymouth-0.9.4git20200323/src/plugins/splash/ubuntu-text/plugin.c
+Index: plymouth-0.9.5/src/plugins/splash/ubuntu-text/plugin.c
 ===================================================================
 --- /dev/null
-+++ plymouth-0.9.4git20200323/src/plugins/splash/ubuntu-text/plugin.c
++++ plymouth-0.9.5/src/plugins/splash/ubuntu-text/plugin.c
 @@ -0,0 +1,805 @@
 +/* ubuntu-text.c - boot splash plugin
 + *

@@ -201,7 +201,6 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTLLIBS = @INTLLIBS@
-INTLTOOL_EXTRACT = @INTLTOOL_EXTRACT@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
@@ -328,7 +327,6 @@ plymouthruntimedir = @plymouthruntimedir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
-runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -341,7 +339,7 @@ themedir = $(datadir)/plymouth/themes/bgrt
 nodist_theme_DATA = bgrt.plymouth
 MAINTAINERCLEANFILES = Makefile.in bgrt.plymouth
 CLEANFILES = bgrt.plymouth
-EXTRA_DIST = bgrt.plymouth.in
+EXTRA_DIST = bgrt.plymouth.desktop
 all: all-am
 
 .SUFFIXES:
@@ -564,9 +562,11 @@ uninstall-am: uninstall-nodist_themeDATA
 .PRECIOUS: Makefile
 
 
-bgrt.plymouth: $(srcdir)/bgrt.plymouth.in
+bgrt.plymouth: $(srcdir)/bgrt.plymouth.desktop
+	$(AM_V_GEN) \
 	sed -e 's,[@]PLYMOUTH_THEME_PATH[@],$(PLYMOUTH_THEME_PATH),g' \
-	       $(srcdir)/bgrt.plymouth.in > bgrt.plymouth
+	$(srcdir)/bgrt.plymouth.desktop | \
+	    $(MSGFMT) --desktop --template /dev/stdin -d $(top_srcdir)/po -o $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

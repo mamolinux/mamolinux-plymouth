@@ -202,7 +202,6 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTLLIBS = @INTLLIBS@
-INTLTOOL_EXTRACT = @INTLTOOL_EXTRACT@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
@@ -329,7 +328,6 @@ plymouthruntimedir = @plymouthruntimedir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
-runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -416,7 +414,7 @@ dist_theme_DATA = \
 
 MAINTAINERCLEANFILES = Makefile.in spinner.plymouth
 CLEANFILES = spinner.plymouth
-EXTRA_DIST = spinner.plymouth.in
+EXTRA_DIST = spinner.plymouth.desktop
 all: all-am
 
 .SUFFIXES:
@@ -661,9 +659,11 @@ uninstall-am: uninstall-dist_themeDATA uninstall-nodist_themeDATA
 .PRECIOUS: Makefile
 
 
-spinner.plymouth: $(srcdir)/spinner.plymouth.in
+spinner.plymouth: $(srcdir)/spinner.plymouth.desktop
+	$(AM_V_GEN) \
 	sed -e 's,[@]PLYMOUTH_THEME_PATH[@],$(PLYMOUTH_THEME_PATH),g' \
-	       $(srcdir)/spinner.plymouth.in > spinner.plymouth
+	$(srcdir)/spinner.plymouth.desktop | \
+	    $(MSGFMT) --desktop --template /dev/stdin -d $(top_srcdir)/po -o $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

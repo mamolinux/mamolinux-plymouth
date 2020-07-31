@@ -9,10 +9,10 @@ Bug-Ubuntu: https://bugs.launchpad.net/bugs/1705345
 Forwarded: no
 Last-Update: 2018-03-29
 
-Index: plymouth-0.9.4git20200109/src/client/plymouth.c
+Index: plymouth-0.9.5/src/client/plymouth.c
 ===================================================================
---- plymouth-0.9.4git20200109.orig/src/client/plymouth.c
-+++ plymouth-0.9.4git20200109/src/client/plymouth.c
+--- plymouth-0.9.5.orig/src/client/plymouth.c
++++ plymouth-0.9.5/src/client/plymouth.c
 @@ -75,6 +75,13 @@ typedef struct
          char    *keys;
  } key_answer_state_t;

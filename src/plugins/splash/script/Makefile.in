@@ -274,7 +274,6 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTLLIBS = @INTLLIBS@
-INTLTOOL_EXTRACT = @INTLTOOL_EXTRACT@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
@@ -401,7 +400,6 @@ plymouthruntimedir = @plymouthruntimedir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
-runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -571,109 +569,112 @@ $(am__depfiles_remade):
 am--depfiles: $(am__depfiles_remade)
 
 .c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .c.lo:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
+@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
-script_la-plugin.lo: $(srcdir)/plugin.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-plugin.lo -MD -MP -MF $(DEPDIR)/script_la-plugin.Tpo -c -o script_la-plugin.lo `test -f '$(srcdir)/plugin.c' || echo '$(srcdir)/'`$(srcdir)/plugin.c
+script_la-plugin.lo: plugin.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-plugin.lo -MD -MP -MF $(DEPDIR)/script_la-plugin.Tpo -c -o script_la-plugin.lo `test -f 'plugin.c' || echo '$(srcdir)/'`plugin.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/script_la-plugin.Tpo $(DEPDIR)/script_la-plugin.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/plugin.c' object='script_la-plugin.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='plugin.c' object='script_la-plugin.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-plugin.lo `test -f '$(srcdir)/plugin.c' || echo '$(srcdir)/'`$(srcdir)/plugin.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-plugin.lo `test -f 'plugin.c' || echo '$(srcdir)/'`plugin.c
 
-script_la-script.lo: $(srcdir)/script.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script.lo -MD -MP -MF $(DEPDIR)/script_la-script.Tpo -c -o script_la-script.lo `test -f '$(srcdir)/script.c' || echo '$(srcdir)/'`$(srcdir)/script.c
+script_la-script.lo: script.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script.lo -MD -MP -MF $(DEPDIR)/script_la-script.Tpo -c -o script_la-script.lo `test -f 'script.c' || echo '$(srcdir)/'`script.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/script_la-script.Tpo $(DEPDIR)/script_la-script.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/script.c' object='script_la-script.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='script.c' object='script_la-script.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script.lo `test -f '$(srcdir)/script.c' || echo '$(srcdir)/'`$(srcdir)/script.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script.lo `test -f 'script.c' || echo '$(srcdir)/'`script.c
 
-script_la-script-scan.lo: $(srcdir)/script-scan.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-scan.lo -MD -MP -MF $(DEPDIR)/script_la-script-scan.Tpo -c -o script_la-script-scan.lo `test -f '$(srcdir)/script-scan.c' || echo '$(srcdir)/'`$(srcdir)/script-scan.c
+script_la-script-scan.lo: script-scan.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-scan.lo -MD -MP -MF $(DEPDIR)/script_la-script-scan.Tpo -c -o script_la-script-scan.lo `test -f 'script-scan.c' || echo '$(srcdir)/'`script-scan.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/script_la-script-scan.Tpo $(DEPDIR)/script_la-script-scan.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/script-scan.c' object='script_la-script-scan.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='script-scan.c' object='script_la-script-scan.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-scan.lo `test -f '$(srcdir)/script-scan.c' || echo '$(srcdir)/'`$(srcdir)/script-scan.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-scan.lo `test -f 'script-scan.c' || echo '$(srcdir)/'`script-scan.c
 
-script_la-script-parse.lo: $(srcdir)/script-parse.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-parse.lo -MD -MP -MF $(DEPDIR)/script_la-script-parse.Tpo -c -o script_la-script-parse.lo `test -f '$(srcdir)/script-parse.c' || echo '$(srcdir)/'`$(srcdir)/script-parse.c
+script_la-script-parse.lo: script-parse.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-parse.lo -MD -MP -MF $(DEPDIR)/script_la-script-parse.Tpo -c -o script_la-script-parse.lo `test -f 'script-parse.c' || echo '$(srcdir)/'`script-parse.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/script_la-script-parse.Tpo $(DEPDIR)/script_la-script-parse.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/script-parse.c' object='script_la-script-parse.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='script-parse.c' object='script_la-script-parse.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-parse.lo `test -f '$(srcdir)/script-parse.c' || echo '$(srcdir)/'`$(srcdir)/script-parse.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-parse.lo `test -f 'script-parse.c' || echo '$(srcdir)/'`script-parse.c
 
-script_la-script-execute.lo: $(srcdir)/script-execute.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-execute.lo -MD -MP -MF $(DEPDIR)/script_la-script-execute.Tpo -c -o script_la-script-execute.lo `test -f '$(srcdir)/script-execute.c' || echo '$(srcdir)/'`$(srcdir)/script-execute.c
+script_la-script-execute.lo: script-execute.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-execute.lo -MD -MP -MF $(DEPDIR)/script_la-script-execute.Tpo -c -o script_la-script-execute.lo `test -f 'script-execute.c' || echo '$(srcdir)/'`script-execute.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/script_la-script-execute.Tpo $(DEPDIR)/script_la-script-execute.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/script-execute.c' object='script_la-script-execute.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='script-execute.c' object='script_la-script-execute.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-execute.lo `test -f '$(srcdir)/script-execute.c' || echo '$(srcdir)/'`$(srcdir)/script-execute.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-execute.lo `test -f 'script-execute.c' || echo '$(srcdir)/'`script-execute.c
 
-script_la-script-object.lo: $(srcdir)/script-object.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-object.lo -MD -MP -MF $(DEPDIR)/script_la-script-object.Tpo -c -o script_la-script-object.lo `test -f '$(srcdir)/script-object.c' || echo '$(srcdir)/'`$(srcdir)/script-object.c
+script_la-script-object.lo: script-object.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-object.lo -MD -MP -MF $(DEPDIR)/script_la-script-object.Tpo -c -o script_la-script-object.lo `test -f 'script-object.c' || echo '$(srcdir)/'`script-object.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/script_la-script-object.Tpo $(DEPDIR)/script_la-script-object.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/script-object.c' object='script_la-script-object.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='script-object.c' object='script_la-script-object.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-object.lo `test -f '$(srcdir)/script-object.c' || echo '$(srcdir)/'`$(srcdir)/script-object.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-object.lo `test -f 'script-object.c' || echo '$(srcdir)/'`script-object.c
 
-script_la-script-debug.lo: $(srcdir)/script-debug.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-debug.lo -MD -MP -MF $(DEPDIR)/script_la-script-debug.Tpo -c -o script_la-script-debug.lo `test -f '$(srcdir)/script-debug.c' || echo '$(srcdir)/'`$(srcdir)/script-debug.c
+script_la-script-debug.lo: script-debug.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-debug.lo -MD -MP -MF $(DEPDIR)/script_la-script-debug.Tpo -c -o script_la-script-debug.lo `test -f 'script-debug.c' || echo '$(srcdir)/'`script-debug.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/script_la-script-debug.Tpo $(DEPDIR)/script_la-script-debug.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/script-debug.c' object='script_la-script-debug.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='script-debug.c' object='script_la-script-debug.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-debug.lo `test -f '$(srcdir)/script-debug.c' || echo '$(srcdir)/'`$(srcdir)/script-debug.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-debug.lo `test -f 'script-debug.c' || echo '$(srcdir)/'`script-debug.c
 
-script_la-script-lib-image.lo: $(srcdir)/script-lib-image.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-lib-image.lo -MD -MP -MF $(DEPDIR)/script_la-script-lib-image.Tpo -c -o script_la-script-lib-image.lo `test -f '$(srcdir)/script-lib-image.c' || echo '$(srcdir)/'`$(srcdir)/script-lib-image.c
+script_la-script-lib-image.lo: script-lib-image.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-lib-image.lo -MD -MP -MF $(DEPDIR)/script_la-script-lib-image.Tpo -c -o script_la-script-lib-image.lo `test -f 'script-lib-image.c' || echo '$(srcdir)/'`script-lib-image.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/script_la-script-lib-image.Tpo $(DEPDIR)/script_la-script-lib-image.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/script-lib-image.c' object='script_la-script-lib-image.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='script-lib-image.c' object='script_la-script-lib-image.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-lib-image.lo `test -f '$(srcdir)/script-lib-image.c' || echo '$(srcdir)/'`$(srcdir)/script-lib-image.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-lib-image.lo `test -f 'script-lib-image.c' || echo '$(srcdir)/'`script-lib-image.c
 
-script_la-script-lib-sprite.lo: $(srcdir)/script-lib-sprite.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-lib-sprite.lo -MD -MP -MF $(DEPDIR)/script_la-script-lib-sprite.Tpo -c -o script_la-script-lib-sprite.lo `test -f '$(srcdir)/script-lib-sprite.c' || echo '$(srcdir)/'`$(srcdir)/script-lib-sprite.c
+script_la-script-lib-sprite.lo: script-lib-sprite.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-lib-sprite.lo -MD -MP -MF $(DEPDIR)/script_la-script-lib-sprite.Tpo -c -o script_la-script-lib-sprite.lo `test -f 'script-lib-sprite.c' || echo '$(srcdir)/'`script-lib-sprite.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/script_la-script-lib-sprite.Tpo $(DEPDIR)/script_la-script-lib-sprite.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/script-lib-sprite.c' object='script_la-script-lib-sprite.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='script-lib-sprite.c' object='script_la-script-lib-sprite.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-lib-sprite.lo `test -f '$(srcdir)/script-lib-sprite.c' || echo '$(srcdir)/'`$(srcdir)/script-lib-sprite.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-lib-sprite.lo `test -f 'script-lib-sprite.c' || echo '$(srcdir)/'`script-lib-sprite.c
 
-script_la-script-lib-plymouth.lo: $(srcdir)/script-lib-plymouth.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-lib-plymouth.lo -MD -MP -MF $(DEPDIR)/script_la-script-lib-plymouth.Tpo -c -o script_la-script-lib-plymouth.lo `test -f '$(srcdir)/script-lib-plymouth.c' || echo '$(srcdir)/'`$(srcdir)/script-lib-plymouth.c
+script_la-script-lib-plymouth.lo: script-lib-plymouth.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-lib-plymouth.lo -MD -MP -MF $(DEPDIR)/script_la-script-lib-plymouth.Tpo -c -o script_la-script-lib-plymouth.lo `test -f 'script-lib-plymouth.c' || echo '$(srcdir)/'`script-lib-plymouth.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/script_la-script-lib-plymouth.Tpo $(DEPDIR)/script_la-script-lib-plymouth.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/script-lib-plymouth.c' object='script_la-script-lib-plymouth.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='script-lib-plymouth.c' object='script_la-script-lib-plymouth.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-lib-plymouth.lo `test -f '$(srcdir)/script-lib-plymouth.c' || echo '$(srcdir)/'`$(srcdir)/script-lib-plymouth.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-lib-plymouth.lo `test -f 'script-lib-plymouth.c' || echo '$(srcdir)/'`script-lib-plymouth.c
 
-script_la-script-lib-math.lo: $(srcdir)/script-lib-math.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-lib-math.lo -MD -MP -MF $(DEPDIR)/script_la-script-lib-math.Tpo -c -o script_la-script-lib-math.lo `test -f '$(srcdir)/script-lib-math.c' || echo '$(srcdir)/'`$(srcdir)/script-lib-math.c
+script_la-script-lib-math.lo: script-lib-math.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-lib-math.lo -MD -MP -MF $(DEPDIR)/script_la-script-lib-math.Tpo -c -o script_la-script-lib-math.lo `test -f 'script-lib-math.c' || echo '$(srcdir)/'`script-lib-math.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/script_la-script-lib-math.Tpo $(DEPDIR)/script_la-script-lib-math.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/script-lib-math.c' object='script_la-script-lib-math.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='script-lib-math.c' object='script_la-script-lib-math.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-lib-math.lo `test -f '$(srcdir)/script-lib-math.c' || echo '$(srcdir)/'`$(srcdir)/script-lib-math.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-lib-math.lo `test -f 'script-lib-math.c' || echo '$(srcdir)/'`script-lib-math.c
 
-script_la-script-lib-string.lo: $(srcdir)/script-lib-string.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-lib-string.lo -MD -MP -MF $(DEPDIR)/script_la-script-lib-string.Tpo -c -o script_la-script-lib-string.lo `test -f '$(srcdir)/script-lib-string.c' || echo '$(srcdir)/'`$(srcdir)/script-lib-string.c
+script_la-script-lib-string.lo: script-lib-string.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -MT script_la-script-lib-string.lo -MD -MP -MF $(DEPDIR)/script_la-script-lib-string.Tpo -c -o script_la-script-lib-string.lo `test -f 'script-lib-string.c' || echo '$(srcdir)/'`script-lib-string.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/script_la-script-lib-string.Tpo $(DEPDIR)/script_la-script-lib-string.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$(srcdir)/script-lib-string.c' object='script_la-script-lib-string.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='script-lib-string.c' object='script_la-script-lib-string.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-lib-string.lo `test -f '$(srcdir)/script-lib-string.c' || echo '$(srcdir)/'`$(srcdir)/script-lib-string.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(script_la_CFLAGS) $(CFLAGS) -c -o script_la-script-lib-string.lo `test -f 'script-lib-string.c' || echo '$(srcdir)/'`script-lib-string.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

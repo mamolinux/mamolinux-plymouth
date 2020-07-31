@@ -115,8 +115,10 @@ am__installdirs = "$(DESTDIR)$(plymouthdbindir)" \
 	"$(DESTDIR)$(plymouthd_defaultsdir)" \
 	"$(DESTDIR)$(pkgconfigdir)"
 PROGRAMS = $(plymouthdbin_PROGRAMS)
+am__dirstamp = $(am__leading_dot)dirstamp
 am_plymouthd_OBJECTS = plymouthd-ply-boot-server.$(OBJEXT) \
-	plymouthd-plugin.$(OBJEXT) plymouthd-main.$(OBJEXT)
+	plugins/splash/details/plymouthd-plugin.$(OBJEXT) \
+	plymouthd-main.$(OBJEXT)
 plymouthd_OBJECTS = $(am_plymouthd_OBJECTS)
 am__DEPENDENCIES_1 =
 plymouthd_DEPENDENCIES = $(am__DEPENDENCIES_1) libply/libply.la \
@@ -144,8 +146,8 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/build-tools/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/plymouthd-main.Po \
-	./$(DEPDIR)/plymouthd-plugin.Po \
-	./$(DEPDIR)/plymouthd-ply-boot-server.Po
+	./$(DEPDIR)/plymouthd-ply-boot-server.Po \
+	plugins/splash/details/$(DEPDIR)/plymouthd-plugin.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -312,7 +314,6 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 INTLLIBS = @INTLLIBS@
-INTLTOOL_EXTRACT = @INTLTOOL_EXTRACT@
 INTL_MACOSX_LIBS = @INTL_MACOSX_LIBS@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
@@ -439,7 +440,6 @@ plymouthruntimedir = @plymouthruntimedir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
-runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -574,6 +574,15 @@ clean-plymouthdbinPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
+plugins/splash/details/$(am__dirstamp):
+	@$(MKDIR_P) plugins/splash/details
+	@: > plugins/splash/details/$(am__dirstamp)
+plugins/splash/details/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) plugins/splash/details/$(DEPDIR)
+	@: > plugins/splash/details/$(DEPDIR)/$(am__dirstamp)
+plugins/splash/details/plymouthd-plugin.$(OBJEXT):  \
+	plugins/splash/details/$(am__dirstamp) \
+	plugins/splash/details/$(DEPDIR)/$(am__dirstamp)
 
 plymouthd$(EXEEXT): $(plymouthd_OBJECTS) $(plymouthd_DEPENDENCIES) $(EXTRA_plymouthd_DEPENDENCIES) 
 	@rm -f plymouthd$(EXEEXT)
@@ -581,13 +590,14 @@ plymouthd$(EXEEXT): $(plymouthd_OBJECTS) $(plymouthd_DEPENDENCIES) $(EXTRA_plymo
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f plugins/splash/details/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plymouthd-main.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plymouthd-plugin.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plymouthd-ply-boot-server.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@plugins/splash/details/$(DEPDIR)/plymouthd-plugin.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -596,22 +606,25 @@ $(am__depfiles_remade):
 am--depfiles: $(am__depfiles_remade)
 
 .c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
 
 .c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
 .c.lo:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
+@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
+@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
@@ -630,19 +643,19 @@ plymouthd-ply-boot-server.obj: ply-boot-server.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouthd_CFLAGS) $(CFLAGS) -c -o plymouthd-ply-boot-server.obj `if test -f 'ply-boot-server.c'; then $(CYGPATH_W) 'ply-boot-server.c'; else $(CYGPATH_W) '$(srcdir)/ply-boot-server.c'; fi`
 
-plymouthd-plugin.o: plugins/splash/details/plugin.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouthd_CFLAGS) $(CFLAGS) -MT plymouthd-plugin.o -MD -MP -MF $(DEPDIR)/plymouthd-plugin.Tpo -c -o plymouthd-plugin.o `test -f 'plugins/splash/details/plugin.c' || echo '$(srcdir)/'`plugins/splash/details/plugin.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/plymouthd-plugin.Tpo $(DEPDIR)/plymouthd-plugin.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='plugins/splash/details/plugin.c' object='plymouthd-plugin.o' libtool=no @AMDEPBACKSLASH@
+plugins/splash/details/plymouthd-plugin.o: plugins/splash/details/plugin.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouthd_CFLAGS) $(CFLAGS) -MT plugins/splash/details/plymouthd-plugin.o -MD -MP -MF plugins/splash/details/$(DEPDIR)/plymouthd-plugin.Tpo -c -o plugins/splash/details/plymouthd-plugin.o `test -f 'plugins/splash/details/plugin.c' || echo '$(srcdir)/'`plugins/splash/details/plugin.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) plugins/splash/details/$(DEPDIR)/plymouthd-plugin.Tpo plugins/splash/details/$(DEPDIR)/plymouthd-plugin.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='plugins/splash/details/plugin.c' object='plugins/splash/details/plymouthd-plugin.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouthd_CFLAGS) $(CFLAGS) -c -o plymouthd-plugin.o `test -f 'plugins/splash/details/plugin.c' || echo '$(srcdir)/'`plugins/splash/details/plugin.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouthd_CFLAGS) $(CFLAGS) -c -o plugins/splash/details/plymouthd-plugin.o `test -f 'plugins/splash/details/plugin.c' || echo '$(srcdir)/'`plugins/splash/details/plugin.c
 
-plymouthd-plugin.obj: plugins/splash/details/plugin.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouthd_CFLAGS) $(CFLAGS) -MT plymouthd-plugin.obj -MD -MP -MF $(DEPDIR)/plymouthd-plugin.Tpo -c -o plymouthd-plugin.obj `if test -f 'plugins/splash/details/plugin.c'; then $(CYGPATH_W) 'plugins/splash/details/plugin.c'; else $(CYGPATH_W) '$(srcdir)/plugins/splash/details/plugin.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/plymouthd-plugin.Tpo $(DEPDIR)/plymouthd-plugin.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='plugins/splash/details/plugin.c' object='plymouthd-plugin.obj' libtool=no @AMDEPBACKSLASH@
+plugins/splash/details/plymouthd-plugin.obj: plugins/splash/details/plugin.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouthd_CFLAGS) $(CFLAGS) -MT plugins/splash/details/plymouthd-plugin.obj -MD -MP -MF plugins/splash/details/$(DEPDIR)/plymouthd-plugin.Tpo -c -o plugins/splash/details/plymouthd-plugin.obj `if test -f 'plugins/splash/details/plugin.c'; then $(CYGPATH_W) 'plugins/splash/details/plugin.c'; else $(CYGPATH_W) '$(srcdir)/plugins/splash/details/plugin.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) plugins/splash/details/$(DEPDIR)/plymouthd-plugin.Tpo plugins/splash/details/$(DEPDIR)/plymouthd-plugin.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='plugins/splash/details/plugin.c' object='plugins/splash/details/plymouthd-plugin.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouthd_CFLAGS) $(CFLAGS) -c -o plymouthd-plugin.obj `if test -f 'plugins/splash/details/plugin.c'; then $(CYGPATH_W) 'plugins/splash/details/plugin.c'; else $(CYGPATH_W) '$(srcdir)/plugins/splash/details/plugin.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouthd_CFLAGS) $(CFLAGS) -c -o plugins/splash/details/plymouthd-plugin.obj `if test -f 'plugins/splash/details/plugin.c'; then $(CYGPATH_W) 'plugins/splash/details/plugin.c'; else $(CYGPATH_W) '$(srcdir)/plugins/splash/details/plugin.c'; fi`
 
 plymouthd-main.o: main.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(plymouthd_CFLAGS) $(CFLAGS) -MT plymouthd-main.o -MD -MP -MF $(DEPDIR)/plymouthd-main.Tpo -c -o plymouthd-main.o `test -f 'main.c' || echo '$(srcdir)/'`main.c
@@ -918,6 +931,8 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-rm -f plugins/splash/details/$(DEPDIR)/$(am__dirstamp)
+	-rm -f plugins/splash/details/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -930,8 +945,8 @@ clean-am: clean-generic clean-libtool clean-plymouthdbinPROGRAMS \
 
 distclean: distclean-recursive
 		-rm -f ./$(DEPDIR)/plymouthd-main.Po
-	-rm -f ./$(DEPDIR)/plymouthd-plugin.Po
 	-rm -f ./$(DEPDIR)/plymouthd-ply-boot-server.Po
+	-rm -f plugins/splash/details/$(DEPDIR)/plymouthd-plugin.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -981,8 +996,8 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-recursive
 		-rm -f ./$(DEPDIR)/plymouthd-main.Po
-	-rm -f ./$(DEPDIR)/plymouthd-plugin.Po
 	-rm -f ./$(DEPDIR)/plymouthd-ply-boot-server.Po
+	-rm -f plugins/splash/details/$(DEPDIR)/plymouthd-plugin.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

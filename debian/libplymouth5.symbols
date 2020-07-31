@@ -205,21 +205,21 @@ libply-splash-core.so.5 libplymouth5 #MINVER#
  ply_text_display_write@Base 0.9.2
  ply_text_progress_bar_draw@Base 0.9.2
  ply_text_progress_bar_free@Base 0.9.2
+ ply_text_progress_bar_get_fraction_done@Base 0.9.5
  ply_text_progress_bar_get_number_of_columns@Base 0.9.2
  ply_text_progress_bar_get_number_of_rows@Base 0.9.2
- ply_text_progress_bar_get_percent_done@Base 0.9.2
  ply_text_progress_bar_hide@Base 0.9.2
  ply_text_progress_bar_new@Base 0.9.2
- ply_text_progress_bar_set_percent_done@Base 0.9.2
+ ply_text_progress_bar_set_fraction_done@Base 0.9.5
  ply_text_progress_bar_show@Base 0.9.2
  ply_text_step_bar_draw@Base 0.9.2
  ply_text_step_bar_free@Base 0.9.2
+ ply_text_step_bar_get_fraction_done@Base 0.9.5
  ply_text_step_bar_get_number_of_columns@Base 0.9.2
  ply_text_step_bar_get_number_of_rows@Base 0.9.2
- ply_text_step_bar_get_percent_done@Base 0.9.2
  ply_text_step_bar_hide@Base 0.9.2
  ply_text_step_bar_new@Base 0.9.2
- ply_text_step_bar_set_percent_done@Base 0.9.2
+ ply_text_step_bar_set_fraction_done@Base 0.9.5
  ply_text_step_bar_show@Base 0.9.2
 libply-splash-graphics.so.5 libplymouth5 #MINVER#
  ply_animation_draw_area@Base 0.9.2
@@ -291,27 +291,27 @@ libply-splash-graphics.so.5 libplymouth5 #MINVER#
  ply_progress_animation_draw@Base 0.9.2
  ply_progress_animation_draw_area@Base 0.9.2
  ply_progress_animation_free@Base 0.9.2
+ ply_progress_animation_get_fraction_done@Base 0.9.5
  ply_progress_animation_get_height@Base 0.9.2
- ply_progress_animation_get_percent_done@Base 0.9.2
  ply_progress_animation_get_width@Base 0.9.2
  ply_progress_animation_hide@Base 0.9.2
  ply_progress_animation_is_hidden@Base 0.9.2
  ply_progress_animation_load@Base 0.9.2
  ply_progress_animation_new@Base 0.9.2
- ply_progress_animation_set_percent_done@Base 0.9.2
+ ply_progress_animation_set_fraction_done@Base 0.9.5
  ply_progress_animation_set_transition@Base 0.9.2
  ply_progress_animation_show@Base 0.9.2
  ply_progress_bar_draw@Base 0.9.2
  ply_progress_bar_draw_area@Base 0.9.2
  ply_progress_bar_free@Base 0.9.2
+ ply_progress_bar_get_fraction_done@Base 0.9.5
  ply_progress_bar_get_height@Base 0.9.2
- ply_progress_bar_get_percent_done@Base 0.9.2
  ply_progress_bar_get_width@Base 0.9.2
  ply_progress_bar_hide@Base 0.9.2
  ply_progress_bar_is_hidden@Base 0.9.2
  ply_progress_bar_new@Base 0.9.2
  ply_progress_bar_set_colors@Base 0.9.4git20190712
- ply_progress_bar_set_percent_done@Base 0.9.2
+ ply_progress_bar_set_fraction_done@Base 0.9.5
  ply_progress_bar_show@Base 0.9.2
  ply_throbber_draw_area@Base 0.9.2
  ply_throbber_free@Base 0.9.2
