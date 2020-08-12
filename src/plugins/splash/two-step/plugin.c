@@ -1738,6 +1738,14 @@ update_fsck (ply_boot_splash_plugin_t *plugin,
 }
 
 static void
+set_footer (ply_boot_splash_plugin_t *plugin,
+            const char               *message)
+{
+        free (plugin->footer);
+        plugin->footer = strdup (message);
+}
+
+static void
 end_fsck (ply_boot_splash_plugin_t *plugin)
 {
         if (!plugin->in_fsck)
@@ -1746,18 +1754,11 @@ end_fsck (ply_boot_splash_plugin_t *plugin)
         stop_animation (plugin);
         plugin->in_fsck = false;
         plugin->transient_progress_bar = false;
+        set_footer (plugin, "");
         update_message (plugin);
 
         if (use_animation (plugin))
                 start_progress_animation (plugin);
-}
-
-static void
-set_footer (ply_boot_splash_plugin_t *plugin,
-            const char               *message)
-{
-        free (plugin->footer);
-        plugin->footer = strdup (message);
 }
 
 static void
