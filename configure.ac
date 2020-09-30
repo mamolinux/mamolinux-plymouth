@@ -309,6 +309,7 @@ AC_CONFIG_FILES([Makefile po/Makefile.in
            src/plugins/splash/Makefile
            src/plugins/splash/fade-throbber/Makefile
            src/plugins/splash/tribar/Makefile
+           src/plugins/splash/ubuntu-text/Makefile
            src/plugins/splash/text/Makefile
            src/plugins/splash/details/Makefile
            src/plugins/splash/space-flares/Makefile
@@ -332,6 +333,7 @@ AC_CONFIG_FILES([Makefile po/Makefile.in
            themes/script/Makefile
            themes/ubuntu-logo/Makefile
            themes/bgrt/Makefile
+           themes/ubuntu-text/Makefile
            images/Makefile
 	   scripts/plymouth-generate-initrd
 	   scripts/plymouth-populate-initrd
