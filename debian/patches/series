@@ -1,3 +1,6 @@
+git_screens_resolution.patch
+git_set_translations.patch
+
 0005-cmdline.patch
 drop-systemd-vconsole-setup-service.patch
 gitlab_correct_keynames.patch

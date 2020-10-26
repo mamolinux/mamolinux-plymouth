@@ -1,0 +1,33 @@
+From b2bf5d5cc93b6d5d431daa8886a6016b5c32bfdb Mon Sep 17 00:00:00 2001
+From: Kayran Schmidt <schmidt.kayran@gmail.com>
+Date: Sun, 23 Aug 2020 11:24:48 +0000
+Subject: [PATCH] use resolution of higher res monitor for window size
+
+---
+ src/plugins/splash/script/script-lib-sprite.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/plugins/splash/script/script-lib-sprite.c b/src/plugins/splash/script/script-lib-sprite.c
+index 211fe447..52ba27c3 100644
+--- a/src/plugins/splash/script/script-lib-sprite.c
++++ b/src/plugins/splash/script/script-lib-sprite.c
+@@ -231,7 +231,7 @@ static script_return_t sprite_window_get_width (script_state_t *state,
+                 if (width == 0)
+                         width = ply_pixel_display_get_width (display->pixel_display);
+                 else
+-                        width = MIN (width, ply_pixel_display_get_width (display->pixel_display));
++                        width = MAX (width, ply_pixel_display_get_width (display->pixel_display));
+         }
+         return script_return_obj (script_obj_new_number (width));
+ }
+@@ -269,7 +269,7 @@ static script_return_t sprite_window_get_height (script_state_t *state,
+                 if (height == 0)
+                         height = ply_pixel_display_get_height (display->pixel_display);
+                 else
+-                        height = MIN (height, ply_pixel_display_get_height (display->pixel_display));
++                        height = MAX (height, ply_pixel_display_get_height (display->pixel_display));
+         }
+         return script_return_obj (script_obj_new_number (height));
+ }
+-- 
+
