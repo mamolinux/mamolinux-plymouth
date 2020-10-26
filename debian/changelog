@@ -1,3 +1,22 @@
+plymouth (0.9.5-0ubuntu3) hirsute; urgency=medium
+
+  * debian/patches/git_screens_resolution.patch:
+    - don't limit the resolution to the lower screen one
+  * debian/patches/git_set_translations.patch:
+    - do the setlocale configuration even when there is no initrd, fixes
+      the translations not showing up when testing in a session
+
+  [ Daniel van Vugt ]
+  * debian/patches/timeout-for-ping.patch: Raise the ping timeout from 2 to
+    30 seconds. Two seconds was way too short,
+    - causing ping to randomly fail on some busy multi-monitor start-ups,
+    - causing gdm to think no plymouthd is running,
+    - causing gdm to never call 'plymouth deactivate',
+    - causing plymouthd to retain ownership of the graphics hardware,
+    - causing gdm's login screen to fail to start. (LP: #1872159)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 26 Oct 2020 13:16:03 +0100
+
 plymouth (0.9.5-0ubuntu2) groovy; urgency=medium
 
   * Clear twostep footer, at the end of fsck, and clear lingering Ctrl+C
