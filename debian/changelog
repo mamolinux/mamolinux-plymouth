@@ -1,3 +1,15 @@
+plymouth (0.9.4git20200323-0ubuntu6.2) focal; urgency=medium
+
+  * debian/patches/timeout-for-ping.patch: Raise the ping timeout from 2 to
+    30 seconds. Two seconds was way too short,
+    - causing ping to randomly fail on some busy multi-monitor start-ups,
+    - causing gdm to think no plymouthd is running,
+    - causing gdm to never call 'plymouth deactivate',
+    - causing plymouthd to retain ownership of the graphics hardware,
+    - causing gdm's login screen to fail to start. (LP: #1872159)
+
+ -- Daniel van Vugt <daniel.van.vugt@canonical.com>  Mon, 02 Nov 2020 18:02:17 +0800
+
 plymouth (0.9.4git20200323-0ubuntu6.1) focal; urgency=medium
 
   * Clear twostep footer, at the end of fsck, and clear lingering Ctrl+C
