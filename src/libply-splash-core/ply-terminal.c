@@ -131,18 +131,10 @@ ply_terminal_parse_keymap_conf (ply_terminal_t *terminal)
         if (keymap)
                 return keymap;
 
-        vconsole_conf = ply_key_file_new ("/etc/vconsole.conf");
+        vconsole_conf = ply_key_file_new ("/etc/default/keyboard");
         if (ply_key_file_load_groupless_file (vconsole_conf))
-                keymap = ply_key_file_get_value (vconsole_conf, NULL, "KEYMAP");
+                keymap = ply_key_file_get_value (vconsole_conf, NULL, "XKBLAYOUT");
         ply_key_file_free (vconsole_conf);
-
-        /* Fallback to the debian specific keyboard configuration file */
-        if (!keymap) {
-                vconsole_conf = ply_key_file_new ("/etc/default/keyboard");
-                if (ply_key_file_load_groupless_file (vconsole_conf))
-                        keymap = ply_key_file_get_value (vconsole_conf, NULL, "XKBLAYOUT");
-                ply_key_file_free (vconsole_conf);
-        }
 
         /* The keymap name in vconsole.conf might be quoted, strip these */
         if (keymap && keymap[0] == '"' && keymap[strlen (keymap) - 1] == '"') {
