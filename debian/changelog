@@ -1,3 +1,11 @@
+plymouth (0.9.5-0ubuntu3.1) impish; urgency=medium
+
+  * debian/local, debian/rules, debian/source/include-binaries:
+    - updated assets for the bgrt theme, includes fixes for the spinning
+      animation sligtly lagging, thanks Muqtadir!
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 17 Jun 2021 10:03:10 +0200
+
 plymouth (0.9.5-0ubuntu3) hirsute; urgency=medium
 
   * debian/patches/git_screens_resolution.patch:
