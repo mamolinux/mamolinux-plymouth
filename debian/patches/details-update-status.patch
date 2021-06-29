@@ -2,9 +2,11 @@ Description: Implement update status (U) splash plugin function for details plug
 Author: Dmitrijs Ledkovs <xnox@ubuntu.com>
 Bug-Ubuntu: https://bugs.launchpad.net/bugs/540645
 
---- a/src/plugins/splash/details/plugin.c
-+++ b/src/plugins/splash/details/plugin.c
-@@ -81,6 +81,9 @@
+Index: plymouth-0.9.5git20210323/src/plugins/splash/details/plugin.c
+===================================================================
+--- plymouth-0.9.5git20210323.orig/src/plugins/splash/details/plugin.c
++++ plymouth-0.9.5git20210323/src/plugins/splash/details/plugin.c
+@@ -81,6 +81,9 @@ struct _ply_boot_splash_plugin
          ply_buffer_t                  *boot_buffer;
  };
  
@@ -14,7 +16,7 @@ Bug-Ubuntu: https://bugs.launchpad.net/bugs/540645
  static view_t *
  view_new (ply_boot_splash_plugin_t *plugin,
            ply_text_display_t       *display)
-@@ -309,6 +312,19 @@
+@@ -309,6 +312,19 @@ update_status (ply_boot_splash_plugin_t
          assert (plugin != NULL);
  
          ply_trace ("status update");

@@ -11,11 +11,11 @@ Last-Update: 2020-04-01
  src/main.c |    4 ++++
  1 file changed, 4 insertions(+)
 
-Index: plymouth-0.9.5/src/main.c
+Index: plymouth-0.9.5git20210323/src/main.c
 ===================================================================
---- plymouth-0.9.5.orig/src/main.c
-+++ plymouth-0.9.5/src/main.c
-@@ -2271,6 +2271,10 @@ main (int    argc,
+--- plymouth-0.9.5git20210323.orig/src/main.c
++++ plymouth-0.9.5git20210323/src/main.c
+@@ -2275,6 +2275,10 @@ main (int    argc,
          find_system_default_splash (&state);
          find_distribution_default_splash (&state);
  
