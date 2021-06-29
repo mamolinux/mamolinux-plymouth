@@ -4,10 +4,10 @@ Description: support initramfsless boot
  yet, as this breaks booting without an initramfs.
 Bug-Ubuntu: https://bugs.launchpad.net/bugs/981314
 
-Index: plymouth-0.9.5/src/main.c
+Index: plymouth-0.9.5git20210323/src/main.c
 ===================================================================
---- plymouth-0.9.5.orig/src/main.c
-+++ plymouth-0.9.5/src/main.c
+--- plymouth-0.9.5git20210323.orig/src/main.c
++++ plymouth-0.9.5git20210323/src/main.c
 @@ -1786,6 +1786,7 @@ attach_to_running_session (state_t *stat
                  session = ply_terminal_session_new (NULL);
  
@@ -37,7 +37,7 @@ Index: plymouth-0.9.5/src/main.c
  
          return true;
  }
-@@ -2254,9 +2248,6 @@ main (int    argc,
+@@ -2258,9 +2252,6 @@ main (int    argc,
                  state.should_be_attached = attach_to_session;
                  if (!attach_to_running_session (&state)) {
                          ply_trace ("could not redirect console session: %m");

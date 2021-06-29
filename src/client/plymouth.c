@@ -42,6 +42,12 @@
 #define PLY_MAX_COMMAND_LINE_SIZE 4097
 #endif
 
+
+#ifndef PLY_PING_TIMEOUT
+#define PLY_PING_TIMEOUT 30.0
+#endif
+
+
 #define KEY_CTRL_C ('\100' ^ 'C')
 
 typedef struct
@@ -75,11 +81,11 @@ typedef struct
         char    *keys;
 } key_answer_state_t;
 
-ply_event_loop_timeout_handler_t timeout_handler(void *user_data)
+static void
+on_ping_timeout (state_t *state)
 {
-        ply_event_loop_t *loop = user_data;
         ply_trace ("ping: timed out waiting for plymouthd");
-        ply_event_loop_exit(loop, 1);
+        ply_event_loop_exit (state->loop, 1);
 }
 
 static char **
@@ -1152,8 +1158,9 @@ main (int    argc,
                                              on_success,
                                              (ply_boot_client_response_handler_t)
                                              on_failure, &state);
-                ply_event_loop_watch_for_timeout (state.loop, 30.0,
-                                                  timeout_handler, state.loop);
+                ply_event_loop_watch_for_timeout (state.loop, PLY_PING_TIMEOUT,
+                                                  (ply_event_loop_timeout_handler_t)
+                                                  on_ping_timeout, &state);
         } else if (should_check_for_active_vt) {
                 ply_boot_client_ask_daemon_has_active_vt (state.client,
                                                           (ply_boot_client_response_handler_t)

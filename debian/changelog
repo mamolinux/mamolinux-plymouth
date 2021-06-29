@@ -1,3 +1,16 @@
+plymouth (0.9.5git20210323-0ubuntu1) impish; urgency=medium
+
+  * Update by doing a new snapshot as recommended by upstream,
+    including support for bgrt fallback image
+  * debian/patches/git_screens_resolution.patch,
+    debian/patches/git_set_translations.patch;
+    debian/patches/gitlab_correct_keynames.patch,
+    debian/patches/timeout-for-ping.patch:
+    - remove patches included in the new version
+  * debian/local/bgrt-fallback.png: updated, thanks Muqtadir!
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 29 Jun 2021 15:03:27 +0200
+
 plymouth (0.9.5-0ubuntu3.1) impish; urgency=medium
 
   * debian/local, debian/rules, debian/source/include-binaries:
