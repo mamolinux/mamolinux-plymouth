@@ -1,3 +1,19 @@
+plymouth (0.9.5git20210406-0ubuntu1) impish; urgency=medium
+
+  * New upstream snapshot 20210406 (commit e55447500fa9) taken on
+    2021-08-31 (upstream is unchanged since April) to get the latest bug
+    fixes, in particular LP: #1923335.
+  * plymouth.install: Add plymouthd-fd-escrow to support the above shutdown
+    bug fix.
+  * Refreshed debian/patches:
+    - details-remove-separator.patch
+    - details-update-status.patch
+    - initramfsless-boot.patch
+    - misc-changes.patch
+    - ubuntu-default-devicetimeout.patch
+
+ -- Daniel van Vugt <daniel.van.vugt@canonical.com>  Tue, 31 Aug 2021 15:01:18 +0800
+
 plymouth (0.9.5git20210323-0ubuntu1) impish; urgency=medium
 
   * Update by doing a new snapshot as recommended by upstream,

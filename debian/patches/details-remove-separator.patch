@@ -2,11 +2,11 @@ Description: Removed explicit printing of ':'
  Removed the explicit printing of ':'. Expected to be a part of the prompt.
 Author: Surbhi Palande <surbhi.palande@canonical.com>
 
-Index: plymouth-0.9.5git20210323/src/plugins/splash/details/plugin.c
+Index: testbuild/src/plugins/splash/details/plugin.c
 ===================================================================
---- plymouth-0.9.5git20210323.orig/src/plugins/splash/details/plugin.c
-+++ plymouth-0.9.5git20210323/src/plugins/splash/details/plugin.c
-@@ -383,10 +383,8 @@ display_password (ply_boot_splash_plugin
+--- testbuild.orig/src/plugins/splash/details/plugin.c
++++ testbuild/src/plugins/splash/details/plugin.c
+@@ -385,10 +385,8 @@ display_password (ply_boot_splash_plugin
                                  strlen (prompt));
          else
                  write_on_views (plugin,

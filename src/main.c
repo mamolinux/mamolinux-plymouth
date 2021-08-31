@@ -159,6 +159,7 @@ static void on_quit (state_t       *state,
 static bool sh_is_init (state_t *state);
 static void cancel_pending_delayed_show (state_t *state);
 static void prepare_logging (state_t *state);
+static void dump_debug_buffer_to_file (void);
 
 static void
 on_session_output (state_t    *state,
@@ -675,6 +676,12 @@ on_newroot (state_t    *state,
         }
 
         ply_trace ("new root mounted at \"%s\", switching to it", root_dir);
+
+        if (!strcmp (root_dir, "/run/initramfs") && debug_buffer != NULL) {
+                ply_trace ("switching back to initramfs, dumping debug-buffer now");
+                dump_debug_buffer_to_file ();
+        }
+
         chdir (root_dir);
         chroot (".");
         chdir ("/");
@@ -942,6 +949,7 @@ on_show_splash (state_t *state)
 
         if (plymouth_should_ignore_show_splash_calls (state)) {
                 ply_trace ("show splash called while ignoring show splash calls");
+                state->should_retain_splash = true;
                 dump_details_and_quit_splash (state);
                 return;
         }
@@ -1196,6 +1204,7 @@ on_hide_splash (state_t *state)
                 return;
 
         ply_trace ("hiding boot splash");
+        state->should_retain_splash = true;
         dump_details_and_quit_splash (state);
 }
 
@@ -1890,8 +1899,13 @@ check_verbosity (state_t *state)
         }
 
         if (debug_buffer != NULL) {
-                if (debug_buffer_path == NULL)
-                        debug_buffer_path = strdup (PLYMOUTH_LOG_DIRECTORY "/plymouth-debug.log");
+                if (debug_buffer_path == NULL) {
+                        if (state->mode == PLY_BOOT_SPLASH_MODE_SHUTDOWN ||
+                            state->mode == PLY_BOOT_SPLASH_MODE_REBOOT)
+                                debug_buffer_path = strdup (PLYMOUTH_LOG_DIRECTORY "/plymouth-shutdown-debug.log");
+                        else
+                                debug_buffer_path = strdup (PLYMOUTH_LOG_DIRECTORY "/plymouth-debug.log");
+                }
 
                 ply_logger_add_filter (ply_logger_get_error_default (),
                                        (ply_logger_filter_handler_t)
@@ -1992,7 +2006,7 @@ initialize_environment (state_t *state)
         state->pending_messages = ply_list_new ();
         state->messages = ply_list_new ();
 
-        if (!ply_is_tracing ())
+        if (!ply_is_tracing_to_terminal ())
                 redirect_standard_io_to_dev_null ();
 
         ply_trace ("Making sure " PLYMOUTH_RUNTIME_DIR " exists");
@@ -2069,6 +2083,43 @@ on_crash (int signum)
 
         signal (signum, SIG_DFL);
         raise (signum);
+}
+
+static void
+start_plymouthd_fd_escrow (void)
+{
+        pid_t pid;
+
+        pid = fork ();
+        if (pid == 0) {
+                const char *argv[] = { PLYMOUTH_DRM_ESCROW_DIRECTORY "/plymouthd-fd-escrow", NULL };
+
+                execve (argv[0], (char * const *) argv, NULL);
+                ply_trace ("could not launch fd escrow process: %m");
+                _exit (1);
+        }
+}
+
+static void
+on_term_signal (state_t *state)
+{
+        bool retain_splash = false;
+
+        ply_trace ("received SIGTERM");
+
+        /*
+         * On shutdown/reboot with pixel-displays active, start the plymouthd-fd-escrow
+         * helper to hold on to the pixel-displays fds until the end.
+         */
+        if ((state->mode == PLY_BOOT_SPLASH_MODE_SHUTDOWN ||
+             state->mode == PLY_BOOT_SPLASH_MODE_REBOOT) &&
+            !state->is_inactive && state->boot_splash &&
+            ply_boot_splash_uses_pixel_displays (state->boot_splash)) {
+                start_plymouthd_fd_escrow ();
+                retain_splash = true;
+        }
+
+        on_quit (state, retain_splash, ply_trigger_new (NULL));
 }
 
 static void
@@ -2230,11 +2281,18 @@ main (int    argc,
         }
 
         /* Make the first byte in argv be '@' so that we can survive systemd's killing
-         * spree when going from initrd to /, and so we stay alive all the way until
-         * the power is killed at shutdown.
+         * spree when going from initrd to /
          * http://www.freedesktop.org/wiki/Software/systemd/RootStorageDaemons
+         * Note ply_file_exists () does not work here because /etc/initrd-release
+         * is a symlink when using a dracut generated initrd.
          */
-        argv[0][0] = '@';
+        if (state.mode == PLY_BOOT_SPLASH_MODE_BOOT_UP &&
+            access ("/etc/initrd-release", F_OK) >= 0)
+                argv[0][0] = '@';
+
+        /* Catch SIGTERM for clean shutdown on poweroff/reboot */
+        ply_event_loop_watch_signal (state.loop, SIGTERM,
+                                     (ply_event_handler_t) on_term_signal, &state);
 
         state.boot_server = start_boot_server (&state);
 
