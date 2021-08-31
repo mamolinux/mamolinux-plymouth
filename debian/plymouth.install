@@ -9,6 +9,7 @@ usr/lib/*/plymouth/renderers/frame-buffer.so
 usr/lib/*/plymouth/script.so
 usr/lib/*/plymouth/text.so
 usr/lib/*/plymouth/tribar.so
+usr/lib/*/plymouth/plymouthd-fd-escrow
 usr/sbin
 usr/share/locale
 usr/share/man/man1/plymouth.1
