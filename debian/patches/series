@@ -10,9 +10,8 @@ ubuntu-add-splash-option.patch
 ubuntu-default-devicetimeout.patch
 ubuntu-spinner-style.patch
 ubuntu-spinner-fsck.patch
+plymouth-switch-root-initramfs-Preload-text-renderin.patch
 
 # Ubuntu themes
 ubuntu-logo.patch
 ubuntu-text.patch
-
-

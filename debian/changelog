@@ -1,3 +1,12 @@
+plymouth (0.9.5git20210406-0ubuntu2) impish; urgency=medium
+
+  * Add plymouth-switch-root-initramfs-Preload-text-renderin.patch to
+    preload all the graphics libraries required by plymouthd before the
+    switch occurs. So now casper can render text even from within the
+    initramfs regardless of library dependencies (LP: #1942987).
+
+ -- Daniel van Vugt <daniel.van.vugt@canonical.com>  Wed, 15 Sep 2021 17:24:22 +0800
+
 plymouth (0.9.5git20210406-0ubuntu1) impish; urgency=medium
 
   * New upstream snapshot 20210406 (commit e55447500fa9) taken on
