@@ -1,3 +1,10 @@
+plymouth (22.02.122-1) UNRELEASED; urgency=medium
+
+  * New upstream release, upstream will now release more frequent snapshot
+    releases
+
+ -- Laurent Bigonville <bigon@debian.org>  Wed, 19 Jan 2022 10:35:46 +0100
+
 plymouth (0.9.5+git20211018-1) unstable; urgency=medium
 
   * New upstream version 0.9.5+git20211018 (Closes: #967047)
