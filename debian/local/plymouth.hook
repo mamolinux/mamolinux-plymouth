@@ -144,7 +144,7 @@ case "${THEME_NAME}" in
 esac
 
 # add drm modules
-MODULES_EXCLUDE="mga r128 savage sis tdfx via"
+MODULES_EXCLUDE="mga r128 savage sis tdfx via panfrost"
 if [ "$MODULES" = "dep" ]; then
 	for DRM_DEVICE in "/sys/class/drm"/*; do
 		DRM_DEVICE="$(readlink -f "$DRM_DEVICE")" || continue
