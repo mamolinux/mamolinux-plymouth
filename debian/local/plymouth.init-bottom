@@ -1,5 +1,6 @@
 #!/bin/sh
 
+OPTION=FRAMEBUFFER
 PREREQ="udev"
 
 prereqs()
@@ -14,4 +15,4 @@ case ${1} in
 		;;
 esac
 
-/usr/bin/plymouth --newroot=${rootmnt}
+/usr/bin/plymouth update-root-fs --new-root-dir=${rootmnt}
