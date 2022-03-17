@@ -10,6 +10,6 @@ ConditionPathExists=/run/initramfs/bin/sh
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=-/usr/local/bin/plymouth update-root-fs --new-root-dir=/run/initramfs
+ExecStart=-/usr/bin/plymouth update-root-fs --new-root-dir=/run/initramfs
 Type=oneshot
 RemainAfterExit=yes

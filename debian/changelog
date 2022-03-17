@@ -1,3 +1,16 @@
+plymouth (22.02.122-1) unstable; urgency=medium
+
+  [ Laurent Bigonville ]
+  * New upstream release, upstream will now release more frequent snapshot
+    releases
+
+  [ Alper Nebi Yasak ]
+  * debian/local/plymouth.hook: Apply module exclusions for MODULES=dep as well
+  * debian/local/plymouth.hook: Add panfrost to excluded DRM modules (Closes:
+    #1007730)
+
+ -- Laurent Bigonville <bigon@debian.org>  Thu, 17 Mar 2022 18:09:27 +0100
+
 plymouth (0.9.5+git20211018-1) unstable; urgency=medium
 
   * New upstream version 0.9.5+git20211018 (Closes: #967047)
