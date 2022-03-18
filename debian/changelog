@@ -1,3 +1,11 @@
+plymouth (0.9.5+git20211018-1ubuntu3) jammy; urgency=medium
+
+  * themes/ubuntu-logo/ubuntu-logo.png:
+    - use the right variant of the logo with a dark background instead of
+      a white one (lp: #1965449)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 18 Mar 2022 11:45:18 +0100
+
 plymouth (0.9.5+git20211018-1ubuntu2) jammy; urgency=medium
 
   * debian/local/bgrt-fallback.png,
