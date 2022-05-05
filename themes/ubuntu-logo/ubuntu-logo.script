@@ -185,7 +185,7 @@ if (bits_per_pixel == 4) {
     password_field_filename = "password-field16.png";
     question_field_filename = "password-field16.png";
 } else {
-    logo_filename = "ubuntu-logo.png";
+    logo_filename = "mamolinux-logo.png";
     progress_dot_off_filename = "progress-dot-off.png";
     progress_dot_on_filename = "progress-dot-on.png";
     password_field_filename = "password-field.png";

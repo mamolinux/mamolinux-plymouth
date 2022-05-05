@@ -2,7 +2,7 @@ themedir = $(datadir)/plymouth/themes/ubuntu-logo
 nodist_theme_DATA = ubuntu-logo.plymouth
 dist_theme_DATA =   ubuntu-logo.script                                \
                     ubuntu-logo.grub                                  \
-                    ubuntu-logo.png                                   \
+                    mamolinux-logo.png                                \
                     ubuntu-logo16.png                                 \
                     noise-texture.png                                 \
                     password-field.png                                \
