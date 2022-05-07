@@ -1,3 +1,12 @@
+plymouth (0.9.5+git20211018-1ubuntu3mamolinux1) jammy; urgency=medium
+
+  * Add mamolinux-logo plymouth theme
+    - Replace ubuntu-logo.png with mamolinux-logo.png
+    - Use mamolinux-logo.png in spinner and bgrt
+    - debian/control: downgrade standards version
+
+ -- Himadri Sekhar Basu <hsb10@iitbbs.ac.in>  Sat, 07 May 2022 23:23:40 +0530
+
 plymouth (0.9.5+git20211018-1ubuntu3) jammy; urgency=medium
 
   * themes/ubuntu-logo/ubuntu-logo.png:
