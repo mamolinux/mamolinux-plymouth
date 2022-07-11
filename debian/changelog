@@ -1,3 +1,12 @@
+plymouth (0.9.5+git20211018-1ubuntu4) kinetic; urgency=medium
+
+  * Add patches to build the label-ft plugin, an alternative to the label
+    plugin that has less dependencies (LP: #1976352).
+  * Apply labelft-0004-label-ft-fix-alignment.patch to fix alignment
+    issue with the label-ft control plugin.
+
+ -- Alfonso Sanchez-Beato <alfonso.sanchez-beato@canonical.com>  Mon, 11 Jul 2022 11:07:22 +0100
+
 plymouth (0.9.5+git20211018-1ubuntu3) jammy; urgency=medium
 
   * themes/ubuntu-logo/ubuntu-logo.png:
