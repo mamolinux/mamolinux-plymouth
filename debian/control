@@ -106,6 +106,22 @@ Description: boot animation, logger and I/O multiplexer - label control
  This package contains the label control, used by various graphical themes
  to render text.
 
+Package: plymouth-label-ft
+Architecture: linux-any
+Depends: plymouth (= ${binary:Version}), ${misc:Depends}, ${shlibs:Depends},
+         libfreetype6,
+Description: boot animation, logger and I/O multiplexer - label-ft control
+ Plymouth provides a boot-time I/O multiplexing framework - the most obvious
+ use for which is to provide an attractive graphical animation in place of
+ the text messages that normally get shown during boot. (The messages are
+ instead redirected to a logfile for later viewing.) However, in event-driven
+ boot systems Plymouth can also usefully handle user interaction such as
+ password prompts for encrypted file systems.
+ .
+ This package contains the label-ft control, used by various graphical themes
+ to render text. This package pulls less dependencies than the label control,
+ as is based on libfreetype instead of pango.
+
 Package: plymouth-themes
 Architecture: linux-any
 Depends: plymouth (= ${binary:Version}),

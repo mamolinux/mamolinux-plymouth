@@ -73,6 +73,15 @@ if test x$enable_pango = xyes; then
   AC_SUBST(PANGO_LIBS)
 fi
 
+AC_ARG_ENABLE(freetype, AS_HELP_STRING([--enable-freetype],[enable building the FreeType-based label plugin]),enable_freetype=$enableval,enable_freetype=yes)
+AM_CONDITIONAL(ENABLE_FREETYPE,  [test "$enable_freetype" = yes])
+
+if test x$enable_freetype = xyes; then
+  PKG_CHECK_MODULES(FREETYPE, [freetype2])
+  AC_SUBST(FREETYPE_CFLAGS)
+  AC_SUBST(FREETYPE_LIBS)
+fi
+
 AC_ARG_ENABLE(gtk, AS_HELP_STRING([--enable-gtk],[enable building with gtk, disabled there is no x11 renderer]),enable_gtk=$enableval,enable_gtk=yes)
 AM_CONDITIONAL(ENABLE_GTK,  [test "$enable_gtk" = yes])
 
@@ -314,6 +323,7 @@ AC_CONFIG_FILES([Makefile po/Makefile.in
            src/plugins/splash/script/Makefile
            src/plugins/controls/Makefile
            src/plugins/controls/label/Makefile
+           src/plugins/controls/label-ft/Makefile
            src/Makefile
            src/client/ply-boot-client.pc
            src/client/Makefile

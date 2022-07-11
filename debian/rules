@@ -28,6 +28,7 @@ override_dh_auto_configure:
 		--localstatedir=/var \
 		--with-runtimedir=/run \
 		--enable-pango \
+		--enable-freetype \
 		--enable-systemd-integration \
 		--enable-static \
 		--enable-tracing \

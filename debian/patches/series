@@ -16,3 +16,9 @@ plymouth-switch-root-initramfs-Preload-text-renderin.patch
 # Ubuntu themes
 ubuntu-logo.patch
 ubuntu-text.patch
+
+# label-ft plugins from opensuse
+labelft-0001-Add-label-ft-plugin.patch
+labelft-0002-Install-label-ft-plugin-into-initrd-if-available.patch
+labelft-0003-ply-label-Don-t-crash-if-label-plugin-fails.patch
+labelft-0004-label-ft-fix-alignment.patch
