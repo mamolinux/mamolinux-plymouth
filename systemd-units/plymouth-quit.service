@@ -3,7 +3,7 @@ Description=Terminate Plymouth Boot Screen
 After=rc-local.service plymouth-start.service systemd-user-sessions.service
 
 [Service]
-ExecStart=-/usr/local/bin/plymouth quit
+ExecStart=-/usr/bin/plymouth quit
 Type=oneshot
 RemainAfterExit=yes
 TimeoutSec=20

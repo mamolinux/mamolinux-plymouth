@@ -446,6 +446,7 @@ libply.so.5 libplymouth5 #MINVER#
  ply_logger_inject_with_non_literal_format_string@Base 0.9.2
  ply_logger_is_logging@Base 0.9.2
  ply_logger_is_tracing_enabled@Base 0.9.2
+ ply_logger_is_tracing_to_terminal@Base 22.02.122
  ply_logger_new@Base 0.9.2
  ply_logger_open_file@Base 0.9.2
  ply_logger_set_flush_policy@Base 0.9.2

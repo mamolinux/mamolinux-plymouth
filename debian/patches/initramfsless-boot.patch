@@ -4,11 +4,11 @@ Description: support initramfsless boot
  yet, as this breaks booting without an initramfs.
 Bug-Ubuntu: https://bugs.launchpad.net/bugs/981314
 
-Index: testbuild/src/main.c
+Index: plymouth/src/main.c
 ===================================================================
---- testbuild.orig/src/main.c
-+++ testbuild/src/main.c
-@@ -1795,6 +1795,7 @@ attach_to_running_session (state_t *stat
+--- plymouth.orig/src/main.c
++++ plymouth/src/main.c
+@@ -1797,6 +1797,7 @@ attach_to_running_session (state_t *stat
                  session = ply_terminal_session_new (NULL);
  
                  ply_terminal_session_attach_to_event_loop (session, state->loop);
@@ -16,7 +16,7 @@ Index: testbuild/src/main.c
          } else {
                  session = state->session;
                  ply_trace ("session already created");
-@@ -1806,12 +1807,6 @@ attach_to_running_session (state_t *stat
+@@ -1808,12 +1809,6 @@ attach_to_running_session (state_t *stat
                                            (ply_terminal_session_hangup_handler_t)
                                            (should_be_redirected ? on_session_hangup : NULL),
                                            -1, state)) {
@@ -29,7 +29,7 @@ Index: testbuild/src/main.c
                  state->is_redirected = false;
                  state->is_attached = false;
                  return false;
-@@ -1823,7 +1818,6 @@ attach_to_running_session (state_t *stat
+@@ -1825,7 +1820,6 @@ attach_to_running_session (state_t *stat
  
          state->is_redirected = should_be_redirected;
          state->is_attached = true;
@@ -37,7 +37,7 @@ Index: testbuild/src/main.c
  
          return true;
  }
-@@ -2316,9 +2310,6 @@ main (int    argc,
+@@ -2321,9 +2315,6 @@ main (int    argc,
                  state.should_be_attached = attach_to_session;
                  if (!attach_to_running_session (&state)) {
                          ply_trace ("could not redirect console session: %m");

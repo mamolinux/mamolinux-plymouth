@@ -1,3 +1,28 @@
+plymouth (22.02.122-1ubuntu1) kinetic; urgency=medium
+
+  * New upstream release 22.02.122:
+    - Fixes with BGRT theme
+    - Add --ignore-serial-consoles to plymouthd
+    - Add ThemeDir config option
+    - Add timeout and error for plymouth --ping
+    - Honor rotated screens and video= on kernel command line
+    - Support monitor hotplug change events
+    - Fixes for text theme
+    - Rework shutdown handling to provide cleaner take down
+    - Misc other fixes
+    - Translations
+  * Merge Debian release 22.02.122-1 (LP: #1987263)
+  * Revert needless changes in 0005-cmdline.patch back to Debian's version.
+  * Refreshed Ubuntu patches:
+    - initramfsless-boot.patch
+    - labelft-0001-Add-label-ft-plugin.patch
+    - misc-changes.patch
+    - ubuntu-logo.patch
+    - ubuntu-spinner-fsck.patch
+    - ubuntu-text.patch
+
+ -- Daniel van Vugt <daniel.van.vugt@canonical.com>  Fri, 19 Aug 2022 14:46:56 +0800
+
 plymouth (0.9.5+git20211018-1ubuntu4) kinetic; urgency=medium
 
   * Add patches to build the label-ft plugin, an alternative to the label
