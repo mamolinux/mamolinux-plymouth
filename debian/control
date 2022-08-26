@@ -171,24 +171,6 @@ Description: boot animation, logger and I/O multiplexer - themes
   * spinfinity: features a centered logo and animated spinner that spins in the
     shape of an infinity sign.
 
-Package: plymouth-theme-ubuntu-logo
-Architecture: linux-any
-Depends:
- ${misc:Depends},
- ${shlibs:Depends},
- plymouth (= ${binary:Version}),
- plymouth-label (= ${binary:Version}),
-Provides: plymouth-theme,
-Description: boot animation, logger and I/O multiplexer - ubuntu theme
- Plymouth provides a boot-time I/O multiplexing framework - the most obvious
- use for which is to provide an attractive graphical animation in place of
- the text messages that normally get shown during boot. (The messages are
- instead redirected to a logfile for later viewing.) However, in event-driven
- boot systems Plymouth can also usefully handle user interaction such as
- password prompts for encrypted file systems.
- .
- This package contains the default ubuntu-logo theme.
-
 Package: plymouth-theme-ubuntu-text
 Architecture: linux-any
 Depends:

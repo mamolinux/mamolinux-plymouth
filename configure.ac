@@ -340,7 +340,6 @@ AC_CONFIG_FILES([Makefile po/Makefile.in
            themes/glow/Makefile
            themes/spinner/Makefile
            themes/script/Makefile
-           themes/ubuntu-logo/Makefile
            themes/bgrt/Makefile
            themes/ubuntu-text/Makefile
            images/Makefile
