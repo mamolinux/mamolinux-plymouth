@@ -1,3 +1,11 @@
+plymouth (22.02.122-1ubuntu3) kinetic; urgency=medium
+
+  * debian/rules:
+    - restore /usr/share/plymouth/ubuntu-logo.png, it's used by other
+      components like gnome-shell (lp: #1988033)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 29 Aug 2022 12:03:49 +0200
+
 plymouth (22.02.122-1ubuntu2) kinetic; urgency=medium
 
   * Remove the deprecated ubuntu-logo theme as discussed on
