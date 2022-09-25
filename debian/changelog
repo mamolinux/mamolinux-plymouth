@@ -1,3 +1,11 @@
+plymouth (22.02.122-2) unstable; urgency=medium
+
+  * d/p: Patch the configure.ac to avoid embedding the date in the version.
+    Thanks to Holger Levsen <holger@layer-acht.org> (Closes: #1017372)
+  * debian/plymouth.lintian-overrides: Fix mismatched-override
+
+ -- Laurent Bigonville <bigon@debian.org>  Sun, 25 Sep 2022 10:22:04 +0200
+
 plymouth (22.02.122-1) unstable; urgency=medium
 
   [ Laurent Bigonville ]
