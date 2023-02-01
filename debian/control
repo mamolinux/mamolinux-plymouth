@@ -3,7 +3,7 @@ Section: misc
 Priority: optional
 Maintainer: Laurent Bigonville <bigon@debian.org>
 Uploaders: Sjoerd Simons <sjoerd@debian.org>
-Build-Depends: debhelper-compat (= 12),
+Build-Depends: debhelper-compat (= 13),
                docbook-xsl,
                libdrm-dev,
                libgtk-3-dev (>= 3.14.0),
@@ -13,9 +13,9 @@ Build-Depends: debhelper-compat (= 12),
                pkg-config,
                systemd,
                xsltproc
-Standards-Version: 4.6.0
+Standards-Version: 4.6.1
 Rules-Requires-Root: no
-Homepage: http://www.freedesktop.org/wiki/Software/Plymouth
+Homepage: https://www.freedesktop.org/wiki/Software/Plymouth
 Vcs-Git: https://salsa.debian.org/debian/plymouth.git
 Vcs-Browser: https://salsa.debian.org/debian/plymouth
 

@@ -1,3 +1,21 @@
+plymouth (22.02.122-3) unstable; urgency=medium
+
+  [ Debian Janitor ]
+  * Bump debhelper from old 12 to 13.
+    + debian/rules: Drop --fail-missing argument to dh_missing, which is now
+      the default.
+  * Set upstream metadata fields: Repository-Browse.
+  * Update standards version to 4.6.1, no changes needed.
+  * Avoid explicitly specifying -Wl,--as-needed linker flag.
+  * Use secure URI in Homepage field.
+  * Set upstream metadata fields: Repository.
+
+  [ Laurent Bigonville ]
+  * debian/patches/0003-default-theme.patch: Switch to emerald theme by
+    default (Closes: #1029984)
+
+ -- Laurent Bigonville <bigon@debian.org>  Wed, 01 Feb 2023 18:20:20 +0100
+
 plymouth (22.02.122-2) unstable; urgency=medium
 
   * d/p: Patch the configure.ac to avoid embedding the date in the version.
