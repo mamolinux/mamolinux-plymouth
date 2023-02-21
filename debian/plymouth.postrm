@@ -11,7 +11,7 @@ case "${1}" in
 		if [ -L '/sbin/plymouthd' ]; then
 			rm /sbin/plymouthd
 		fi
-		if which update-initramfs >/dev/null 2>&1 && [ -e /etc/initramfs-tools/initramfs.conf ]; then
+		if which update-initramfs >/dev/null 2>&1; then
 			update-initramfs -u
 		fi
 		;;
