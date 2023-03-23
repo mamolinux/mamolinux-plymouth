@@ -135,8 +135,18 @@ case "${THEME_NAME}" in
 		# font is always present if we have python-label installed; if
 		# not installed, then we have no graphical themes that display
 		# text, so that's ok.
-		if [ -e /usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf ]
-		then
+
+		ubuntu_wght='/usr/share/fonts/truetype/ubuntu/Ubuntu[wdth,wght].ttf'
+		ubuntu_wght_mono='/usr/share/fonts/truetype/ubuntu/UbuntuMono[wght].ttf'
+		ubuntu_wght_monoitalic='/usr/share/fonts/truetype/ubuntu/UbuntuMono-Italic[wght].ttf'
+		if [ -e "$ubuntu_wght" ]; then
+		    sed 's|\(<family>DejaVu Sans</family>\)|<family>Ubuntu</family>\1|;s|\(<family>DejaVu Sans Mono</family>\)|<family>Ubuntu Mono</family>\1|;' \
+			/etc/fonts/conf.d/60-latin.conf > "${DESTDIR}/etc/fonts/conf.d/60-latin.conf"
+		    mkdir -p "${DESTDIR}/usr/share/fonts/truetype/ubuntu"
+		    cp -a "$ubuntu_wght" "${DESTDIR}/usr/share/fonts/truetype/ubuntu"
+		    cp -a "$ubuntu_wght_mono" "${DESTDIR}/usr/share/fonts/truetype/ubuntu"
+		    cp -a "$ubuntu_wght_monoitalic" "${DESTDIR}/usr/share/fonts/truetype/ubuntu"
+		elif [ -e /usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf ]; 	then
 		    sed 's|\(<family>DejaVu Sans</family>\)|<family>Ubuntu</family>\1|;s|\(<family>DejaVu Sans Mono</family>\)|<family>Ubuntu Mono</family>\1|;' \
 			/etc/fonts/conf.d/60-latin.conf > "${DESTDIR}/etc/fonts/conf.d/60-latin.conf"
 		    mkdir -p "${DESTDIR}/usr/share/fonts/truetype/ubuntu"

@@ -1,3 +1,11 @@
+plymouth (22.02.122-3ubuntu2) lunar; urgency=medium
+
+  * debian/local/plymouth.hook:
+    - update the initramfs hook for the new fonts-ubuntu, fixes missing
+      chars on the disk encryption screen 
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 23 Mar 2023 22:17:23 +0100
+
 plymouth (22.02.122-3ubuntu1) lunar; urgency=medium
 
   * Merge from Debian unstable.  Remaining changes:
