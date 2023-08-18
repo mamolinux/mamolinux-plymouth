@@ -10,7 +10,7 @@ Index: plymouth-0.9.5git20210629/themes/ubuntu-logo/Makefile.am
 +nodist_theme_DATA = ubuntu-logo.plymouth
 +dist_theme_DATA =   ubuntu-logo.script                                \
 +                    ubuntu-logo.grub                                  \
-+                    ubuntu-logo.png                                   \
++                    mamolinux-logo.png                                \
 +                    ubuntu-logo16.png                                 \
 +                    noise-texture.png                                 \
 +                    password-field.png                                \
@@ -235,7 +235,7 @@ Index: plymouth-0.9.5git20210629/themes/ubuntu-logo/ubuntu-logo.script
 +    password_field_filename = "password-field16.png";
 +    question_field_filename = "password-field16.png";
 +} else {
-+    logo_filename = "ubuntu-logo.png";
++    logo_filename = "mamolinux-logo.png";
 +    progress_dot_off_filename = "progress-dot-off.png";
 +    progress_dot_on_filename = "progress-dot-on.png";
 +    password_field_filename = "password-field.png";
