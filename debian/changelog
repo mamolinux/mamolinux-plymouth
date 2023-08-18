@@ -1,3 +1,9 @@
+plymouth (22.02.122-3ubuntu2mamolinux1) lunar; urgency=medium
+
+  * upload to lunar
+
+ -- Himadri Sekhar Basu <hsb10@iitbbs.ac.in>  Thu, 01 Jun 2023 19:39:57 +0530
+
 plymouth (22.02.122-3ubuntu2) lunar; urgency=medium
 
   * debian/local/plymouth.hook:
@@ -39,6 +45,19 @@ plymouth (22.02.122-3) unstable; urgency=medium
     default (Closes: #1029984)
 
  -- Laurent Bigonville <bigon@debian.org>  Wed, 01 Feb 2023 18:20:20 +0100
+
+plymouth (22.02.122-1ubuntu3mamolinux2) kinetic; urgency=medium
+
+  * include mamolinux patch generated files
+
+ -- Himadri Sekhar Basu <hsb10@iitbbs.ac.in>  Sun, 11 Dec 2022 23:08:15 +0530
+
+plymouth (22.02.122-1ubuntu3mamolinux1) kinetic; urgency=medium
+
+  * Build mamolinux-text plymouth using patch
+    - Add mamolinux logo
+
+ -- Himadri Sekhar Basu <hsb10@iitbbs.ac.in>  Sun, 11 Dec 2022 13:27:30 +0530
 
 plymouth (22.02.122-2) unstable; urgency=medium
 

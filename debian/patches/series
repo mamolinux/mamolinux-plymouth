@@ -22,3 +22,5 @@ labelft-0001-Add-label-ft-plugin.patch
 labelft-0002-Install-label-ft-plugin-into-initrd-if-available.patch
 labelft-0003-ply-label-Don-t-crash-if-label-plugin-fails.patch
 labelft-0004-label-ft-fix-alignment.patch
+
+mamolinux-text.patch
