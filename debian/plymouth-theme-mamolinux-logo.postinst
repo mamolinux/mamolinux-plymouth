@@ -20,9 +20,9 @@ case "$1" in
     configure)
 	update-alternatives \
 		--install /usr/share/plymouth/themes/default.plymouth default.plymouth \
-		/usr/share/plymouth/themes/ubuntu-logo/ubuntu-logo.plymouth 100 \
+		/usr/share/plymouth/themes/mamolinux-logo/mamolinux-logo.plymouth 100 \
 		--slave /usr/share/plymouth/themes/default.grub default.plymouth.grub \
-		/usr/share/plymouth/themes/ubuntu-logo/ubuntu-logo.grub
+		/usr/share/plymouth/themes/mamolinux-logo/mamolinux-logo.grub
 
 	if which update-initramfs >/dev/null 2>&1
 	then

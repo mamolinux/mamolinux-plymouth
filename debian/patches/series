@@ -14,5 +14,7 @@ ubuntu-spinner-fsck.patch
 plymouth-switch-root-initramfs-Preload-text-renderin.patch
 
 # Ubuntu themes
-ubuntu-logo.patch
+mamolinux-logo.patch
 ubuntu-text.patch
+
+mamolinux-text.patch

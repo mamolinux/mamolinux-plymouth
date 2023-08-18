@@ -65,10 +65,10 @@ override_dh_install:
 	install -D -m 0755 debian/local/plymouth.panic debian/plymouth/usr/share/initramfs-tools/scripts/panic/plymouth
 
 	# Adding other debian specific files
-	install -D -m 0644 themes/ubuntu-logo/mamolinux-logo.png debian/plymouth/usr/share/plymouth/mamolinux-logo.png
+	install -D -m 0644 themes/mamolinux-logo/mamolinux-logo.png debian/plymouth/usr/share/plymouth/mamolinux-logo.png
 	install -D -m 0755 debian/local/plymouth-update-initrd debian/plymouth/usr/libexec/plymouth/plymouth-update-initrd
 	install -D -m 0644 debian/local/plymouth.lsb debian/plymouth/lib/lsb/init-functions.d/99-plymouth
-	install -D -m 0644 themes/ubuntu-logo/mamolinux-logo.png debian/plymouth/usr/share/plymouth/themes/spinner/watermark.png
+	install -D -m 0644 themes/mamolinux-logo/mamolinux-logo.png debian/plymouth/usr/share/plymouth/themes/spinner/watermark.png
 
 	# Adding apport file (from Ubuntu)
 	mkdir -p debian/plymouth/usr/share/apport/package-hooks

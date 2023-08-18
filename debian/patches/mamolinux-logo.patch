@@ -1,17 +1,17 @@
-Description: Add ubuntu-logo theme
+Description: Add mamolinux-logo theme
 Author: Alberto Milone <alberto.milone@canonical.com>
 Forwarded: not-needed
-Index: plymouth-0.9.5git20210629/themes/ubuntu-logo/Makefile.am
+Index: plymouth-0.9.5git20210629/themes/mamolinux-logo/Makefile.am
 ===================================================================
 --- /dev/null
-+++ plymouth-0.9.5git20210629/themes/ubuntu-logo/Makefile.am
++++ plymouth-0.9.5git20210629/themes/mamolinux-logo/Makefile.am
 @@ -0,0 +1,24 @@
-+themedir = $(datadir)/plymouth/themes/ubuntu-logo
-+nodist_theme_DATA = ubuntu-logo.plymouth
-+dist_theme_DATA =   ubuntu-logo.script                                \
-+                    ubuntu-logo.grub                                  \
++themedir = $(datadir)/plymouth/themes/mamolinux-logo
++nodist_theme_DATA = mamolinux-logo.plymouth
++dist_theme_DATA =   mamolinux-logo.script                                \
++                    mamolinux-logo.grub                                  \
 +                    mamolinux-logo.png                                \
-+                    ubuntu-logo16.png                                 \
++                    mamolinux-logo16.png                                 \
 +                    noise-texture.png                                 \
 +                    password-field.png                                \
 +                    password-field16.png                              \
@@ -22,18 +22,18 @@ Index: plymouth-0.9.5git20210629/themes/ubuntu-logo/Makefile.am
 +
 +
 +
-+MAINTAINERCLEANFILES = Makefile.in ubuntu-logo.plymouth
-+CLEANFILES = ubuntu-logo.plymouth
++MAINTAINERCLEANFILES = Makefile.in mamolinux-logo.plymouth
++CLEANFILES = mamolinux-logo.plymouth
 +
-+ubuntu-logo.plymouth: $(srcdir)/ubuntu-logo.plymouth.in
++mamolinux-logo.plymouth: $(srcdir)/mamolinux-logo.plymouth.in
 +	sed -e 's,[@]PLYMOUTH_THEME_PATH[@],$(PLYMOUTH_THEME_PATH),g' \
-+	       $(srcdir)/ubuntu-logo.plymouth.in > ubuntu-logo.plymouth
++	       $(srcdir)/mamolinux-logo.plymouth.in > mamolinux-logo.plymouth
 +
-+EXTRA_DIST = ubuntu-logo.plymouth.in
-Index: plymouth-0.9.5git20210629/themes/ubuntu-logo/ubuntu-logo.plymouth.in
++EXTRA_DIST = mamolinux-logo.plymouth.in
+Index: plymouth-0.9.5git20210629/themes/mamolinux-logo/mamolinux-logo.plymouth.in
 ===================================================================
 --- /dev/null
-+++ plymouth-0.9.5git20210629/themes/ubuntu-logo/ubuntu-logo.plymouth.in
++++ plymouth-0.9.5git20210629/themes/mamolinux-logo/mamolinux-logo.plymouth.in
 @@ -0,0 +1,8 @@
 +[Plymouth Theme]
 +Name=Ubuntu Logo
@@ -41,14 +41,14 @@ Index: plymouth-0.9.5git20210629/themes/ubuntu-logo/ubuntu-logo.plymouth.in
 +ModuleName=script
 +
 +[script]
-+ImageDir=@PLYMOUTH_THEME_PATH@/ubuntu-logo
-+ScriptFile=@PLYMOUTH_THEME_PATH@/ubuntu-logo/ubuntu-logo.script
-Index: plymouth-0.9.5git20210629/themes/ubuntu-logo/ubuntu-logo.script
++ImageDir=@PLYMOUTH_THEME_PATH@/mamolinux-logo
++ScriptFile=@PLYMOUTH_THEME_PATH@/mamolinux-logo/mamolinux-logo.script
+Index: plymouth-0.9.5git20210629/themes/mamolinux-logo/mamolinux-logo.script
 ===================================================================
 --- /dev/null
-+++ plymouth-0.9.5git20210629/themes/ubuntu-logo/ubuntu-logo.script
++++ plymouth-0.9.5git20210629/themes/mamolinux-logo/mamolinux-logo.script
 @@ -0,0 +1,1178 @@
-+#  ubuntu-logo.script - boot splash plugin
++#  mamolinux-logo.script - boot splash plugin
 +# 
 +#  Copyright (C) 2009 Canonical Ltd.
 +# 
@@ -229,7 +229,7 @@ Index: plymouth-0.9.5git20210629/themes/ubuntu-logo/ubuntu-logo.script
 +
 +bits_per_pixel = Window.GetBitsPerPixel ();
 +if (bits_per_pixel == 4) {
-+    logo_filename = "ubuntu-logo16.png";
++    logo_filename = "mamolinux-logo16.png";
 +    progress_dot_off_filename = "progress-dot-off16.png";
 +    progress_dot_on_filename = "progress-dot-on16.png";
 +    password_field_filename = "password-field16.png";
@@ -1226,10 +1226,10 @@ Index: plymouth-0.9.5git20210629/themes/ubuntu-logo/ubuntu-logo.script
 +}
 +
 +Plymouth.SetQuitFunction(quit_callback);
-Index: plymouth-0.9.5git20210629/themes/ubuntu-logo/ubuntu-logo.grub
+Index: plymouth-0.9.5git20210629/themes/mamolinux-logo/mamolinux-logo.grub
 ===================================================================
 --- /dev/null
-+++ plymouth-0.9.5git20210629/themes/ubuntu-logo/ubuntu-logo.grub
++++ plymouth-0.9.5git20210629/themes/mamolinux-logo/mamolinux-logo.grub
 @@ -0,0 +1,5 @@
 +# previously #2c001e 44,0,30,0
 +# now yaru #4f194c 79,25,76
@@ -1244,7 +1244,7 @@ Index: plymouth-0.9.5git20210629/configure.ac
             themes/glow/Makefile
             themes/spinner/Makefile
             themes/script/Makefile
-+           themes/ubuntu-logo/Makefile
++           themes/mamolinux-logo/Makefile
             themes/bgrt/Makefile
             images/Makefile
  	   scripts/plymouth-generate-initrd
@@ -1254,5 +1254,5 @@ Index: plymouth-0.9.5git20210629/themes/Makefile.am
 +++ plymouth-0.9.5git20210629/themes/Makefile.am
 @@ -1,2 +1,2 @@
 -SUBDIRS = spinfinity fade-in text details solar glow script spinner tribar bgrt
-+SUBDIRS = spinfinity fade-in text details solar glow script spinner tribar ubuntu-logo bgrt
++SUBDIRS = spinfinity fade-in text details solar glow script spinner tribar mamolinux-logo bgrt
  MAINTAINERCLEANFILES = Makefile.in

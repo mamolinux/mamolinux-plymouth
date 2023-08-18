@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
 XSBC-Original-Maintainer: Laurent Bigonville <bigon@debian.org>
 Uploaders: Sjoerd Simons <sjoerd@debian.org>
-Build-Depends: debhelper-compat (= 12),
+Build-Depends: debhelper-compat (= 13),
                docbook-xsl,
                libdrm-dev,
                libgtk-3-dev (>= 3.14.0),
@@ -33,7 +33,7 @@ Conflicts: console-common
 Breaks: plymouth-drm (<< 0.9.0-6~), plymouth-themes (<< 0.9.0-8~)
 Replaces: plymouth-drm (<< 0.9.0-6~), plymouth-themes (<< 0.9.0-8~)
 Suggests: desktop-base, plymouth-themes
-Recommends: plymouth-theme-ubuntu-text | plymouth-theme
+Recommends: plymouth-theme-mamolinux-text | plymouth-theme
 Description: boot animation, logger and I/O multiplexer
  Plymouth provides a boot-time I/O multiplexing framework - the most obvious
  use for which is to provide an attractive graphical animation in place of
@@ -155,7 +155,7 @@ Description: boot animation, logger and I/O multiplexer - themes
   * spinfinity: features a centered logo and animated spinner that spins in the
     shape of an infinity sign.
 
-Package: plymouth-theme-ubuntu-logo
+Package: plymouth-theme-mamolinux-logo
 Architecture: linux-any
 Depends:
  ${misc:Depends},
@@ -163,7 +163,7 @@ Depends:
  plymouth (= ${binary:Version}),
  plymouth-label (= ${binary:Version}),
 Provides: plymouth-theme,
-Description: boot animation, logger and I/O multiplexer - ubuntu theme
+Description: boot animation, logger and I/O multiplexer - mamolinux theme
  Plymouth provides a boot-time I/O multiplexing framework - the most obvious
  use for which is to provide an attractive graphical animation in place of
  the text messages that normally get shown during boot. (The messages are
@@ -171,7 +171,26 @@ Description: boot animation, logger and I/O multiplexer - ubuntu theme
  boot systems Plymouth can also usefully handle user interaction such as
  password prompts for encrypted file systems.
  .
- This package contains the default ubuntu-logo theme.
+ This package contains the default mamolinux-logo theme.
+
+Package: plymouth-theme-mamolinux-text
+Architecture: linux-any
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends},
+ plymouth (= ${binary:Version}),
+ lsb-release,
+Provides: plymouth-theme,
+Description: boot animation, logger and I/O multiplexer - mamolinux text theme
+ Plymouth provides a boot-time I/O multiplexing framework - the most obvious
+ use for which is to provide an attractive graphical animation in place of
+ the text messages that normally get shown during boot. (The messages are
+ instead redirected to a logfile for later viewing.) However, in event-driven
+ boot systems Plymouth can also usefully handle user interaction such as
+ password prompts for encrypted file systems.
+ .
+ This package contains the default mamolinux-text text theme used when no
+ support for a graphical theme is found on your system.
 
 Package: plymouth-theme-ubuntu-text
 Architecture: linux-any
