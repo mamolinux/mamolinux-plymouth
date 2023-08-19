@@ -1,3 +1,12 @@
+plymouth (22.02.122-3ubuntu2mamolinux2) lunar; urgency=medium
+
+  * Update mamolinux plymouth theme with new logo
+    - Update mamolinux logo
+    - Remove ubuntu-logo
+    - Add build instructions in README.md
+
+ -- Himadri Sekhar Basu <hsb10@iitbbs.ac.in>  Sat, 19 Aug 2023 21:47:04 +0530
+
 plymouth (22.02.122-3ubuntu2mamolinux1) lunar; urgency=medium
 
   * upload to lunar
