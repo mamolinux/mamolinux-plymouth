@@ -1,3 +1,15 @@
+plymouth (0.9.5+git20211018-1ubuntu3mamolinux2) jammy; urgency=medium
+
+  * Build mamolinux related plymouth themes
+    - Add mamolinux-text plymouth theme
+    - Rename ubuntu-logo to mamolinux-logo
+      to build mamolinux-logo plymouth theme
+    - Update the logo icon for mamolinux
+    - Add a README.md and add the steps for the
+      build process for future reference
+
+ -- Himadri Sekhar Basu <hsb10@iitbbs.ac.in>  Sat, 19 Aug 2023 10:36:54 +0530
+
 plymouth (0.9.5+git20211018-1ubuntu3mamolinux1) jammy; urgency=medium
 
   * Add mamolinux-logo plymouth theme
