@@ -68,7 +68,6 @@ override_dh_install:
 	# Adding other debian specific files
 	install -D -m 0755 debian/local/plymouth-update-initrd debian/plymouth/usr/libexec/plymouth/plymouth-update-initrd
 	install -D -m 0644 debian/local/plymouth.lsb debian/plymouth/lib/lsb/init-functions.d/99-plymouth
-	install -D -m 0644 debian/local/ubuntu-logo.png debian/plymouth/usr/share/plymouth/ubuntu-logo.png
 	install -D -m 0644 debian/local/mamolinux-logo.png debian/plymouth/usr/share/plymouth/mamolinux-logo.png
 	install -D -m 0644 debian/local/mamolinux-logo.png debian/plymouth/usr/share/plymouth/themes/spinner/watermark.png
 

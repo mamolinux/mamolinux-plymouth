@@ -61,9 +61,10 @@ Index: plymouth-22.02.122/src/plugins/splash/mamolinux-text/plugin.c
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
 +++ plymouth-22.02.122/src/plugins/splash/mamolinux-text/plugin.c	2022-12-11 12:22:27.132974764 +0530
-@@ -0,0 +1,806 @@
+@@ -0,0 +1,807 @@
 +/*  mamolinux-text.c - boot splash plugin
 + *
++ * Copyright (C) 2023 MamoLinux
 + * Copyright (C) 2010 Canonical Ltd.
 + * Copyright (C) 2008 Red Hat, Inc.
 + *
@@ -896,7 +897,7 @@ Index: plymouth-22.02.122/themes/mamolinux-text/mamolinux-text.plymouth.in
 +ModuleName=mamolinux-text
 +
 +[mamolinux-text]
-+title=MamoLinux 22.10
++title=MamoLinux 23.04
 +black=0x2c001e
 +white=0xffffff
 +brown=0xff4012
