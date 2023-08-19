@@ -1,3 +1,11 @@
+plymouth (0.9.5+git20211018-1ubuntu3mamolinux3) jammy; urgency=medium
+
+  * Update mamolinux logo (#2)
+    - Replace old mamolinux logo with new one
+      in themes/mamolinux-logo
+
+ -- Himadri Sekhar Basu <hsb10@iitbbs.ac.in>  Sat, 19 Aug 2023 11:47:11 +0530
+
 plymouth (0.9.5+git20211018-1ubuntu3mamolinux2) jammy; urgency=medium
 
   * Build mamolinux related plymouth themes
