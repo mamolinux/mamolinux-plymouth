@@ -1,3 +1,9 @@
+plymouth (22.02.122-3ubuntu2mamolinux3) mantic; urgency=medium
+
+  * Upload to mantic
+
+ -- Himadri Sekhar Basu <hsb10@iitbbs.ac.in>  Mon, 23 Oct 2023 21:18:27 +0530
+
 plymouth (22.02.122-3ubuntu2mamolinux2) lunar; urgency=medium
 
   * Update mamolinux plymouth theme with new logo
