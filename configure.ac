@@ -1,5 +1,5 @@
 AC_INIT([plymouth],
-        m4_esyscmd_s([date +%y.%V.$(git rev-list $(git describe --abbrev=0)..HEAD --count) || echo 0]),
+        m4_esyscmd_s([dpkg-parsechangelog --show-field Version | sed -e 's/-[^-]*$//' | sed -e 's/^[0-9]*://']),
         [https://gitlab.freedesktop.org/plymouth/plymouth/issues])
 AC_CONFIG_SRCDIR(src/main.c)
 AC_CONFIG_HEADER(config.h)
