@@ -24,8 +24,7 @@ Architecture: linux-any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: init-system-helpers (>= 1.18),
          initramfs-tools | dracut,
-         lsb-base (>= 3.0-6),
-         systemd (>= 232-8~),
+         systemd (>= 232-8~) | elogind,
          udev (>= 232-8~),
          ${misc:Depends},
          ${shlibs:Depends}
