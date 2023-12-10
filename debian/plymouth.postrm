@@ -12,7 +12,7 @@ case "${1}" in
 			rm /sbin/plymouthd
 		fi
 		if which update-initramfs >/dev/null 2>&1 && [ -e /etc/initramfs-tools/initramfs.conf ]; then
-			update-initramfs -u
+			update-initramfs -u -k all
 		fi
 		;;
 	purge)

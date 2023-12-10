@@ -14,7 +14,7 @@ fi
 case "${1}" in
 	configure|abort-upgrade|abort-remove|abort-deconfigure)
 		if which update-initramfs >/dev/null 2>&1 && [ -e /etc/initramfs-tools/initramfs.conf ]; then
-			update-initramfs -u
+			update-initramfs -u -k all
 		fi
 		;;
 

@@ -1,3 +1,22 @@
+plymouth (22.02.122-4) unstable; urgency=medium
+
+  [ Helmut Grohne ]
+  * Fix FTBFS when systemdsystemunitdir changes in systemd.pc. (Closes:
+    #1052310)
+
+  [ Laurent Bigonville ]
+  * debian/control: Add elogind as an alternative to systemd as elogind
+    package ships the necessesary udev rules files (Closes: #1035076)
+  * debian/local/plymouth.hook: Do not copy the security contexts when
+    building the initramfs (Closes: #1050545)
+  * Update initramfs for all kernel versions when installing or removing
+    plymouth (Closes: #916792)
+  * debian/control: Drop lsb-base, to please lintian
+  * debian/plymouth.links: Fix .service symlink path after move to /usr
+  * debian/rules: Move LSB init-functions file to /usr
+
+ -- Laurent Bigonville <bigon@debian.org>  Sun, 10 Dec 2023 12:00:10 +0100
+
 plymouth (22.02.122-3) unstable; urgency=medium
 
   [ Debian Janitor ]
