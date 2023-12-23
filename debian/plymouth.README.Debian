@@ -26,6 +26,6 @@ The following steps are required in order to enable the plymouth bootsplash:
   * Add 'splash' as boot parameter in your bootloader configuration.
 
   * Optionally switch to a different theme by running
-    plymouth-set-default-theme (and rebuilding the initrd again).
+    update-alternative --config default.plymouth (and rebuilding the initrd again).
 
  -- Daniel Baumann <mail@daniel-baumann.ch>  Mon, 06 Sep 2010 12:11:20 +0200

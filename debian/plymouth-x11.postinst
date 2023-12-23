@@ -3,10 +3,14 @@
 set -e
 
 case "${1}" in
-	configure|abort-upgrade|abort-remove|abort-deconfigure)
-		if which update-initramfs >/dev/null 2>&1 && [ -e /etc/initramfs-tools/initramfs.conf ]; then
+	configure)
+		if which update-initramfs >/dev/null 2>&1; then
 			update-initramfs -u -k all
 		fi
+		;;
+
+	abort-upgrade|abort-remove|abort-deconfigure)
+
 		;;
 
 	*)
