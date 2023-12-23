@@ -3,7 +3,7 @@
 set -e
 
 case "${1}" in
-	configure|abort-upgrade|abort-remove|abort-deconfigure)
+	configure)
     # Add default alternatives so that if we don't have any ubuntu themes install, we still show up one
     update-alternatives \
       --install /usr/share/plymouth/themes/default.plymouth default.plymouth \
