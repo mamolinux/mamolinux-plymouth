@@ -1,3 +1,10 @@
+plymouth (22.02.122-4ubuntu2) noble; urgency=medium
+
+  * Fix various postinst script elements which would cause issues on an
+    initramfsless boot.
+
+ -- Simon Quigley <tsimonq2@ubuntu.com>  Sat, 23 Dec 2023 14:39:29 -0600
+
 plymouth (22.02.122-4ubuntu1) noble; urgency=low
 
   * Merge from Debian Unstable. Remaining changes:
