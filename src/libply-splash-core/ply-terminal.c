@@ -19,7 +19,6 @@
  *
  * Written by: Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 #include "ply-terminal.h"
 
 #include <assert.h>
@@ -80,7 +79,7 @@ struct _ply_terminal
         struct termios       original_locked_term_attributes;
 
         char                *name;
-        char                *keymap;
+        const char          *keymap;
         int                  fd;
         int                  vt_number;
         int                  initial_vt_number;
@@ -104,6 +103,7 @@ struct _ply_terminal
         uint32_t             is_open : 1;
         uint32_t             is_active : 1;
         uint32_t             is_unbuffered : 1;
+        uint32_t             is_disabled : 1;
         uint32_t             is_watching_for_vt_changes : 1;
         uint32_t             should_ignore_mode_changes : 1;
 };
@@ -117,37 +117,9 @@ typedef enum
 
 static ply_terminal_open_result_t ply_terminal_open_device (ply_terminal_t *terminal);
 
-static char *
-ply_terminal_parse_keymap_conf (ply_terminal_t *terminal)
-{
-        ply_key_file_t *vconsole_conf;
-        char *keymap, *old_keymap;
-
-        keymap = ply_kernel_command_line_get_key_value ("rd.vconsole.keymap=");
-        if (keymap)
-                return keymap;
-
-        keymap = ply_kernel_command_line_get_key_value ("vconsole.keymap=");
-        if (keymap)
-                return keymap;
-
-        vconsole_conf = ply_key_file_new ("/etc/default/keyboard");
-        if (ply_key_file_load_groupless_file (vconsole_conf))
-                keymap = ply_key_file_get_value (vconsole_conf, NULL, "XKBLAYOUT");
-        ply_key_file_free (vconsole_conf);
-
-        /* The keymap name in vconsole.conf might be quoted, strip these */
-        if (keymap && keymap[0] == '"' && keymap[strlen (keymap) - 1] == '"') {
-                old_keymap = keymap;
-                keymap = strndup(keymap + 1, strlen (keymap) - 2);
-                free (old_keymap);
-        }
-
-        return keymap;
-}
-
 ply_terminal_t *
-ply_terminal_new (const char *device_name)
+ply_terminal_new (const char *device_name,
+                  const char *keymap)
 {
         ply_terminal_t *terminal;
 
@@ -167,7 +139,7 @@ ply_terminal_new (const char *device_name)
         terminal->fd = -1;
         terminal->vt_number = -1;
         terminal->initial_vt_number = -1;
-        terminal->keymap = ply_terminal_parse_keymap_conf (terminal);
+        terminal->keymap = keymap;
         if (terminal->keymap)
                 ply_trace ("terminal %s keymap: %s", terminal->name, terminal->keymap);
 
@@ -269,6 +241,15 @@ ply_terminal_set_unbuffered_input (ply_terminal_t *terminal)
 
         ply_terminal_unlock (terminal);
 
+        if (terminal->is_disabled) {
+                ply_trace ("terminal input is getting enabled in unbuffered mode");
+
+                if (ply_terminal_is_vt (terminal))
+                        ioctl (terminal->fd, KDSKBMODE, K_UNICODE);
+
+                terminal->is_disabled = false;
+        }
+
         tcgetattr (terminal->fd, &term_attributes);
 
         if (!terminal->original_term_attributes_saved) {
@@ -298,6 +279,15 @@ bool
 ply_terminal_set_buffered_input (ply_terminal_t *terminal)
 {
         struct termios term_attributes;
+
+        if (terminal->is_disabled) {
+                ply_trace ("terminal input is getting enabled in buffered mode");
+
+                if (ply_terminal_is_vt (terminal))
+                        ioctl (terminal->fd, KDSKBMODE, K_UNICODE);
+
+                terminal->is_disabled = false;
+        }
 
         if (!terminal->is_unbuffered)
                 return true;
@@ -339,6 +329,22 @@ ply_terminal_set_buffered_input (ply_terminal_t *terminal)
         return true;
 }
 
+bool
+ply_terminal_set_disabled_input (ply_terminal_t *terminal)
+{
+        if (!terminal->is_disabled) {
+                ply_trace ("terminal input is getting disabled from %s mode",
+                           terminal->is_unbuffered? "unbuffered" : "buffered");
+
+                if (ply_terminal_is_vt (terminal))
+                        ioctl (terminal->fd, KDSKBMODE, K_OFF);
+
+                terminal->is_disabled = true;
+        }
+
+        return true;
+}
+
 void
 ply_terminal_write (ply_terminal_t *terminal,
                     const char     *format,
@@ -350,6 +356,8 @@ ply_terminal_write (ply_terminal_t *terminal,
 
         assert (terminal != NULL);
         assert (format != NULL);
+
+        ply_terminal_set_mode (terminal, PLY_TERMINAL_MODE_TEXT);
 
         string = NULL;
         va_start (args, format);
@@ -395,6 +403,11 @@ static void
 on_tty_input (ply_terminal_t *terminal)
 {
         ply_list_node_t *node;
+
+        if (terminal->is_disabled) {
+                ply_terminal_flush_input (terminal);
+                return;
+        }
 
         node = ply_list_get_first_node (terminal->input_closures);
         while (node != NULL) {
@@ -879,7 +892,6 @@ ply_terminal_free (ply_terminal_t *terminal)
 
         free_vt_change_closures (terminal);
         free_input_closures (terminal);
-        free (terminal->keymap);
         free (terminal->name);
         free (terminal);
 }
@@ -904,23 +916,13 @@ ply_terminal_get_capslock_state (ply_terminal_t *terminal)
         if (ioctl (terminal->fd, KDGETLED, &state) < 0)
                 return false;
 
-        return (state & LED_CAP);
+        return state & LED_CAP;
 }
 
 int
 ply_terminal_get_vt_number (ply_terminal_t *terminal)
 {
         return terminal->vt_number;
-}
-
-static bool
-set_active_vt (ply_terminal_t *terminal,
-               int             vt_number)
-{
-        if (ioctl (terminal->fd, VT_ACTIVATE, vt_number) < 0)
-                return false;
-
-        return true;
 }
 
 static bool
@@ -954,7 +956,7 @@ ply_terminal_activate_vt (ply_terminal_t *terminal)
         if (terminal->is_active)
                 return true;
 
-        if (!set_active_vt (terminal, terminal->vt_number)) {
+        if (!ply_change_to_vt_with_fd (terminal->vt_number, terminal->fd)) {
                 ply_trace ("unable to set active vt to %d: %m",
                            terminal->vt_number);
                 return false;
@@ -995,7 +997,7 @@ ply_terminal_deactivate_vt (ply_terminal_t *terminal)
         if (ply_terminal_is_active (terminal)) {
                 ply_trace ("Attempting to set active vt back to %d from %d",
                            terminal->initial_vt_number, old_vt_number);
-                if (!set_active_vt (terminal, terminal->initial_vt_number)) {
+                if (!ply_change_to_vt_with_fd (terminal->initial_vt_number, terminal->fd)) {
                         ply_trace ("Couldn't move console to initial vt: %m");
                         return false;
                 }
@@ -1101,4 +1103,12 @@ ply_terminal_stop_watching_for_input (ply_terminal_t              *terminal,
         }
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */
+void
+ply_terminal_flush_input (ply_terminal_t *terminal)
+{
+        if (!terminal->is_open)
+                return;
+
+        if (tcflush (terminal->fd, TCIFLUSH) < 0)
+                ply_trace ("could not flush input buffer of terminal %s: %m", terminal->name);
+}

@@ -53,10 +53,10 @@ void ply_boot_splash_set_keyboard (ply_boot_splash_t *splash,
 void ply_boot_splash_unset_keyboard (ply_boot_splash_t *splash);
 void ply_boot_splash_add_pixel_display (ply_boot_splash_t   *splash,
                                         ply_pixel_display_t *pixel_display);
-void ply_boot_splash_remove_pixel_display (ply_boot_splash_t  *splash,
-                                          ply_pixel_display_t *pixel_display);
-void ply_boot_splash_add_text_display (ply_boot_splash_t   *splash,
-                                       ply_text_display_t  *text_display);
+void ply_boot_splash_remove_pixel_display (ply_boot_splash_t   *splash,
+                                           ply_pixel_display_t *pixel_display);
+void ply_boot_splash_add_text_display (ply_boot_splash_t  *splash,
+                                       ply_text_display_t *text_display);
 void ply_boot_splash_remove_text_display (ply_boot_splash_t  *splash,
                                           ply_text_display_t *text_display);
 void ply_boot_splash_free (ply_boot_splash_t *splash);
@@ -82,6 +82,13 @@ void ply_boot_splash_display_password (ply_boot_splash_t *splash,
 void ply_boot_splash_display_question (ply_boot_splash_t *splash,
                                        const char        *prompt,
                                        const char        *entry_text);
+void ply_boot_splash_display_prompt (ply_boot_splash_t *splash,
+                                     const char        *prompt,
+                                     const char        *entry_text,
+                                     bool               is_secret);
+bool ply_boot_splash_validate_input (ply_boot_splash_t *splash,
+                                     const char        *entry_text,
+                                     const char        *add_text);
 void ply_boot_splash_attach_to_event_loop (ply_boot_splash_t *splash,
                                            ply_event_loop_t  *loop);
 void ply_boot_splash_attach_progress (ply_boot_splash_t *splash,
@@ -95,4 +102,3 @@ bool ply_boot_splash_uses_pixel_displays (ply_boot_splash_t *splash);
 #endif
 
 #endif /* PLY_BOOT_SPLASH_H */
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

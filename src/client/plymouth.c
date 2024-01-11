@@ -19,7 +19,6 @@
  *
  * Written by: Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -355,8 +354,7 @@ on_key_answer (key_answer_state_t *answer_state,
 
         if (answer_state->command != NULL)
                 answer_via_command (answer_state->command, answer, NULL);
-        else
-        if (answer != NULL)
+        else if (answer != NULL)
                 write (STDOUT_FILENO, answer, strlen (answer));
 
         ply_event_loop_exit (answer_state->state->loop, 0);
@@ -606,6 +604,7 @@ on_keystroke_request (state_t    *state,
                                                 "keys", &keys,
                                                 NULL);
         key_answer_state_t *key_answer_state;
+
         key_answer_state = calloc (1, sizeof(key_answer_state_t));
         key_answer_state->state = state;
         key_answer_state->keys = keys;
@@ -717,6 +716,17 @@ on_quit_request (state_t    *state,
 }
 
 static void
+on_reload_request (state_t    *state,
+                   const char *command)
+{
+        ply_boot_client_tell_daemon_to_reload (state->client,
+                                               (ply_boot_client_response_handler_t)
+                                               on_success,
+                                               (ply_boot_client_response_handler_t)
+                                               on_failure, state);
+}
+
+static void
 on_update_root_fs_request (state_t    *state,
                            const char *command)
 {
@@ -801,6 +811,7 @@ on_change_mode_request (state_t    *state,
         bool updates = false;
         bool system_upgrade = false;
         bool firmware_upgrade = false;
+        bool system_reset = false;
         const char *mode = NULL;
 
         ply_command_parser_get_command_options (state->command_parser,
@@ -811,6 +822,7 @@ on_change_mode_request (state_t    *state,
                                                 "updates", &updates,
                                                 "system-upgrade", &system_upgrade,
                                                 "firmware-upgrade", &firmware_upgrade,
+                                                "system-reset", &system_reset,
                                                 NULL);
 
         if (boot_up)
@@ -825,6 +837,8 @@ on_change_mode_request (state_t    *state,
                 mode = "system-upgrade";
         else if (firmware_upgrade)
                 mode = "firmware-upgrade";
+        else if (system_reset)
+                mode = "system-reset";
 
         if (mode) {
                 ply_boot_client_change_mode (state->client, mode,
@@ -919,6 +933,8 @@ main (int    argc,
                                         "system-upgrade", "Upgrading the OS to a new version",
                                         PLY_COMMAND_OPTION_TYPE_FLAG,
                                         "firmware-upgrade", "Upgrading firmware to a new version",
+                                        PLY_COMMAND_OPTION_TYPE_FLAG,
+                                        "system-reset", "Resetting the OS and erasing all user data",
                                         PLY_COMMAND_OPTION_TYPE_FLAG,
                                         NULL);
 
@@ -1057,6 +1073,11 @@ main (int    argc,
                                         "retain-splash", "Don't explicitly hide boot splash on exit",
                                         PLY_COMMAND_OPTION_TYPE_FLAG, NULL);
 
+        ply_command_parser_add_command (state.command_parser,
+                                        "reload", "Tell the daemon to reload the theme",
+                                        (ply_command_handler_t)
+                                        on_reload_request, &state, NULL);
+
         if (!ply_command_parser_parse_arguments (state.command_parser, state.loop, argv, argc)) {
                 char *help_string;
 
@@ -1065,7 +1086,8 @@ main (int    argc,
                 ply_error ("%s", help_string);
 
                 free (help_string);
-                return 1;
+                exit_code = 1;
+                goto out;
         }
 
         ply_command_parser_get_options (state.command_parser,
@@ -1097,7 +1119,7 @@ main (int    argc,
                         printf ("%s", help_string);
 
                 free (help_string);
-                return 0;
+                goto out;
         }
 
         if (ply_kernel_command_line_has_argument ("plymouth.debug") && !ply_is_tracing ())
@@ -1108,7 +1130,7 @@ main (int    argc,
 
         if (should_get_plugin_path) {
                 printf ("%s\n", PLYMOUTH_PLUGIN_PATH);
-                return 0;
+                goto out;
         }
 
         is_connected = ply_boot_client_connect (state.client,
@@ -1119,15 +1141,17 @@ main (int    argc,
 
                 if (should_ping) {
                         ply_trace ("ping failed");
-                        return 1;
+                        exit_code = 1;
+                        goto out;
                 }
                 if (should_check_for_active_vt) {
                         ply_trace ("has active vt? failed");
-                        return 1;
+                        exit_code = 1;
+                        goto out;
                 }
                 if (should_wait) {
                         ply_trace ("no need to wait");
-                        return 0;
+                        goto out;
                 }
         }
 
@@ -1215,10 +1239,12 @@ main (int    argc,
 
         exit_code = ply_event_loop_run (state.loop);
 
+out:
         ply_boot_client_free (state.client);
 
         ply_event_loop_free (state.loop);
 
+        ply_command_parser_free (state.command_parser);
+
         return exit_code;
 }
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

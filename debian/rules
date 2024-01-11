@@ -13,41 +13,27 @@ export systemdsystemunitdir=$(shell pkg-config --variable=systemdsystemunitdir s
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
-		SYSTEMD_ASK_PASSWORD_AGENT=/bin/systemd-tty-ask-password-agent \
-		--disable-silent-rules \
-		--prefix=/usr \
-		--localstatedir=/var \
-		--with-runtimedir=/run \
-		--enable-pango \
-		--enable-systemd-integration \
-		--enable-static \
-		--enable-tracing \
-		--with-background-color=0x005a8a \
-		--with-logo=/usr/share/plymouth/debian-logo.png \
-		--with-release-file=/etc/os-release \
-		--without-system-root-install \
-		--without-rhgb-compat-link
-
-override_dh_auto_install:
-	dh_auto_install
-
-	rm -f debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/*.la
-	rm -f debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/plymouth/*.la
-	rm -f debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/plymouth/*/*.la
-	rm -f debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/plymouth/*.a
-	rm -f debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH)/plymouth/*/*.a
+		-Dbackground-color=0x005a8a \
+		-Dlogo=/usr/share/plymouth/debian-logo.png \
+		-Drelease-file=/etc/os-release
 
 override_dh_install:
 	dh_install
 
 	# Adding other debian specific files
-	install -D -m 0644 debian/local/debian-logo.png debian/plymouth/usr/share/plymouth/debian-logo.png
 	install -D -m 0755 debian/local/plymouth-update-initrd debian/plymouth/usr/libexec/plymouth/plymouth-update-initrd
 	install -D -m 0644 debian/local/plymouth.lsb debian/plymouth/usr/lib/lsb/init-functions.d/99-plymouth
 
 	# Adding apport file (from Ubuntu)
 	mkdir -p debian/plymouth/usr/share/apport/package-hooks
 	install -m 644 debian/source_plymouth.apport debian/plymouth/usr/share/apport/package-hooks/source_plymouth.py
+
+override_dh_auto_install:
+
+	# Workaround a but in meson, it cannot create a symlink if the target doesn't exist
+	# https://github.com/mesonbuild/meson/issues/12253
+	install -D -m 0644 debian/local/debian-logo.png debian/tmp/usr/share/plymouth/debian-logo.png
+	dh_auto_install
 
 # Disable dh_installinitramfs as we are managing this ourself
 override_dh_installinitramfs:

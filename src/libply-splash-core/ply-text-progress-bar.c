@@ -22,7 +22,6 @@
  *             Ray Strode <rstrode@redhat.com>
  *             Soeren Sandmann <sandmann@redhat.com>
  */
-#include "config.h"
 
 #include <assert.h>
 #include <dirent.h>
@@ -286,4 +285,3 @@ ply_text_progress_bar_get_number_of_rows (ply_text_progress_bar_t *progress_bar)
         return progress_bar->number_of_rows;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

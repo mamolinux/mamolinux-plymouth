@@ -19,7 +19,6 @@
  *
  * Written by: Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 #include "ply-command-parser.h"
 
 #include <assert.h>
@@ -147,6 +146,10 @@ ply_command_free (ply_command_t *command)
                 option_node = ply_list_get_next_node (command->options, option_node);
         }
         ply_list_free (command->options);
+        ply_list_free (command->aliases);
+
+        free (command->name);
+        free (command->description);
         free (command);
 }
 
@@ -369,6 +372,7 @@ ply_command_parser_free (ply_command_parser_t *command_parser)
         }
         ply_list_free (command_parser->available_subcommands);
         ply_list_free (command_parser->read_subcommands);
+        ply_list_free (command_parser->arguments);
 
         ply_command_free (command_parser->main_command);
 
@@ -405,12 +409,13 @@ ply_command_parser_add_options (ply_command_parser_t *parser,
 
 void
 ply_command_parser_add_command (ply_command_parser_t *parser,
-                                const char *name, const char *description,
+                                const char           *name,
+                                const char           *description,
                                 ply_command_handler_t handler,
-                                void *handler_data,
-                                const char *first_variadic_argument, /*
-                                                                      * const char *option_description,
-                                                                      * ply_command_option_type_t option_type */
+                                void                 *handler_data,
+                                const char           *first_variadic_argument, /*
+                                                                                * const char *option_description,
+                                                                                * ply_command_option_type_t option_type */
                                 ...)
 {
         ply_command_t *command;
@@ -658,8 +663,6 @@ ply_command_parser_get_command_options (ply_command_parser_t *parser,
         va_start (args, option_name);
         ply_command_parser_get_options_for_command (parser, command, option_name, args);
         va_end (args);
-
-        ply_list_append_data (parser->available_subcommands, command);
 }
 
 static void
@@ -944,4 +947,3 @@ ply_command_parser_parse_arguments (ply_command_parser_t *parser,
         return parsed_arguments;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

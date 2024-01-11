@@ -1,1 +1,2 @@
-usr/lib/*/plymouth/label.so
+usr/lib/*/plymouth/label-freetype.so
+usr/lib/*/plymouth/label-pango.so

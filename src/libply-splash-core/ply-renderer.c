@@ -22,7 +22,6 @@
  *             Kristian Høgsberg <krh@redhat.com>
  *             Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 #include "ply-renderer.h"
 
 #include <assert.h>
@@ -277,11 +276,12 @@ ply_renderer_open (ply_renderer_t *renderer)
         renderer->is_active = false;
         for (i = 0; known_plugins[i].type != PLY_RENDERER_TYPE_NONE; i++) {
                 if (renderer->type == known_plugins[i].type ||
-                    renderer->type == PLY_RENDERER_TYPE_AUTO)
+                    renderer->type == PLY_RENDERER_TYPE_AUTO) {
                         if (ply_renderer_open_plugin (renderer, known_plugins[i].path)) {
                                 renderer->is_active = true;
                                 goto out;
                         }
+                }
         }
 
         ply_trace ("could not find suitable rendering plugin");
@@ -312,7 +312,7 @@ ply_renderer_activate (ply_renderer_t *renderer)
         assert (renderer->plugin_interface != NULL);
 
         if (renderer->is_active)
-              return;
+                return;
 
         renderer->plugin_interface->activate (renderer->backend);
         renderer->is_active = true;
@@ -365,6 +365,34 @@ ply_renderer_flush_head (ply_renderer_t      *renderer,
                 return;
 
         renderer->plugin_interface->flush_head (renderer->backend, head);
+}
+
+void
+ply_renderer_add_input_device (ply_renderer_t     *renderer,
+                               ply_input_device_t *input_device)
+{
+        assert (renderer != NULL);
+        assert (renderer->plugin_interface != NULL);
+        assert (input_device != NULL);
+
+        if (!renderer->plugin_interface->add_input_device)
+                return;
+
+        renderer->plugin_interface->add_input_device (renderer->backend, input_device);
+}
+
+void
+ply_renderer_remove_input_device (ply_renderer_t     *renderer,
+                                  ply_input_device_t *input_device)
+{
+        assert (renderer != NULL);
+        assert (renderer->plugin_interface != NULL);
+        assert (input_device != NULL);
+
+        if (!renderer->plugin_interface->remove_input_device)
+                return;
+
+        renderer->plugin_interface->remove_input_device (renderer->backend, input_device);
 }
 
 ply_renderer_input_source_t *
@@ -451,5 +479,3 @@ ply_renderer_get_keymap (ply_renderer_t *renderer)
 
         return renderer->plugin_interface->get_keymap (renderer->backend);
 }
-
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

@@ -19,7 +19,6 @@
  *
  * Written by: Hans de Goede <hdegoede@redhat.com>
  */
-#include "config.h"
 
 #include <assert.h>
 #include <stdbool.h>
@@ -114,7 +113,7 @@ on_timeout (void             *user_data,
         bool old_is_on = capslock_icon->is_on;
 
         ply_capslock_icon_update_state (capslock_icon);
-        
+
         if (capslock_icon->is_on != old_is_on)
                 ply_capslock_icon_draw (capslock_icon);
 
@@ -211,7 +210,7 @@ ply_capslock_icon_draw_area (ply_capslock_icon_t *capslock_icon,
                 return;
 
         ply_capslock_icon_update_state (capslock_icon);
-        
+
         if (!capslock_icon->is_on)
                 return;
 
@@ -233,4 +232,3 @@ ply_capslock_icon_get_height (ply_capslock_icon_t *capslock_icon)
         return capslock_icon->height;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

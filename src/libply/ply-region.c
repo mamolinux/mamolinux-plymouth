@@ -23,7 +23,6 @@
  * Written by: Charlie Brej <cbrej@cs.man.ac.uk>
  *             Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 #include "ply-region.h"
 
 #include <assert.h>
@@ -445,7 +444,8 @@ ply_region_get_rectangle_list (ply_region_t *region)
 }
 
 static int
-rectangle_compare_y (void *element_a, void *element_b)
+rectangle_compare_y (void *element_a,
+                     void *element_b)
 {
         ply_rectangle_t *rectangle_a = element_a;
         ply_rectangle_t *rectangle_b = element_b;
@@ -460,4 +460,3 @@ ply_region_get_sorted_rectangle_list (ply_region_t *region)
         return region->rectangle_list;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

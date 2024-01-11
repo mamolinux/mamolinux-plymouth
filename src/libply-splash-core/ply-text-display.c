@@ -19,7 +19,6 @@
  *
  * Written by: Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 #include "ply-text-display.h"
 
 #include <assert.h>
@@ -333,4 +332,3 @@ ply_text_display_get_terminal (ply_text_display_t *display)
         return display->terminal;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

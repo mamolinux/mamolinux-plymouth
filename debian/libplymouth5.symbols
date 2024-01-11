@@ -26,10 +26,33 @@ libply-boot-client.so.5 libplymouth5 #MINVER#
  ply_boot_client_tell_daemon_to_progress_unpause@Base 0.9.5
  ply_boot_client_tell_daemon_to_quit@Base 0.9.5
  ply_boot_client_tell_daemon_to_reactivate@Base 0.9.5
+ ply_boot_client_tell_daemon_to_reload@Base 23.360.11
  ply_boot_client_tell_daemon_to_show_splash@Base 0.9.5
  ply_boot_client_update_daemon@Base 0.9.5
 libply-splash-core.so.5 libplymouth5 #MINVER#
 * Build-Depends-Package: libplymouth-dev
+ control_code_dispatch_table@Base 23.360.11
+ fill_offsets_with_padding@Base 23.360.11
+ handle_kmsg_message@Base 23.360.11
+ on_control_sequence_delete_characters@Base 23.360.11
+ on_control_sequence_erase_characters@Base 23.360.11
+ on_control_sequence_erase_line@Base 23.360.11
+ on_control_sequence_insert_blank_characters@Base 23.360.11
+ on_control_sequence_move_cursor_down_rows@Base 23.360.11
+ on_control_sequence_move_cursor_down_rows_to_first_column@Base 23.360.11
+ on_control_sequence_move_cursor_left@Base 23.360.11
+ on_control_sequence_move_cursor_right@Base 23.360.11
+ on_control_sequence_move_cursor_to_column@Base 23.360.11
+ on_control_sequence_move_cursor_up_rows@Base 23.360.11
+ on_control_sequence_move_cursor_up_rows_to_first_column@Base 23.360.11
+ on_control_sequence_set_attributes@Base 23.360.11
+ on_escape_character_backspace@Base 23.360.11
+ on_escape_character_carriage_return@Base 23.360.11
+ on_escape_character_linefeed@Base 23.360.11
+ on_escape_character_tab@Base 23.360.11
+ on_escape_sequence_linefeed@Base 23.360.11
+ on_escape_sequence_newline@Base 23.360.11
+ on_escape_sequence_reverse_linefeed@Base 23.360.11
  ply_boot_splash_add_pixel_display@Base 0.9.5
  ply_boot_splash_add_text_display@Base 0.9.5
  ply_boot_splash_attach_progress@Base 0.9.5
@@ -38,6 +61,7 @@ libply-splash-core.so.5 libplymouth5 #MINVER#
  ply_boot_splash_display_message@Base 0.9.5
  ply_boot_splash_display_normal@Base 0.9.5
  ply_boot_splash_display_password@Base 0.9.5
+ ply_boot_splash_display_prompt@Base 23.360.11
  ply_boot_splash_display_question@Base 0.9.5
  ply_boot_splash_free@Base 0.9.5
  ply_boot_splash_hide@Base 0.9.5
@@ -56,6 +80,7 @@ libply-splash-core.so.5 libplymouth5 #MINVER#
  ply_boot_splash_update_output@Base 0.9.5
  ply_boot_splash_update_status@Base 0.9.5
  ply_boot_splash_uses_pixel_displays@Base 0.9.5
+ ply_boot_splash_validate_input@Base 23.360.11
  ply_device_manager_activate_keyboards@Base 0.9.5
  ply_device_manager_activate_renderers@Base 0.9.5
  ply_device_manager_deactivate_keyboards@Base 0.9.5
@@ -71,11 +96,26 @@ libply-splash-core.so.5 libplymouth5 #MINVER#
  ply_device_manager_pause@Base 0.9.5
  ply_device_manager_unpause@Base 0.9.5
  ply_device_manager_watch_devices@Base 0.9.5
+ ply_input_device_free@Base 23.360.11
+ ply_input_device_get_capslock_state@Base 23.360.11
+ ply_input_device_get_fd@Base 23.360.11
+ ply_input_device_get_keymap@Base 23.360.11
+ ply_input_device_get_name@Base 23.360.11
+ ply_input_device_get_path@Base 23.360.11
+ ply_input_device_get_state@Base 23.360.11
+ ply_input_device_is_keyboard@Base 23.360.11
+ ply_input_device_is_keyboard_with_leds@Base 23.360.11
+ ply_input_device_open@Base 23.360.11
+ ply_input_device_set_disconnect_handler@Base 23.360.11
+ ply_input_device_set_state@Base 23.360.11
+ ply_input_device_stop_watching_for_input@Base 23.360.11
+ ply_input_device_watch_for_input@Base 23.360.11
  ply_keyboard_add_backspace_handler@Base 0.9.5
  ply_keyboard_add_enter_handler@Base 0.9.5
  ply_keyboard_add_escape_handler@Base 0.9.5
  ply_keyboard_add_input_handler@Base 0.9.5
  ply_keyboard_free@Base 0.9.5
+ ply_keyboard_get_capslock_state@Base 23.360.11
  ply_keyboard_get_renderer@Base 0.9.5
  ply_keyboard_is_active@Base 0.9.5
  ply_keyboard_new_for_renderer@Base 0.9.5
@@ -86,6 +126,12 @@ libply-splash-core.so.5 libplymouth5 #MINVER#
  ply_keyboard_remove_input_handler@Base 0.9.5
  ply_keyboard_stop_watching_for_input@Base 0.9.5
  ply_keyboard_watch_for_input@Base 0.9.5
+ ply_kmsg_message_free@Base 23.360.11
+ ply_kmsg_reader_free@Base 23.360.11
+ ply_kmsg_reader_new@Base 23.360.11
+ ply_kmsg_reader_start@Base 23.360.11
+ ply_kmsg_reader_stop@Base 23.360.11
+ ply_kmsg_reader_watch_for_messages@Base 23.360.11
  ply_pixel_buffer_fill_with_argb32_data@Base 0.9.5
  ply_pixel_buffer_fill_with_argb32_data_at_opacity@Base 0.9.5
  ply_pixel_buffer_fill_with_argb32_data_at_opacity_with_clip@Base 0.9.5
@@ -131,6 +177,7 @@ libply-splash-core.so.5 libplymouth5 #MINVER#
  ply_pixel_display_set_draw_handler@Base 0.9.5
  ply_pixel_display_unpause_updates@Base 0.9.5
  ply_renderer_activate@Base 0.9.5
+ ply_renderer_add_input_device@Base 23.360.11
  ply_renderer_close@Base 0.9.5
  ply_renderer_close_input_source@Base 0.9.5
  ply_renderer_deactivate@Base 0.9.5
@@ -148,10 +195,39 @@ libply-splash-core.so.5 libplymouth5 #MINVER#
  ply_renderer_new@Base 0.9.5
  ply_renderer_open@Base 0.9.5
  ply_renderer_open_input_source@Base 0.9.5
+ ply_renderer_remove_input_device@Base 23.360.11
  ply_renderer_set_handler_for_input_source@Base 0.9.5
+ ply_rich_text_character_free@Base 23.360.11
+ ply_rich_text_character_new@Base 23.360.11
+ ply_rich_text_character_style_initialize@Base 23.360.11
+ ply_rich_text_drop_reference@Base 23.360.11
+ ply_rich_text_free@Base 23.360.11
+ ply_rich_text_get_characters@Base 23.360.11
+ ply_rich_text_get_length@Base 23.360.11
+ ply_rich_text_get_mutable_span@Base 23.360.11
+ ply_rich_text_get_string@Base 23.360.11
+ ply_rich_text_iterator_initialize@Base 23.360.11
+ ply_rich_text_iterator_next@Base 23.360.11
+ ply_rich_text_move_character@Base 23.360.11
+ ply_rich_text_new@Base 23.360.11
+ ply_rich_text_remove_character@Base 23.360.11
+ ply_rich_text_remove_characters@Base 23.360.11
+ ply_rich_text_set_character@Base 23.360.11
+ ply_rich_text_set_mutable_span@Base 23.360.11
+ ply_rich_text_take_reference@Base 23.360.11
  ply_terminal_activate_vt@Base 0.9.5
  ply_terminal_close@Base 0.9.5
  ply_terminal_deactivate_vt@Base 0.9.5
+ ply_terminal_emulator_convert_boot_buffer@Base 23.360.11
+ ply_terminal_emulator_dispatch_control_sequence_command@Base 23.360.11
+ ply_terminal_emulator_free@Base 23.360.11
+ ply_terminal_emulator_get_line_count@Base 23.360.11
+ ply_terminal_emulator_get_nth_line@Base 23.360.11
+ ply_terminal_emulator_new@Base 23.360.11
+ ply_terminal_emulator_parse_lines@Base 23.360.11
+ ply_terminal_emulator_parse_substring@Base 23.360.11
+ ply_terminal_emulator_watch_for_output@Base 23.360.11
+ ply_terminal_flush_input@Base 23.360.11
  ply_terminal_free@Base 0.9.5
  ply_terminal_get_capslock_state@Base 0.9.5
  ply_terminal_get_color_hex_value@Base 0.9.5
@@ -171,6 +247,7 @@ libply-splash-core.so.5 libplymouth5 #MINVER#
  ply_terminal_reset_colors@Base 0.9.5
  ply_terminal_set_buffered_input@Base 0.9.5
  ply_terminal_set_color_hex_value@Base 0.9.5
+ ply_terminal_set_disabled_input@Base 23.360.11
  ply_terminal_set_mode@Base 0.9.5
  ply_terminal_set_unbuffered_input@Base 0.9.5
  ply_terminal_stop_watching_for_active_vt_change@Base 0.9.5
@@ -221,6 +298,7 @@ libply-splash-core.so.5 libplymouth5 #MINVER#
  ply_text_step_bar_new@Base 0.9.5
  ply_text_step_bar_set_fraction_done@Base 0.9.5
  ply_text_step_bar_show@Base 0.9.5
+ unhexmangle_to_buffer@Base 23.360.11
 libply-splash-graphics.so.5 libplymouth5 #MINVER#
 * Build-Depends-Package: libplymouth-dev
  ply_animation_draw_area@Base 0.9.5
@@ -240,6 +318,17 @@ libply-splash-graphics.so.5 libplymouth5 #MINVER#
  ply_capslock_icon_load@Base 0.9.5
  ply_capslock_icon_new@Base 0.9.5
  ply_capslock_icon_show@Base 0.9.5
+ ply_console_viewer_clear_line@Base 23.360.11
+ ply_console_viewer_convert_boot_buffer@Base 23.360.11
+ ply_console_viewer_draw_area@Base 23.360.11
+ ply_console_viewer_free@Base 23.360.11
+ ply_console_viewer_hide@Base 23.360.11
+ ply_console_viewer_new@Base 23.360.11
+ ply_console_viewer_preferred@Base 23.360.11
+ ply_console_viewer_print@Base 23.360.11
+ ply_console_viewer_set_text_color@Base 23.360.11
+ ply_console_viewer_show@Base 23.360.11
+ ply_console_viewer_write@Base 23.360.11
  ply_entry_add_bullet@Base 0.9.5
  ply_entry_draw_area@Base 0.9.5
  ply_entry_free@Base 0.9.5
@@ -286,6 +375,8 @@ libply-splash-graphics.so.5 libplymouth5 #MINVER#
  ply_label_set_alignment@Base 0.9.5
  ply_label_set_color@Base 0.9.5
  ply_label_set_font@Base 0.9.5
+ ply_label_set_hex_color@Base 23.360.11
+ ply_label_set_rich_text@Base 23.360.11
  ply_label_set_text@Base 0.9.5
  ply_label_set_width@Base 0.9.5
  ply_label_show@Base 0.9.5
@@ -343,11 +434,15 @@ libply.so.5 libplymouth5 #MINVER#
  ply_buffer_clear@Base 0.9.5
  ply_buffer_free@Base 0.9.5
  ply_buffer_get_bytes@Base 0.9.5
+ ply_buffer_get_capacity@Base 23.360.11
  ply_buffer_get_size@Base 0.9.5
  ply_buffer_new@Base 0.9.5
  ply_buffer_remove_bytes@Base 0.9.5
  ply_buffer_remove_bytes_at_end@Base 0.9.5
+ ply_buffer_set_bytes@Base 23.360.11
  ply_buffer_steal_bytes@Base 0.9.5
+ ply_change_to_vt@Base 23.360.11
+ ply_change_to_vt_with_fd@Base 23.360.11
  ply_character_device_exists@Base 0.9.5
  ply_close_module@Base 0.9.5
  ply_command_parser_add_command@Base 0.9.5
@@ -388,9 +483,12 @@ libply.so.5 libplymouth5 #MINVER#
  ply_free_string_array@Base 0.9.5
  ply_get_credentials_from_fd@Base 0.9.5
  ply_get_device_scale@Base 0.9.5
+ ply_get_kmsg_log_levels@Base 23.360.11
  ply_get_process_command_line@Base 0.9.5
  ply_get_process_parent_pid@Base 0.9.5
+ ply_get_random_number@Base 23.360.11
  ply_get_timestamp@Base 0.9.5
+ ply_guess_device_scale@Base 23.360.11
  ply_hashtable_direct_compare@Base 0.9.5
  ply_hashtable_direct_hash@Base 0.9.5
  ply_hashtable_foreach@Base 0.9.5
@@ -404,6 +502,7 @@ libply.so.5 libplymouth5 #MINVER#
  ply_hashtable_resize@Base 0.9.5
  ply_hashtable_string_compare@Base 0.9.5
  ply_hashtable_string_hash@Base 0.9.5
+ ply_is_secure_boot_enabled@Base 23.360.11
  ply_kernel_command_line_get_key_value@Base 0.9.5
  ply_kernel_command_line_get_string_after_prefix@Base 0.9.5
  ply_kernel_command_line_has_argument@Base 0.9.5
@@ -486,6 +585,7 @@ libply.so.5 libplymouth5 #MINVER#
  ply_set_device_scale@Base 0.9.5
  ply_set_fd_as_blocking@Base 0.9.5
  ply_show_new_kernel_messages@Base 0.9.5
+ ply_string_has_prefix@Base 23.360.11
  ply_strtod@Base 0.9.5
  ply_terminal_session_attach@Base 0.9.5
  ply_terminal_session_attach_to_event_loop@Base 0.9.5
@@ -496,13 +596,23 @@ libply.so.5 libplymouth5 #MINVER#
  ply_terminal_session_new@Base 0.9.5
  ply_terminal_session_open_log@Base 0.9.5
  ply_trigger_add_handler@Base 0.9.5
+ ply_trigger_add_instance_handler@Base 23.360.11
  ply_trigger_free@Base 0.9.5
+ ply_trigger_get_instance@Base 23.360.11
  ply_trigger_ignore_next_pull@Base 0.9.5
  ply_trigger_new@Base 0.9.5
  ply_trigger_pull@Base 0.9.5
  ply_trigger_remove_handler@Base 0.9.5
+ ply_trigger_remove_instance_handler@Base 23.360.11
+ ply_trigger_set_instance@Base 23.360.11
+ ply_utf8_character_get_byte_type@Base 23.360.11
  ply_utf8_character_get_size@Base 0.9.5
+ ply_utf8_character_get_size_from_byte_type@Base 23.360.11
+ ply_utf8_string_get_byte_offset_from_character_offset@Base 23.360.11
  ply_utf8_string_get_length@Base 0.9.5
+ ply_utf8_string_iterator_initialize@Base 23.360.11
+ ply_utf8_string_iterator_next@Base 23.360.11
+ ply_utf8_string_remove_last_character@Base 23.360.11
  ply_write@Base 0.9.5
  ply_write_uint32@Base 0.9.5
 

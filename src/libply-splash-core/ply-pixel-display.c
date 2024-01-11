@@ -19,7 +19,6 @@
  *
  * Written by: Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 #include "ply-pixel-display.h"
 
 #include <assert.h>
@@ -189,4 +188,3 @@ ply_pixel_display_set_draw_handler (ply_pixel_display_t             *display,
         display->draw_handler_user_data = user_data;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

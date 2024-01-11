@@ -5,14 +5,15 @@
 # Hans de Goede <hdegoede@redhat.com>, 2019.
 # Geert Warrink <geert.warrink@onsnet.nu>, 2019. #zanata, 2021.
 # Hans de Goede <hdegoede@redhat.com>, 2019. #zanata
+# Philip Goto <philip.goto@gmail.com>, 2023.
 msgid ""
 msgstr ""
 "Project-Id-Version: plymouth 0.9.5\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/plymouth/plymouth/"
 "issues\n"
 "POT-Creation-Date: 2020-07-08 14:59-0400\n"
-"PO-Revision-Date: 2021-02-28 12:40+0000\n"
-"Last-Translator: Geert Warrink <geert.warrink@onsnet.nu>\n"
+"PO-Revision-Date: 2023-04-12 11:20+0000\n"
+"Last-Translator: Philip Goto <philip.goto@gmail.com>\n"
 "Language-Team: Dutch <https://translate.fedoraproject.org/projects/plymouth/"
 "master/nl/>\n"
 "Language: nl\n"
@@ -20,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.4.2\n"
+"X-Generator: Weblate 4.15.2\n"
 
 #: src/plugins/splash/two-step/plugin.c:1727
 #, c-format
@@ -34,7 +35,7 @@ msgstr "BGRT"
 #: themes/bgrt/bgrt.plymouth.desktop:44
 #: themes/spinner/spinner.plymouth.desktop:40
 msgid "Installing Updates..."
-msgstr "Updates worden uitgevoerd..."
+msgstr "Updates installeren…"
 
 #: themes/bgrt/bgrt.plymouth.desktop:45 themes/bgrt/bgrt.plymouth.desktop:52
 #: themes/bgrt/bgrt.plymouth.desktop:59
@@ -42,17 +43,17 @@ msgstr "Updates worden uitgevoerd..."
 #: themes/spinner/spinner.plymouth.desktop:48
 #: themes/spinner/spinner.plymouth.desktop:55
 msgid "Do not turn off your computer"
-msgstr "Schakel de computer niet uit"
+msgstr "Schakel het apparaat niet uit"
 
 #: themes/bgrt/bgrt.plymouth.desktop:51
 #: themes/spinner/spinner.plymouth.desktop:47
 msgid "Upgrading System..."
-msgstr "Besturingssysteem upgrade wordt uitgevoerd..."
+msgstr "Systeem upgraden…"
 
 #: themes/bgrt/bgrt.plymouth.desktop:58
 #: themes/spinner/spinner.plymouth.desktop:54
 msgid "Upgrading Firmware..."
-msgstr "Firmware upgrade wordt uitgevoerd..."
+msgstr "Firmware upgraden…"
 
 #: themes/spinner/spinner.plymouth.desktop:3
 msgid "Spinner"
