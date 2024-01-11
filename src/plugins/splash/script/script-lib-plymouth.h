@@ -36,17 +36,22 @@ typedef struct
         script_obj_t          *script_display_normal_func;
         script_obj_t          *script_display_password_func;
         script_obj_t          *script_display_question_func;
+        script_obj_t          *script_display_prompt_func;
+        script_obj_t          *script_display_hotplug_func;
+        script_obj_t          *script_validate_input_func;
         script_obj_t          *script_display_message_func;
         script_obj_t          *script_hide_message_func;
         script_obj_t          *script_quit_func;
-        script_obj_t           *script_system_update_func;
+        script_obj_t          *script_system_update_func;
         ply_boot_splash_mode_t mode;
         int                    refresh_rate;
+        ply_keyboard_t        *keyboard;
 } script_lib_plymouth_data_t;
 
 script_lib_plymouth_data_t *script_lib_plymouth_setup (script_state_t        *state,
                                                        ply_boot_splash_mode_t mode,
-                                                       int refresh_rate);
+                                                       int                    refresh_rate,
+                                                       ply_keyboard_t        *keyboard);
 void script_lib_plymouth_destroy (script_lib_plymouth_data_t *data);
 
 void script_lib_plymouth_on_refresh (script_state_t             *state,
@@ -73,6 +78,17 @@ void script_lib_plymouth_on_display_question (script_state_t             *state,
                                               script_lib_plymouth_data_t *data,
                                               const char                 *prompt,
                                               const char                 *entry_text);
+void script_lib_plymouth_on_display_prompt (script_state_t             *state,
+                                            script_lib_plymouth_data_t *data,
+                                            const char                 *prompt,
+                                            const char                 *entry_text,
+                                            bool                        is_secret);
+void script_lib_plymouth_on_display_hotplug (script_state_t             *state,
+                                             script_lib_plymouth_data_t *data);
+bool script_lib_plymouth_on_validate_input (script_state_t             *state,
+                                            script_lib_plymouth_data_t *data,
+                                            const char                 *entry_text,
+                                            const char                 *add_text);
 void script_lib_plymouth_on_display_message (script_state_t             *state,
                                              script_lib_plymouth_data_t *data,
                                              const char                 *new_message);
@@ -83,7 +99,7 @@ void script_lib_plymouth_on_quit (script_state_t             *state,
                                   script_lib_plymouth_data_t *data);
 void script_lib_plymouth_on_system_update (script_state_t             *state,
                                            script_lib_plymouth_data_t *data,
-                                           int                 progress);
+                                           int                         progress);
 
 
 #endif /* SCRIPT_LIB_PLYMOUTH_H */

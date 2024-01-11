@@ -21,7 +21,6 @@
  * Written by: Charlie Brej <cbrej@cs.man.ac.uk>
  *             Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 #include "ply-list.h"
 
 #include <assert.h>
@@ -360,4 +359,3 @@ ply_list_node_get_data (ply_list_node_t *node)
         return node->data;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

@@ -19,7 +19,6 @@
  *
  * Written by: Ray Strode <rstrode@redhat.com>
  */
-#include <config.h>
 
 #include "ply-utils.h"
 
@@ -46,7 +45,6 @@
 #include <sys/user.h>
 #include <sys/wait.h>
 #include <time.h>
-#include <linux/fs.h>
 #include <linux/vt.h>
 
 #include <dlfcn.h>
@@ -76,6 +74,11 @@
 #ifndef PLY_MAX_COMMAND_LINE_SIZE
 #define PLY_MAX_COMMAND_LINE_SIZE 4096
 #endif
+
+#define EFI_VARIABLES_PATH "/sys/firmware/efi/efivars/"
+#define EFI_GLOBAL_VARIABLES_GUID "8be4df61-93ca-11d2-aa0d-00e098032b8c"
+#define SECURE_BOOT_GLOBAL_VARIABLES_FILE EFI_VARIABLES_PATH "SecureBoot-" EFI_GLOBAL_VARIABLES_GUID
+#define IS_SECURE_BOOT_ENABLED(sb_config) ((sb_config) == 0x1)
 
 static int errno_stack[PLY_ERRNO_STACK_SIZE];
 static int errno_stack_position = 0;
@@ -459,6 +462,16 @@ ply_free_string_array (char **array)
         free (array);
 }
 
+bool
+ply_string_has_prefix (const char *str,
+                       const char *prefix)
+{
+        if (str == NULL || prefix == NULL)
+                return false;
+
+        return strncmp (str, prefix, strlen (prefix)) == 0;
+}
+
 double
 ply_get_timestamp (void)
 {
@@ -729,21 +742,95 @@ ply_detach_daemon (ply_daemon_handle_t *handle,
  * 11100000-11101111    E0-EF   Start of 3-byte sequence
  * 11110000-11110100    F0-F4   Start of 4-byte sequence
  */
-int
-ply_utf8_character_get_size (const char *string,
-                             size_t      n)
+ply_utf8_character_byte_type_t
+ply_utf8_character_get_byte_type (const char byte)
 {
-        int length;
+        ply_utf8_character_byte_type_t byte_type;
 
-        if (n < 1) return -1;
-        if (string[0] == 0x00) length = 0;
-        else if ((string[0] & 0x80) == 0x00) length = 1;
-        else if ((string[0] & 0xE0) == 0xC0) length = 2;
-        else if ((string[0] & 0xF0) == 0xE0) length = 3;
-        else if ((string[0] & 0xF8) == 0xF0) length = 4;
-        else return -2;
-        if (length > (int) n) return -1;
-        return length;
+        if (byte == '\0')
+                byte_type = PLY_UTF8_CHARACTER_BYTE_TYPE_END_OF_STRING;
+        else if ((byte & 0x80) == 0x00)
+                byte_type = PLY_UTF8_CHARACTER_BYTE_TYPE_1_BYTE;
+        else if ((byte & 0xE0) == 0xC0)
+                byte_type = PLY_UTF8_CHARACTER_BYTE_TYPE_2_BYTES;
+        else if ((byte & 0xF0) == 0xE0)
+                byte_type = PLY_UTF8_CHARACTER_BYTE_TYPE_3_BYTES;
+        else if ((byte & 0xF8) == 0xF0)
+                byte_type = PLY_UTF8_CHARACTER_BYTE_TYPE_4_BYTES;
+        else if ((byte & 0xC0) == 0x80)
+                byte_type = PLY_UTF8_CHARACTER_BYTE_TYPE_CONTINUATION;
+        else
+                byte_type = PLY_UTF8_CHARACTER_BYTE_TYPE_INVALID;
+
+        return byte_type;
+}
+
+ssize_t
+ply_utf8_character_get_size_from_byte_type (ply_utf8_character_byte_type_t byte_type)
+{
+        size_t size;
+
+        switch (byte_type) {
+        case PLY_UTF8_CHARACTER_BYTE_TYPE_1_BYTE:
+                size = 1;
+                break;
+        case PLY_UTF8_CHARACTER_BYTE_TYPE_2_BYTES:
+                size = 2;
+                break;
+        case PLY_UTF8_CHARACTER_BYTE_TYPE_3_BYTES:
+                size = 3;
+                break;
+        case PLY_UTF8_CHARACTER_BYTE_TYPE_4_BYTES:
+                size = 4;
+                break;
+        case PLY_UTF8_CHARACTER_BYTE_TYPE_CONTINUATION:
+        case PLY_UTF8_CHARACTER_BYTE_TYPE_INVALID:
+        case PLY_UTF8_CHARACTER_BYTE_TYPE_END_OF_STRING:
+                size = 0;
+                break;
+        }
+        return size;
+}
+
+ssize_t
+ply_utf8_character_get_size (const char *bytes)
+{
+        ply_utf8_character_byte_type_t byte_type;
+        ssize_t size;
+
+        byte_type = ply_utf8_character_get_byte_type (bytes[0]);
+        size = ply_utf8_character_get_size_from_byte_type (byte_type);
+
+        return size;
+}
+
+void
+ply_utf8_string_remove_last_character (char  **string,
+                                       size_t *size)
+{
+        char *bytes = *string;
+        size_t size_in = *size, end_offset;
+
+        if (size_in == 0)
+                return;
+
+        end_offset = size_in - 1;
+        do {
+                ply_utf8_character_byte_type_t byte_type;
+
+                byte_type = ply_utf8_character_get_byte_type (bytes[end_offset]);
+
+                if (byte_type != PLY_UTF8_CHARACTER_BYTE_TYPE_CONTINUATION) {
+                        memset (bytes + end_offset, '\0', size_in - end_offset);
+                        *size = end_offset;
+                        break;
+                }
+
+                if (end_offset == 0)
+                        break;
+
+                end_offset--;
+        } while (true);
 }
 
 int
@@ -753,13 +840,76 @@ ply_utf8_string_get_length (const char *string,
         size_t count = 0;
 
         while (true) {
-                int charlen = ply_utf8_character_get_size (string, n);
-                if (charlen <= 0) break;
-                string += charlen;
-                n -= charlen;
+                size_t size = ply_utf8_character_get_size (string);
+
+                if (size == 0)
+                        break;
+
+                if (size > n)
+                        break;
+
+                string += size;
+                n -= size;
                 count++;
         }
         return count;
+}
+
+size_t
+ply_utf8_string_get_byte_offset_from_character_offset (const char *string,
+                                                       size_t      character_offset)
+{
+        size_t byte_offset = 0;
+        size_t i;
+
+        for (i = 0; i < character_offset && string[byte_offset] != '\0'; i++) {
+                byte_offset += ply_utf8_character_get_size (string + byte_offset);
+        }
+
+        return byte_offset;
+}
+
+void
+ply_utf8_string_iterator_initialize (ply_utf8_string_iterator_t *iterator,
+                                     const char                 *string,
+                                     ssize_t                     starting_offset,
+                                     ssize_t                     range)
+{
+        size_t byte_offset;
+
+        iterator->character_range = range;
+        iterator->string = string;
+
+        byte_offset = ply_utf8_string_get_byte_offset_from_character_offset (string, starting_offset);
+        iterator->current_byte_offset = byte_offset;
+        iterator->number_characters_iterated = 0;
+}
+
+bool
+ply_utf8_string_iterator_next (ply_utf8_string_iterator_t *iterator,
+                               const char                **character,
+                               size_t                     *size)
+{
+        size_t size_of_current_character;
+
+        if (iterator->number_characters_iterated >= iterator->character_range)
+                return false;
+
+        if (iterator->string[iterator->current_byte_offset] == '\0')
+                return false;
+
+        size_of_current_character = ply_utf8_character_get_size (iterator->string + iterator->current_byte_offset);
+
+        if (size_of_current_character == 0)
+                return false;
+
+        *character = &iterator->string[iterator->current_byte_offset];
+        *size = size_of_current_character;
+
+        iterator->current_byte_offset += size_of_current_character;
+        iterator->number_characters_iterated++;
+
+        return true;
 }
 
 char *
@@ -847,19 +997,27 @@ out:
 void
 ply_set_device_scale (int device_scale)
 {
-    overridden_device_scale = device_scale;
-    ply_trace ("Device scale is set to %d", device_scale);
+        overridden_device_scale = device_scale;
+        ply_trace ("Device scale is set to %d", device_scale);
 }
 
 /* The minimum resolution at which we turn on a device-scale of 2 */
 #define HIDPI_LIMIT 192
 #define HIDPI_MIN_HEIGHT 1200
+#define HIDPI_MIN_WIDTH 2560 /* For heuristic / guessed device-scale */
 
-int
-ply_get_device_scale (uint32_t width,
-                      uint32_t height,
-                      uint32_t width_mm,
-                      uint32_t height_mm)
+/*
+ * If we have guessed the scale once, keep guessing to avoid
+ * changing the scale on simpledrm -> native driver switch.
+ */
+static bool guess_device_scale;
+
+static int
+get_device_scale (uint32_t width,
+                  uint32_t height,
+                  uint32_t width_mm,
+                  uint32_t height_mm,
+                  bool     guess)
 {
         int device_scale;
         double dpi_x, dpi_y;
@@ -876,6 +1034,9 @@ ply_get_device_scale (uint32_t width,
         if (height < HIDPI_MIN_HEIGHT)
                 return 1;
 
+        if (guess)
+                return (width >= HIDPI_MIN_WIDTH) ? 2 : 1;
+
         /* Somebody encoded the aspect ratio (16/9 or 16/10)
          * instead of the physical size */
         if ((width_mm == 160 && height_mm == 90) ||
@@ -885,16 +1046,93 @@ ply_get_device_scale (uint32_t width,
                 return 1;
 
         if (width_mm > 0 && height_mm > 0) {
-                dpi_x = (double)width / (width_mm / 25.4);
-                dpi_y = (double)height / (height_mm / 25.4);
+                dpi_x = (double) width / (width_mm / 25.4);
+                dpi_y = (double) height / (height_mm / 25.4);
                 /* We don't completely trust these values so both
-                   must be high, and never pick higher ratio than
-                   2 automatically */
+                 * must be high, and never pick higher ratio than
+                 * 2 automatically */
                 if (dpi_x > HIDPI_LIMIT && dpi_y > HIDPI_LIMIT)
                         device_scale = 2;
         }
 
         return device_scale;
+}
+
+int
+ply_get_device_scale (uint32_t width,
+                      uint32_t height,
+                      uint32_t width_mm,
+                      uint32_t height_mm)
+{
+        return get_device_scale (width, height, width_mm, height_mm,
+                                 guess_device_scale);
+}
+
+int ply_guess_device_scale (uint32_t width,
+                            uint32_t height)
+{
+        guess_device_scale = true;
+        return get_device_scale (width, height, 0, 0, true);
+}
+
+void
+ply_get_kmsg_log_levels (int *current_log_level,
+                         int *default_log_level)
+{
+        static double last_update_time = 0;
+        static int cached_current_log_level = 0;
+        static int cached_default_log_level = 0;
+        char log_levels[4096] = "";
+        double current_time;
+        char *field, *fields;
+        int fd;
+
+        current_time = ply_get_timestamp ();
+
+        if ((current_time - last_update_time) < 1.0) {
+                *current_log_level = cached_current_log_level;
+                *default_log_level = cached_default_log_level;
+                return;
+        }
+
+        ply_trace ("opening /proc/sys/kernel/printk");
+        fd = open ("/proc/sys/kernel/printk", O_RDONLY);
+
+        if (fd < 0) {
+                ply_trace ("couldn't open it: %m");
+                return;
+        }
+
+        ply_trace ("reading kmsg log levels");
+        if (read (fd, log_levels, sizeof(log_levels) - 1) < 0) {
+                ply_trace ("couldn't read it: %m");
+                close (fd);
+                return;
+        }
+        close (fd);
+
+        field = strtok_r (log_levels, " \t", &fields);
+
+        if (field == NULL) {
+                ply_trace ("Couldn't parse current log level: %m");
+                return;
+        }
+
+        *current_log_level = atoi (field);
+
+        field = strtok_r (NULL, " \t", &fields);
+
+        if (field == NULL) {
+                ply_trace ("Couldn't parse default log level: %m");
+                return;
+        }
+
+        *default_log_level = atoi (field);
+
+        cached_current_log_level = *current_log_level;
+        cached_default_log_level = *default_log_level;
+
+        last_update_time = current_time;
 }
 
 static const char *
@@ -945,7 +1183,7 @@ ply_get_kernel_command_line (void)
 const char *
 ply_kernel_command_line_get_string_after_prefix (const char *prefix)
 {
-        const char *command_line = ply_get_kernel_command_line();
+        const char *command_line = ply_get_kernel_command_line ();
         char *argument;
 
         if (!command_line)
@@ -988,7 +1226,7 @@ ply_kernel_command_line_get_key_value (const char *key)
         if (value == NULL || value[0] == '\0')
                 return NULL;
 
-        return strndup(value, strcspn (value, " \n"));
+        return strndup (value, strcspn (value, " \n"));
 }
 
 void
@@ -999,17 +1237,107 @@ ply_kernel_command_line_override (const char *command_line)
         kernel_command_line_is_set = true;
 }
 
-double ply_strtod(const char *str)
+double ply_strtod (const char *str)
 {
         char *old_locale;
         double ret;
 
         /* Ensure strtod uses '.' as decimal separator, as we use this in our cfg files. */
-        old_locale = setlocale(LC_NUMERIC, "C");
-        ret = strtod(str, NULL);
-        setlocale(LC_NUMERIC, old_locale);
+        old_locale = setlocale (LC_NUMERIC, "C");
+        ret = strtod (str, NULL);
+        setlocale (LC_NUMERIC, old_locale);
 
         return ret;
+}
+
+static bool
+check_secure_boot_settings (const char *filename)
+{
+        int fd;
+        int len;
+        uint8_t buf[5];
+
+        fd = open (filename, O_RDONLY);
+        len = read (fd, buf, 5);
+        close (fd);
+
+        /* /sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c
+         * is in a binary format. The file is exactly 5 bytes long and the last byte
+         * is the secure boot configuration. If it is 0x1, the secure boot is
+         * enabled.
+         */
+        if (len == 5)
+                if (IS_SECURE_BOOT_ENABLED (buf[4]))
+                        return true;
+
+        return false;
+}
+
+bool
+ply_is_secure_boot_enabled (void)
+{
+        static int is_secure_boot_enabled = -1;
+
+        if (is_secure_boot_enabled != -1)
+                return is_secure_boot_enabled;
+
+        if (check_secure_boot_settings (SECURE_BOOT_GLOBAL_VARIABLES_FILE))
+                is_secure_boot_enabled = true;
+        else
+                is_secure_boot_enabled = false;
+
+        return is_secure_boot_enabled;
+}
+
+long
+ply_get_random_number (long lower_bound,
+                       long range)
+{
+        static bool seed_initialized = false;
+        long offset;
+
+        if (!seed_initialized) {
+                struct timespec now = { 0L, /* zero-filled */ };
+
+                clock_gettime (CLOCK_TAI, &now);
+                srand48 (now.tv_nsec);
+                seed_initialized = true;
+        }
+
+        offset = mrand48 ();
+
+        offset = labs (offset) % range;
+
+        return lower_bound + offset;
+}
+
+bool
+ply_change_to_vt_with_fd (int vt_number,
+                          int tty_fd)
+{
+        if (ioctl (tty_fd, VT_ACTIVATE, vt_number) < 0)
+                return false;
+
+        return true;
+}
+
+bool
+ply_change_to_vt (int vt_number)
+{
+        int fd;
+        bool changed_vt;
+
+        fd = open ("/dev/tty0", O_RDWR);
+
+        if (fd < 0)
+                return false;
+
+        ply_save_errno ();
+        changed_vt = ply_change_to_vt_with_fd (vt_number, fd);
+        ply_restore_errno ();
+        close (fd);
+
+        return changed_vt;
 }
 
 /* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

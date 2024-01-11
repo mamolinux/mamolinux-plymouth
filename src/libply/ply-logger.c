@@ -19,7 +19,6 @@
  *
  * Written by: Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 #include "ply-logger.h"
 
 #include <assert.h>
@@ -316,7 +315,7 @@ ply_logger_open_file (ply_logger_t *logger,
                       const char   *filename)
 {
         char header[80];
-        struct tm* tm;
+        struct tm *tm;
         time_t t;
         int fd;
 
@@ -339,8 +338,8 @@ ply_logger_open_file (ply_logger_t *logger,
         if (tm) {
                 /* This uses uname -v date format */
                 strftime (header, sizeof(header),
-                         "------------ %a %b %d %T %Z %Y ------------\n", tm);
-                ply_logger_write (logger, header, strlen(header), true);
+                          "------------ %a %b %d %T %Z %Y ------------\n", tm);
+                ply_logger_write (logger, header, strlen (header), true);
         }
 
         return true;
@@ -365,7 +364,7 @@ ply_logger_set_output_fd (ply_logger_t *logger,
         assert (logger != NULL);
 
         logger->output_fd = fd;
-        logger->output_fd_is_terminal = isatty(fd);
+        logger->output_fd_is_terminal = isatty (fd);
 }
 
 int
@@ -594,4 +593,3 @@ ply_logger_is_tracing_to_terminal (ply_logger_t *logger)
 
 #endif /* PLY_ENABLE_TRACING */
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

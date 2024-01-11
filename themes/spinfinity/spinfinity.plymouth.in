@@ -4,6 +4,7 @@ Description=Simple theme that shows a rotating infinity sign in the center of th
 ModuleName=two-step
 
 [two-step]
+ScaleBackgroundImage=false
 ImageDir=@PLYMOUTH_THEME_PATH@/spinfinity
 BackgroundStartColor=0x0073b3
 BackgroundEndColor=0x00457e
@@ -39,5 +40,9 @@ UseProgressBar=true
 UseAnimation=true
 
 [firmware-upgrade]
+UseProgressBar=true
+UseAnimation=true
+
+[system-reset]
 UseProgressBar=true
 UseAnimation=true

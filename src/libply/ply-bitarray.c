@@ -19,7 +19,6 @@
  *
  * Written by: Charlie Brej <cbrej@cs.man.ac.uk>
  */
-#include "config.h"
 #include "ply-bitarray.h"
 
 #include <assert.h>
@@ -43,4 +42,3 @@ ply_bitarray_count (ply_bitarray_t *bitarray,
         return count;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

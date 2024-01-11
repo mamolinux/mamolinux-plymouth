@@ -23,7 +23,6 @@
  *             Peter Jones <pjones@redhat.com>
  *             Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 
 #include <arpa/inet.h>
 #include <assert.h>
@@ -60,6 +59,21 @@
 
 #include "ply-renderer.h"
 #include "ply-renderer-plugin.h"
+
+static const char *function_key_escape_sequence[] = {
+        "\033[[A",  /* F1 */
+        "\033[[B",  /* F2 */
+        "\033[[C",  /* F3 */
+        "\033[[D",  /* F4 */
+        "\033[[E",  /* F5 */
+        "\033[17~", /* F6 */
+        "\033[18~", /* F7 */
+        "\033[19~", /* F8 */
+        "\033[20~", /* F9 */
+        "\033[21~", /* F10 */
+        "\033[22~", /* F11 */
+        "\033[23~", /* F12 */
+};
 
 struct _ply_renderer_head
 {
@@ -149,6 +163,17 @@ on_display_event (ply_renderer_backend_t *backend)
         }
 }
 
+static void
+on_timeout_event (ply_renderer_backend_t *backend,
+                  ply_event_loop_t       *loop)
+{
+        on_display_event (backend);
+
+        ply_event_loop_watch_for_timeout (loop, 0.02,
+                                          (ply_event_loop_timeout_handler_t) on_timeout_event,
+                                          backend);
+}
+
 static bool
 open_device (ply_renderer_backend_t *backend)
 {
@@ -167,6 +192,10 @@ open_device (ply_renderer_backend_t *backend)
                                                           NULL,
                                                           backend);
 
+        ply_event_loop_watch_for_timeout (backend->loop, 0.02,
+                                          (ply_event_loop_timeout_handler_t) on_timeout_event,
+                                          backend);
+
         return true;
 }
 
@@ -179,6 +208,9 @@ get_device_name (ply_renderer_backend_t *backend)
 static void
 close_device (ply_renderer_backend_t *backend)
 {
+        ply_event_loop_stop_watching_for_timeout (backend->loop,
+                                                  (ply_event_loop_timeout_handler_t) on_display_event,
+                                                  backend);
         ply_event_loop_stop_watching_fd (backend->loop, backend->display_watch);
         backend->display_watch = NULL;
         return;
@@ -223,10 +255,10 @@ create_fullscreen_single_head_setup (ply_renderer_backend_t *backend)
         GdkRectangle monitor_geometry;
         int width_mm, height_mm;
 
-#if GTK_CHECK_VERSION(3,22,0)
-        GdkDisplay* const display = gdk_display_get_default();
-        GdkMonitor* const monitor = gdk_display_get_primary_monitor(display);
-        gdk_monitor_get_geometry(monitor, &monitor_geometry);
+#if GTK_CHECK_VERSION (3, 22, 0)
+        GdkDisplay * const display = gdk_display_get_default ();
+        GdkMonitor * const monitor = gdk_display_get_primary_monitor (display);
+        gdk_monitor_get_geometry (monitor, &monitor_geometry);
         width_mm = gdk_monitor_get_width_mm (monitor);
         height_mm = gdk_monitor_get_height_mm (monitor);
 #else
@@ -482,6 +514,10 @@ on_key_event (GtkWidget   *widget,
                 ply_buffer_append_bytes (input_source->key_buffer, "\033", 1);
         } else if (event->keyval == GDK_KEY_BackSpace) { /* Backspace */
                 ply_buffer_append_bytes (input_source->key_buffer, "\177", 1);
+        } else if (GDK_KEY_F1 <= event->keyval &&
+                   GDK_KEY_F12 >= event->keyval) {       /* F1-F12 */
+                const char *key = function_key_escape_sequence[event->keyval - GDK_KEY_F1];
+                ply_buffer_append_bytes (input_source->key_buffer, key, strlen (key));
         } else {
                 gchar bytes[7];
                 int byte_count;
@@ -559,4 +595,3 @@ ply_renderer_backend_get_interface (void)
         return &plugin_interface;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

@@ -3,4 +3,3 @@
 0008-show-delay.patch
 drop-systemd-vconsole-setup-service.patch
 fallback-etc-default-keyboard.patch
-configure.ac-Avoid-embedding-the-date-in-the-version.patch

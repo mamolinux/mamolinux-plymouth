@@ -19,7 +19,6 @@
  *
  * Written by: Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 #include "ply-terminal-session.h"
 
 #include <assert.h>
@@ -429,4 +428,3 @@ ply_terminal_session_close_log (ply_terminal_session_t *session)
         return ply_logger_close_file (session->logger);
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

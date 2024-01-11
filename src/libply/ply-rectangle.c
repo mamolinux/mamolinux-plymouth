@@ -23,7 +23,6 @@
  * Written by: Charlie Brej <cbrej@cs.man.ac.uk>
  *             Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 #include "ply-list.h"
 #include "ply-rectangle.h"
 
@@ -260,4 +259,3 @@ ply_rectangle_intersect (ply_rectangle_t *rectangle1,
         }
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

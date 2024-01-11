@@ -42,15 +42,16 @@ typedef enum
         PLY_BOOT_SPLASH_MODE_UPDATES,
         PLY_BOOT_SPLASH_MODE_SYSTEM_UPGRADE,
         PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE,
+        PLY_BOOT_SPLASH_MODE_SYSTEM_RESET,
         PLY_BOOT_SPLASH_MODE_INVALID,
-        PLY_BOOT_SPLASH_MODE_COUNT = PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE + 1,
+        PLY_BOOT_SPLASH_MODE_COUNT = PLY_BOOT_SPLASH_MODE_SYSTEM_RESET + 1,
 } ply_boot_splash_mode_t;
 
 typedef struct _ply_boot_splash_plugin ply_boot_splash_plugin_t;
 
 typedef struct
 {
-        ply_boot_splash_plugin_t * (*create_plugin)(ply_key_file_t * key_file);
+        ply_boot_splash_plugin_t * (*create_plugin)(ply_key_file_t *key_file);
         void (*destroy_plugin)(ply_boot_splash_plugin_t *plugin);
 
         void (*set_keyboard)(ply_boot_splash_plugin_t *plugin,
@@ -95,7 +96,13 @@ typedef struct
                                  const char               *entry_text);
         void (*become_idle)(ply_boot_splash_plugin_t *plugin,
                             ply_trigger_t            *idle_trigger);
+        void (*display_prompt)(ply_boot_splash_plugin_t *plugin,
+                               const char               *prompt,
+                               const char               *entry_text,
+                               bool                      is_secret);
+        bool (*validate_input) (ply_boot_splash_plugin_t *plugin,
+                                const char               *entry_text,
+                                const char               *add_text);
 } ply_boot_splash_plugin_interface_t;
 
 #endif /* PLY_BOOT_SPLASH_PLUGIN_H */
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */
