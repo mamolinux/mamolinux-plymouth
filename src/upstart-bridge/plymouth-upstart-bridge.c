@@ -19,7 +19,6 @@
  *
  * Written by: Colin Watson <cjwatson@ubuntu.com>
  */
-#include "config.h"
 
 #include <stdbool.h>
 #include <signal.h>
@@ -294,6 +293,7 @@ main (int    argc,
 
         /* Don't bail on dummy/hardcopy terminals */
         int errret = 0;
+
         setupterm (NULL, STDOUT_FILENO, &errret);
 
         is_connected = ply_boot_client_connect (state.client,
@@ -322,4 +322,3 @@ main (int    argc,
 
         return exit_code;
 }
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

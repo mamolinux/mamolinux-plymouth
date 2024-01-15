@@ -19,7 +19,6 @@
  *
  * Written by: Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 #include "ply-label.h"
 
 #include <assert.h>
@@ -37,6 +36,7 @@
 #include "ply-list.h"
 #include "ply-logger.h"
 #include "ply-utils.h"
+#include "ply-array.h"
 
 struct _ply_label
 {
@@ -46,9 +46,13 @@ struct _ply_label
         ply_label_plugin_control_t         *control;
 
         char                               *text;
+
+        ply_rich_text_t                    *rich_text;
+        ply_rich_text_span_t                span;
+
         ply_label_alignment_t               alignment;
         long                                width;
-        char                               *fontdesc;
+        char                               *font;
         float                               red;
         float                               green;
         float                               blue;
@@ -86,6 +90,14 @@ ply_label_free (ply_label_t *label)
                 ply_label_unload_plugin (label);
         }
 
+        free (label->text);
+        free (label->font);
+
+        if (label->rich_text) {
+                ply_rich_text_drop_reference (label->rich_text);
+                label->rich_text = NULL;
+        }
+
         free (label);
 }
 
@@ -96,12 +108,11 @@ ply_label_load_plugin (ply_label_t *label)
 
         get_plugin_interface_function_t get_label_plugin_interface;
 
-        /* Try the pango/cairo based label plugin first... */
-        label->module_handle = ply_open_module (PLYMOUTH_PLUGIN_PATH "label.so");
+        label->module_handle = ply_open_module (PLYMOUTH_PLUGIN_PATH "label-pango.so");
 
-        /* ...and the FreeType based one after that, it is not a complete substitute (yet). */
+        /* and the FreeType based one after that, it is not a complete substitute (yet). */
         if (label->module_handle == NULL)
-            label->module_handle = ply_open_module (PLYMOUTH_PLUGIN_PATH "label-ft.so");
+                label->module_handle = ply_open_module (PLYMOUTH_PLUGIN_PATH "label-freetype.so");
 
         if (label->module_handle == NULL)
                 return false;
@@ -139,17 +150,24 @@ ply_label_load_plugin (ply_label_t *label)
                 return false;
         }
 
-        if (label->text != NULL)
-                label->plugin_interface->set_text_for_control (label->control,
-                                                               label->text);
+        if (label->font != NULL)
+                label->plugin_interface->set_font_for_control (label->control,
+                                                               label->font);
+
+        if (label->text != NULL) {
+                if (label->rich_text == NULL) {
+                        label->plugin_interface->set_text_for_control (label->control,
+                                                                       label->text?: "");
+                } else {
+                        label->plugin_interface->set_rich_text_for_control (label->control,
+                                                                            label->rich_text,
+                                                                            &label->span);
+                }
+        }
         label->plugin_interface->set_alignment_for_control (label->control,
                                                             label->alignment);
         label->plugin_interface->set_width_for_control (label->control,
                                                         label->width);
-        if (label->fontdesc != NULL)
-                label->plugin_interface->set_font_for_control (label->control,
-                                                               label->fontdesc);
-
         label->plugin_interface->set_color_for_control (label->control,
                                                         label->red,
                                                         label->green,
@@ -230,13 +248,44 @@ ply_label_set_text (ply_label_t *label,
                     const char  *text)
 {
         free (label->text);
-        label->text = strdup (text);
+        label->text = NULL;
+
+        if (text != NULL)
+                label->text = strdup (text);
+
+        if (label->rich_text) {
+                ply_rich_text_drop_reference (label->rich_text);
+                label->rich_text = NULL;
+        }
 
         if (label->plugin_interface == NULL)
                 return;
 
         label->plugin_interface->set_text_for_control (label->control,
-                                                       text);
+                                                       label->text?: "");
+}
+
+void
+ply_label_set_rich_text (ply_label_t          *label,
+                         ply_rich_text_t      *rich_text,
+                         ply_rich_text_span_t *span)
+{
+        free (label->text);
+        label->text = ply_rich_text_get_string (rich_text, span);
+
+        if (label->rich_text)
+                ply_rich_text_drop_reference (label->rich_text);
+        label->rich_text = rich_text;
+        ply_rich_text_take_reference (rich_text);
+
+        label->span = *span;
+
+        if (label->plugin_interface == NULL)
+                return;
+
+        label->plugin_interface->set_rich_text_for_control (label->control,
+                                                            label->rich_text,
+                                                            &label->span);
 }
 
 void
@@ -266,25 +315,49 @@ ply_label_set_width (ply_label_t *label,
 }
 
 /*
- * Please see pango documentation, for fontdesc format:
+ * Please see pango documentation, for font format:
  * http://library.gnome.org/devel/pango/stable/pango-Fonts.html#pango-font-description-from-string
  * If you pass NULL, it will use default font.
  */
 void
 ply_label_set_font (ply_label_t *label,
-                    const char  *fontdesc)
+                    const char  *font)
 {
-        free (label->fontdesc);
-        if (fontdesc)
-                label->fontdesc = strdup (fontdesc);
+        free (label->font);
+        if (font)
+                label->font = strdup (font);
         else
-                label->fontdesc = NULL;
+                label->font = NULL;
 
         if (label->plugin_interface == NULL)
                 return;
 
         label->plugin_interface->set_font_for_control (label->control,
-                                                       fontdesc);
+                                                       font);
+}
+
+void
+ply_label_set_hex_color (ply_label_t *label,
+                         uint32_t     hex_color)
+{
+        double red;
+        double green;
+        double blue;
+        double alpha;
+
+        red = ((double) (hex_color & 0xff000000) / 0xff000000);
+        green = ((double) (hex_color & 0x00ff0000) / 0x00ff0000);
+        blue = ((double) (hex_color & 0x0000ff00) / 0x0000ff00);
+        alpha = ((double) (hex_color & 0x000000ff) / 0x000000ff);
+
+        if (label->plugin_interface == NULL)
+                return;
+
+        label->plugin_interface->set_color_for_control (label->control,
+                                                        red,
+                                                        green,
+                                                        blue,
+                                                        alpha);
 }
 
 void
@@ -328,4 +401,3 @@ ply_label_get_height (ply_label_t *label)
 
         return label->plugin_interface->get_height_of_control (label->control);
 }
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

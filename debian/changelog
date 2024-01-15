@@ -1,3 +1,20 @@
+plymouth (23.360.11-0ubuntu1) noble; urgency=medium
+
+  * New upstream version 23.360.11
+  * Refresh patches
+  * Build using meson, autotools is not supported anymore
+  * Do not pass SYSTEMD_ASK_PASSWORD_AGENT: now detected by upstream
+  * Add new build dep libevdev
+  * label-ft is now built from upstream as label-freetype.so
+  * label.so is now label-pango.so
+  * plymouth.docs: update upstream files
+  * Update libplymouth5.symbols
+  * spinfinity: do not use meson symlink
+  * Fix systemdsystemunitdir to add missing /usr prefix
+  * Cherry-pick upstream patch to prevent xkb_keymap crash
+
+ -- Agathe Porte <agathe.porte@canonical.com>  Mon, 15 Jan 2024 15:28:09 +0100
+
 plymouth (22.02.122-4ubuntu2) noble; urgency=medium
 
   * Fix various postinst script elements which would cause issues on an
@@ -43,7 +60,7 @@ plymouth (22.02.122-3ubuntu2) lunar; urgency=medium
 
   * debian/local/plymouth.hook:
     - update the initramfs hook for the new fonts-ubuntu, fixes missing
-      chars on the disk encryption screen 
+      chars on the disk encryption screen
 
  -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 23 Mar 2023 22:17:23 +0100
 
@@ -163,7 +180,7 @@ plymouth (0.9.5+git20211018-1ubuntu3) jammy; urgency=medium
 plymouth (0.9.5+git20211018-1ubuntu2) jammy; urgency=medium
 
   * debian/local/bgrt-fallback.png,
-    themes/ubuntu-logo/ubuntu-logo.png: 
+    themes/ubuntu-logo/ubuntu-logo.png:
     - Update the Ubuntu logo for the brand refresh
 
  -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 17 Mar 2022 20:58:51 +0100
@@ -466,7 +483,7 @@ plymouth (0.9.4git20200109-0ubuntu3.1) focal; urgency=medium
 
   * debian/local/plymouth.hook:
     - if the current theme has an ImageDir includes the directory
-      in the initramfs (lp: #1864586) 
+      in the initramfs (lp: #1864586)
 
  -- Sebastien Bacher <seb128@ubuntu.com>  Tue, 03 Mar 2020 17:02:28 +0100
 
@@ -590,7 +607,7 @@ plymouth (0.9.4-1ubuntu2) eoan; urgency=medium
       https://gitlab.freedesktop.org/plymouth/plymouth/commit/396cae8e
   * debian/patches/details-short-prompt.patch:
     - remove, that change was never upstreamed and it was useful when
-      cryptsetup was using multilines prompts which doens't seem the 
+      cryptsetup was using multilines prompts which doens't seem the
       case anymore
   * debian/patches/fix-split-writes.patch:
     - remove, the issue was fixed in 0.9.2 with another solution
@@ -731,7 +748,7 @@ plymouth (0.9.3-1ubuntu12) disco; urgency=medium
 
   * debian/patches/git_helper_renderer.patch,
     debian/patches/git_desactivate_renderer.patch:
-    - 'device-manager: free keyboards when deactivating a renderer', 
+    - 'device-manager: free keyboards when deactivating a renderer',
       (lp: #1794292)
   * debian/patches/git_small_bugfixes.patch:
     - backported some upstream small bugfixes
@@ -788,7 +805,7 @@ plymouth (0.9.3-1ubuntu9) cosmic; urgency=medium
 plymouth (0.9.3-1ubuntu8) cosmic; urgency=medium
 
   * debian/patches/git_ensure_tty_closed_0a662723.patch: ensure tty is closed
-    on deactivate. (LP: #1767918) 
+    on deactivate. (LP: #1767918)
 
  -- Mathieu Trudel-Lapierre <cyphermox@ubuntu.com>  Tue, 11 Sep 2018 18:56:37 -0400
 
@@ -1156,7 +1173,7 @@ plymouth (0.9.2-3ubuntu1) xenial; urgency=medium
     - Add Breaks: against older themes versions as they are shipping in /lib
       instead of /usr/share.
   * Noticeable changes from previous ubuntu version:
-    - Follow debian in moving all renderers from /lib to /usr/lib 
+    - Follow debian in moving all renderers from /lib to /usr/lib
     - Follow debian as well in moving all themes from /lib to /usr/share
       and handle transition removing older /lib/plymouth/theme generated files.
     - Renamed all ubuntu_logo* to ubuntu-logo* to follow debian naming. Do
@@ -1737,7 +1754,7 @@ plymouth (0.8.8-0ubuntu5) raring; urgency=low
 
 plymouth (0.8.8-0ubuntu4) raring; urgency=low
 
-  * Drop the dependency on hardware-specific libdrm modules. 
+  * Drop the dependency on hardware-specific libdrm modules.
 
  -- Adam Conrad <adconrad@ubuntu.com>  Mon, 10 Dec 2012 16:50:24 -0700
 
@@ -2143,7 +2160,7 @@ plymouth (0.8.2-2ubuntu30) precise; urgency=low
 
   [ James Hunt ]
   * Temporary work-around that minimizes chance of referencing invalid
-    sources (LP: #553745). 
+    sources (LP: #553745).
 
  -- James Hunt <james.hunt@ubuntu.com>  Fri, 13 Apr 2012 15:11:36 +0100
 
@@ -2253,7 +2270,7 @@ plymouth (0.8.2-2ubuntu19) natty; urgency=low
 
   * debian/initramfs-tools/hooks/plymouth: handle the nss_files modules
     being in the multiarch library path instead of in /lib.
-  * Build-depend on dpkg-dev (>= 1.16.0~ubuntu4) so we can check the 
+  * Build-depend on dpkg-dev (>= 1.16.0~ubuntu4) so we can check the
     multiarch path at build time.
   * Also handle multiarch paths for pango modules.
 
@@ -2318,7 +2335,7 @@ plymouth (0.8.2-2ubuntu14) natty; urgency=low
 
   [ Steve Langasek ]
   * Clean up the prerm scripts:
-    - don't use this horrible case $1 meme that infests maintainer 
+    - don't use this horrible case $1 meme that infests maintainer
       scripts everywhere (including the other scripts in this package :)
     - use rm -f instead of ignoring failures
     - avoid useless exit 0 at the end
@@ -2971,9 +2988,9 @@ plymouth (0.8.0~-10ubuntu1) lucid; urgency=low
  -- Steve Langasek <steve.langasek@ubuntu.com>  Thu, 18 Feb 2010 01:24:34 +0000
 
 plymouth (0.8.0~-10) lucid; urgency=low
- 
+
   * Add lbm-nouveau/plymouth integration patch.
- 
+
  -- Robert Hooker <sarvatt@ubuntu.com>  Wed, 10 Feb 2010 23:29:41 -0500
 
 plymouth (0.8.0~-9ubuntu1) lucid; urgency=low
@@ -3102,9 +3119,9 @@ plymouth (0.8.0~-3) lucid; urgency=low
     - script gains window get position functions.
 
   * debian/initramfs-tools/scripts/init-bottom/plymouth:
-    - Tell plymouth about the new root filesystem after switching to it. 
+    - Tell plymouth about the new root filesystem after switching to it.
   * debian/rules:
-    - Drop --enable-maintainer-mode since it's now enabled by default. 
+    - Drop --enable-maintainer-mode since it's now enabled by default.
   * debian/plymouth.upstart:
     - Remove the "start on" rules that would cause Plymouth to be started
       if you hadn't got an initramfs; since these were different to the
@@ -3176,7 +3193,7 @@ plymouth (0.8.0~-1) lucid; urgency=low
 plymouth (0.8.0+git20090929-0ubuntu0.1~fastboot1) karmic; urgency=low
 
   * New upstream release.
-  * Update 01_default_fb.patch. 
+  * Update 01_default_fb.patch.
   * debian/patches/11_create_pid_file.patch:
     - Add --pid-file=filename parameter to the client so as to write
       the pid to a file.
@@ -3275,7 +3292,7 @@ plymouth (0.7.2-0ubuntu0.1~fastboot1) karmic; urgency=low
   * Adapt the "plain" plugin (written by Michael Terry).
   * 06_force_graphics_mode.patch:
     - Make sure that graphics mode is always used.
-  
+
   [ Michael Terry ]
   * debian/patches/05_add_plain_plugin.patch:
     - Add a plugin called 'plain' that just shows the logo in the center
@@ -3417,7 +3434,7 @@ plymouth (0.7.0+git20090207-0ubuntu0.1~ppa5) UNRELEASED; urgency=low
     - Reduce debhelper dependency to 6, for ease of hardy backports.
     - Prepend install paths with debian/tmp/, as debhelper 6 likes.
   * debian/initramfs-tools/hooks/plymouth:
-    - Always pass copy_exec a target path that already exist, for 
+    - Always pass copy_exec a target path that already exist, for
       compatibility with hardy's initramf-tool's hook-functions.
 
  -- Michael Terry <michael.terry@canonical.com>  Mon, 16 Mar 2009 09:10:38 -0400
@@ -3467,7 +3484,7 @@ plymouth (0.7.0+git20090207-0ubuntu0.1~ppa1) jaunty; urgency=low
     - support "splash" on the kernel commandline
   * debian/patches/03_set_default_plugin.patch:
     - update the helper plymouth-set-default-plugin to work on
-      ubuntu and call initramfs-update 
+      ubuntu and call initramfs-update
   * debian/patches/04_support_solar_default.patch:
     - add missing "solar" to configure.in tests
   * debian/splash-functions:

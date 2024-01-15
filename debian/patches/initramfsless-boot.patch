@@ -1,14 +1,20 @@
-Author: Steve Langasek <steve.langasek@canonical.com>
-Description: support initramfsless boot
- Don't fail if --attach-to-session is passed and /dev/pts isn't mounted
- yet, as this breaks booting without an initramfs.
+From: Steve Langasek <steve.langasek@canonical.com>
+Date: Tue, 2 Jan 2024 10:23:29 +0100
+Subject: support initramfsless boot
+
 Bug-Ubuntu: https://bugs.launchpad.net/bugs/981314
 
-Index: plymouth/src/main.c
-===================================================================
---- plymouth.orig/src/main.c
-+++ plymouth/src/main.c
-@@ -1797,6 +1797,7 @@ attach_to_running_session (state_t *stat
+Don't fail if --attach-to-session is passed and /dev/pts isn't mounted
+yet, as this breaks booting without an initramfs.
+---
+ src/main.c | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/src/main.c b/src/main.c
+index 279e54a..e2f6f86 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -1900,6 +1900,7 @@ attach_to_running_session (state_t *state)
                  session = ply_terminal_session_new (NULL);
  
                  ply_terminal_session_attach_to_event_loop (session, state->loop);
@@ -16,7 +22,7 @@ Index: plymouth/src/main.c
          } else {
                  session = state->session;
                  ply_trace ("session already created");
-@@ -1808,12 +1809,6 @@ attach_to_running_session (state_t *stat
+@@ -1911,12 +1912,6 @@ attach_to_running_session (state_t *state)
                                            (ply_terminal_session_hangup_handler_t)
                                            (should_be_redirected ? on_session_hangup : NULL),
                                            -1, state)) {
@@ -29,7 +35,7 @@ Index: plymouth/src/main.c
                  state->is_redirected = false;
                  state->is_attached = false;
                  return false;
-@@ -1825,7 +1820,6 @@ attach_to_running_session (state_t *stat
+@@ -1940,7 +1935,6 @@ attach_to_running_session (state_t *state)
  
          state->is_redirected = should_be_redirected;
          state->is_attached = true;
@@ -37,7 +43,7 @@ Index: plymouth/src/main.c
  
          return true;
  }
-@@ -2321,9 +2315,6 @@ main (int    argc,
+@@ -2455,9 +2449,6 @@ main (int    argc,
                  state.should_be_attached = attach_to_session;
                  if (!attach_to_running_session (&state)) {
                          ply_trace ("could not redirect console session: %m");

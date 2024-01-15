@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
@@ -96,10 +97,10 @@ bool ply_logger_is_tracing_to_terminal (ply_logger_t *logger);
                         ply_logger_flush (logger);                                             \
                         snprintf (buf, sizeof(buf),                                            \
                                   "%02d:%02d:%02d.%03d %s:%d:%s",                              \
-                                  (int)(timespec.tv_sec / 3600),                               \
-                                  (int)((timespec.tv_sec / 60) % 60),                          \
-                                  (int)(timespec.tv_sec % 60),                                 \
-                                  (int)(timespec.tv_nsec / 1000000),                           \
+                                  (int) (timespec.tv_sec / 3600),                               \
+                                  (int) ((timespec.tv_sec / 60) % 60),                          \
+                                  (int) (timespec.tv_sec % 60),                                 \
+                                  (int) (timespec.tv_nsec / 1000000),                           \
                                   __FILE__, __LINE__, __func__);                               \
                         errno = _old_errno;                                                    \
                         ply_logger_inject (logger,                                             \
@@ -150,4 +151,3 @@ bool ply_logger_is_tracing_to_terminal (ply_logger_t *logger);
 #endif
 
 #endif /* PLY_LOGGER_H */
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

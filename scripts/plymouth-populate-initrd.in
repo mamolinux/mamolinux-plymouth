@@ -33,6 +33,10 @@ ddebug() {
     [ "$verbose" = "true" ] && echo "$@"
 }
 
+dfatal() {
+    echo "$@" > /proc/self/fd/2
+}
+
 # normalize_path <path>
 # Prints the normalized path, where it removes any duplicated
 # and trailing slashes.
@@ -420,12 +424,13 @@ function usage() {
         rc=1
     fi
 
-    echo "usage: plymouth [ --verbose | -v ] { --targetdir | -t } <initrd_directory>" > $output
+    echo "usage: $0 [ --verbose | -v ] { --targetdir | -t } <initrd_directory> { --x11-directory | -x } <x11_directory>" > $output
     exit $rc
 }
 
 verbose=false
 INITRDDIR=""
+X11_DIRECTORY="/usr/share/X11"
 while [ $# -gt 0 ]; do
     case $1 in
         --verbose|-v)
@@ -437,6 +442,10 @@ while [ $# -gt 0 ]; do
             ;;
         --help|-h)
             usage normal
+            ;;
+        --x11-directory|-x)
+            shift
+            X11_DIRECTORY="$1"
             ;;
         *)
             usage error
@@ -465,6 +474,55 @@ inst @RELEASE_FILE@ $INITRDDIR
 inst ${PLYMOUTH_POLICYDIR}/plymouthd.defaults $INITRDDIR
 inst ${PLYMOUTH_CONFDIR}/plymouthd.conf $INITRDDIR
 
+# Install xkb info
+if [ -d "${X11_DIRECTORY}" ]; then
+    mkdir -p "${INITRDDIR}/${X11_DIRECTORY}/xkb/"
+    mkdir -p "${INITRDDIR}/${X11_DIRECTORY}/xkb/compat/"
+
+    mkdir -p "${INITRDDIR}/${X11_DIRECTORY}/xkb/keycodes/"
+    mkdir -p "${INITRDDIR}/${X11_DIRECTORY}/xkb/rules/"
+    mkdir -p "${INITRDDIR}/${X11_DIRECTORY}/xkb/symbols/"
+    mkdir -p "${INITRDDIR}/${X11_DIRECTORY}/xkb/types/"
+    mkdir -p "${INITRDDIR}/${X11_DIRECTORY}/locale/"
+    inst ${X11_DIRECTORY}/xkb/compat/accessx $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/compat/basic $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/compat/caps $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/compat/complete $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/compat/iso9995 $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/compat/ledcaps $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/compat/lednum $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/compat/ledscroll $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/compat/level5 $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/compat/misc $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/compat/mousekeys $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/compat/xfree86 $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/keycodes/aliases $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/keycodes/evdev $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/rules/evdev $INITRDDIR
+    find ${X11_DIRECTORY}/xkb/symbols -maxdepth 1 ! -type d | while read file; do
+        inst $file $INITRDDIR
+    done
+    inst ${X11_DIRECTORY}/xkb/types/basic $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/types/complete $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/types/extra $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/types/iso9995 $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/types/level5 $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/types/mousekeys $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/types/numpad $INITRDDIR
+    inst ${X11_DIRECTORY}/xkb/types/pc $INITRDDIR
+
+    # In the off chance the user uses their compose key when
+    # typing their password, install compose sequences
+    if [ -f "${X11_DIRECTORY}/locale/compose.dir" ]; then
+        inst ${X11_DIRECTORY}/locale/compose.dir $INITRDDIR
+        grep UTF-8/Compose: ${X11_DIRECTORY}/locale/compose.dir | awk -F: '{ print $1 }' | sort -u | xargs dirname | while read DIR; do
+            find ${X11_DIRECTORY}/locale/$DIR -maxdepth 1 ! -type d | while read file; do
+                inst $file $INITRDDIR
+             done
+        done
+    fi
+fi
+
 if [ -z "$PLYMOUTH_THEME_NAME" ]; then
     echo "No default plymouth plugin is set" >&2
     exit 1
@@ -491,6 +549,35 @@ fi
 PLYMOUTH_MODULE_NAME=$(grep "ModuleName *= *" ${PLYMOUTH_SYSROOT}${PLYMOUTH_THEME_DIR}/${PLYMOUTH_THEME_NAME}.plymouth | sed 's/ModuleName *= *//')
 PLYMOUTH_IMAGE_DIR=$(grep "ImageDir *= *" ${PLYMOUTH_SYSROOT}${PLYMOUTH_THEME_DIR}/${PLYMOUTH_THEME_NAME}.plymouth | sed 's/ImageDir *= *//')
 
+
+PLYMOUTH_FONT_PATH=""
+PLYMOUTH_FONT=$(grep "\bFont *= *" ${PLYMOUTH_SYSROOT}${PLYMOUTH_THEME_DIR}/${PLYMOUTH_THEME_NAME}.plymouth | sed 's/Font *= *//' | head -1)
+if [ ! -z "$PLYMOUTH_FONT" ]; then
+     PLYMOUTH_FONT_PATH=$(fc-match -f %{file} "$PLYMOUTH_FONT" 2> /dev/null)
+     if [ ! -z "$PLYMOUTH_FONT_PATH" ]; then
+          inst "$PLYMOUTH_FONT_PATH" $INITRDDIR
+     fi
+fi
+
+PLYMOUTH_TITLE_FONT_PATH=""
+PLYMOUTH_TITLE_FONT=$(grep "\bTitleFont *= *" ${PLYMOUTH_SYSROOT}${PLYMOUTH_THEME_DIR}/${PLYMOUTH_THEME_NAME}.plymouth | sed 's/TitleFont *= *//' | head -1)
+if [ ! -z "$PLYMOUTH_TITLE_FONT" ]; then
+     PLYMOUTH_TITLE_FONT_PATH=$(fc-match -f %{file} "$PLYMOUTH_TITLE_FONT" 2> /dev/null)
+     if [ ! -z "$PLYMOUTH_TITLE_FONT_PATH" ]; then
+          inst "$PLYMOUTH_TITLE_FONT_PATH" $INITRDDIR
+     fi
+fi
+
+PLYMOUTH_MONOSPACE_FONT_PATH=""
+PLYMOUTH_MONOSPACE_FONT=$(grep "\bMonospaceFont *= *" ${PLYMOUTH_SYSROOT}${PLYMOUTH_THEME_DIR}/${PLYMOUTH_THEME_NAME}.plymouth | sed 's/MonospaceFont *= *//' | head -1)
+if [ ! -z "$PLYMOUTH_MONOSPACE_FONT" ]; then
+     PLYMOUTH_MONOSPACE_FONT_PATH=$(fc-match -f %{file} "$PLYMOUTH_MONOSPACE_FONT" 2> /dev/null)
+     if [ ! -z "$PLYMOUTH_MONOSPACE_FONT_PATH" ]; then
+          inst "$PLYMOUTH_MONOSPACE_FONT_PATH" $INITRDDIR
+     fi
+fi
+
+
 if [ ! -f ${PLYMOUTH_SYSROOT}${PLYMOUTH_PLUGIN_PATH}/${PLYMOUTH_MODULE_NAME}.so ]; then
     echo "The default plymouth plugin (${PLYMOUTH_MODULE_NAME}) doesn't exist" >&2
     exit 1
@@ -509,13 +596,17 @@ if [ "${PLYMOUTH_IMAGE_DIR}" != "${PLYMOUTH_THEME_DIR}" -a -d "${PLYMOUTH_SYSROO
      inst_recur "${PLYMOUTH_IMAGE_DIR}"
 fi
 
-if [ -f "${PLYMOUTH_PLUGIN_PATH}/label-ft.so" ]; then
-     inst ${PLYMOUTH_PLUGIN_PATH}/label-ft.so $INITRDDIR
-     font=$(fc-match -f %{file})
-     inst "$font" $INITRDDIR
-     # The label-ft plugin expects it at this location
+DEFAULT_FONT=$(fc-match -f %{file} 2> /dev/null)
+[ ! -z "$DEFAULT_FONT" ] && inst "$DEFAULT_FONT" $INITRDDIR
+DEFAULT_MONOSPACE_FONT=$(fc-match -f %{file} monospace 2> /dev/null)
+[ ! -z "$DEFAULT_MONOSPACE_FONT" ] && inst "$DEFAULT_MONOSPACE_FONT" $INITRDDIR
+
+if [ -f "${PLYMOUTH_PLUGIN_PATH}/label-freetype.so" ]; then
+     inst ${PLYMOUTH_PLUGIN_PATH}/label-freetype.so $INITRDDIR
+     # The label-freetype plugin expects it at this location
      mkdir -p $INITRDDIR/usr/share/fonts
-     ln -s "$font" $INITRDDIR/usr/share/fonts/Plymouth.ttf
+     [ ! -z "$DEFAULT_FONT" ] && ln -s "$DEFAULT_FONT" $INITRDDIR/usr/share/fonts/Plymouth.ttf
+     [ ! -z "$DEFAULT_MONOSPACE_FONT" ] && ln -s "$DEFAULT_MONOSPACE_FONT" $INITRDDIR/usr/share/fonts/Plymouth-monospace.ttf
 fi
 
 if [ -L ${PLYMOUTH_SYSROOT}${PLYMOUTH_DATADIR}/plymouth/themes/default.plymouth ]; then

@@ -21,7 +21,6 @@
  * Written by: Charlie Brej <cbrej@cs.man.ac.uk>
  *             Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -273,13 +272,15 @@ start_script_animation (ply_boot_splash_plugin_t *plugin)
                                                              plugin->displays);
         plugin->script_plymouth_lib = script_lib_plymouth_setup (plugin->script_state,
                                                                  plugin->mode,
-                                                                 FRAMES_PER_SECOND);
+                                                                 FRAMES_PER_SECOND,
+                                                                 plugin->keyboard);
         plugin->script_math_lib = script_lib_math_setup (plugin->script_state);
         plugin->script_string_lib = script_lib_string_setup (plugin->script_state);
 
         ply_trace ("executing script file");
         script_return_t ret = script_execute (plugin->script_state,
                                               plugin->script_main_op);
+
         script_obj_unref (ret.object);
         if (plugin->keyboard != NULL)
                 ply_keyboard_add_input_handler (plugin->keyboard,
@@ -391,13 +392,22 @@ add_pixel_display (ply_boot_splash_plugin_t *plugin,
                    ply_pixel_display_t      *display)
 {
         ply_list_append_data (plugin->displays, display);
+
+        if (plugin->script_sprite_lib != NULL) {
+                script_lib_sprite_pixel_display_added (plugin->script_sprite_lib, display);
+                script_lib_plymouth_on_display_hotplug (plugin->script_state, plugin->script_plymouth_lib);
+        }
 }
 
 static void
 remove_pixel_display (ply_boot_splash_plugin_t *plugin,
                       ply_pixel_display_t      *display)
 {
-        script_lib_sprite_pixel_display_removed (plugin->script_sprite_lib, display);
+        if (plugin->script_sprite_lib != NULL) {
+                script_lib_sprite_pixel_display_removed (plugin->script_sprite_lib, display);
+                script_lib_plymouth_on_display_hotplug (plugin->script_state, plugin->script_plymouth_lib);
+        }
+
         ply_list_remove_data (plugin->displays, display);
 }
 
@@ -429,7 +439,7 @@ static void
 system_update (ply_boot_splash_plugin_t *plugin,
                int                       progress)
 {
-        script_lib_plymouth_on_system_update( plugin->script_state,
+        script_lib_plymouth_on_system_update (plugin->script_state,
                                               plugin->script_plymouth_lib,
                                               progress);
 }
@@ -509,6 +519,32 @@ display_question (ply_boot_splash_plugin_t *plugin,
         unpause_displays (plugin);
 }
 
+static bool
+validate_input (ply_boot_splash_plugin_t *plugin,
+                const char               *entry_text,
+                const char               *add_text)
+{
+        return script_lib_plymouth_on_validate_input (plugin->script_state,
+                                                      plugin->script_plymouth_lib,
+                                                      entry_text,
+                                                      add_text);
+}
+
+static void
+display_prompt (ply_boot_splash_plugin_t *plugin,
+                const char               *prompt,
+                const char               *entry_text,
+                bool                      is_secret)
+{
+        pause_displays (plugin);
+        script_lib_plymouth_on_display_prompt (plugin->script_state,
+                                               plugin->script_plymouth_lib,
+                                               prompt,
+                                               entry_text,
+                                               is_secret);
+        unpause_displays (plugin);
+}
+
 static void
 display_message (ply_boot_splash_plugin_t *plugin,
                  const char               *message)
@@ -552,11 +588,12 @@ ply_boot_splash_plugin_get_interface (void)
                 .display_normal       = display_normal,
                 .display_password     = display_password,
                 .display_question     = display_question,
+                .display_prompt       = display_prompt,
                 .display_message      = display_message,
                 .hide_message         = hide_message,
+                .validate_input       = validate_input,
         };
 
         return &plugin_interface;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

@@ -24,7 +24,6 @@
  *             Ray Strode <rstrode@redhat.com>
  *             Hans de Goede <hdegoede@redhat.com>
  */
-#include "config.h"
 
 #include <arpa/inet.h>
 #include <assert.h>
@@ -51,6 +50,7 @@
 #include "ply-array.h"
 #include "ply-buffer.h"
 #include "ply-event-loop.h"
+#include "ply-input-device.h"
 #include "ply-list.h"
 #include "ply-logger.h"
 #include "ply-hashtable.h"
@@ -66,7 +66,7 @@
 
 /* For builds with libdrm < 2.4.89 */
 #ifndef DRM_MODE_ROTATE_0
-#define DRM_MODE_ROTATE_0 (1<<0)
+#define DRM_MODE_ROTATE_0 (1 << 0)
 #endif
 
 struct _ply_renderer_head
@@ -87,13 +87,14 @@ struct _ply_renderer_head
         bool                    uses_hw_rotation;
 
         int                     gamma_size;
-        uint16_t                *gamma;
+        uint16_t               *gamma;
 };
 
 struct _ply_renderer_input_source
 {
         ply_renderer_backend_t             *backend;
         ply_fd_watch_t                     *terminal_input_watch;
+        ply_list_t                         *input_devices;
 
         ply_buffer_t                       *key_buffer;
 
@@ -119,52 +120,58 @@ typedef struct
 
 typedef struct
 {
-        drmModeModeInfo mode;
-        uint32_t connector_id;
-        uint32_t connector_type;
-        uint32_t controller_id;
-        uint32_t possible_controllers;
-        int device_scale;
-        int link_status;
+        drmModeModeInfo             mode;
+        uint32_t                    connector_id;
+        uint32_t                    connector_type;
+        uint32_t                    controller_id;
+        uint32_t                    possible_controllers;
+        int                         device_scale;
+        int                         link_status;
         ply_pixel_buffer_rotation_t rotation;
-        bool tiled;
-        bool connected;
-        bool uses_hw_rotation;
+        bool                        tiled;
+        bool                        connected;
+        bool                        uses_hw_rotation;
+        bool                        is_non_desktop;
 } ply_output_t;
 
 struct _ply_renderer_backend
 {
-        ply_event_loop_t                *loop;
-        ply_terminal_t                  *terminal;
+        ply_event_loop_t           *loop;
+        ply_terminal_t             *terminal;
 
-        int                              device_fd;
-        char                            *device_name;
-        drmModeRes                      *resources;
+        int                         device_fd;
+        bool                        simpledrm;
+        char                       *device_name;
+        drmModeRes                 *resources;
 
-        ply_renderer_input_source_t      input_source;
-        ply_list_t                      *heads;
-        ply_hashtable_t                 *heads_by_controller_id;
+        ply_renderer_input_source_t input_source;
+        ply_list_t                 *heads;
+        ply_hashtable_t            *heads_by_controller_id;
 
-        ply_hashtable_t                 *output_buffers;
+        ply_hashtable_t            *output_buffers;
 
-        ply_output_t                    *outputs;
-        int                              outputs_len;
-        int                              connected_count;
+        ply_output_t               *outputs;
+        int                         outputs_len;
+        int                         connected_count;
 
-        int32_t                          dither_red;
-        int32_t                          dither_green;
-        int32_t                          dither_blue;
+        int32_t                     dither_red;
+        int32_t                     dither_green;
+        int32_t                     dither_blue;
 
-        uint32_t                         is_active : 1;
-        uint32_t        requires_explicit_flushing : 1;
+        uint32_t                    is_active : 1;
+        uint32_t                    requires_explicit_flushing : 1;
+        uint32_t                    input_source_is_open : 1;
 
-        int                              panel_width;
-        int                              panel_height;
-        ply_pixel_buffer_rotation_t      panel_rotation;
-        int                              panel_scale;
+        int                         panel_width;
+        int                         panel_height;
+        ply_pixel_buffer_rotation_t panel_rotation;
+        int                         panel_scale;
+        bool                        panel_info_set;
 };
 
 ply_renderer_plugin_interface_t *ply_renderer_backend_get_interface (void);
+
+static bool using_input_device (ply_renderer_input_source_t *backend);
 static bool open_input_source (ply_renderer_backend_t      *backend,
                                ply_renderer_input_source_t *input_source);
 static void flush_head (ply_renderer_backend_t *backend,
@@ -399,16 +406,16 @@ destroy_output_buffer (ply_renderer_backend_t *backend,
 
 static bool
 get_primary_plane_rotation (ply_renderer_backend_t *backend,
-                            uint32_t               controller_id,
-                            int                   *primary_id_ret,
-                            int                   *rotation_prop_id_ret,
-                            uint64_t              *rotation_ret)
+                            uint32_t                controller_id,
+                            int                    *primary_id_ret,
+                            int                    *rotation_prop_id_ret,
+                            uint64_t               *rotation_ret)
 {
         drmModeObjectPropertiesPtr plane_props;
         drmModePlaneResPtr plane_resources;
         drmModePropertyPtr prop;
         drmModePlanePtr plane;
-        uint64_t rotation;
+        uint64_t rotation = 0;
         uint32_t i, j;
         int rotation_prop_id = -1;
         int primary_id = -1;
@@ -483,7 +490,7 @@ get_primary_plane_rotation (ply_renderer_backend_t *backend,
 
 static ply_pixel_buffer_rotation_t
 connector_orientation_prop_to_rotation (drmModePropertyPtr prop,
-                                        int orientation)
+                                        int                orientation)
 {
         const char *name = prop->enums[orientation].name;
 
@@ -504,9 +511,9 @@ connector_orientation_prop_to_rotation (drmModePropertyPtr prop,
 }
 
 static void
-ply_renderer_connector_get_rotation_and_tiled (ply_renderer_backend_t      *backend,
-                                               drmModeConnector            *connector,
-                                               ply_output_t                *output)
+ply_renderer_connector_get_properties (ply_renderer_backend_t *backend,
+                                       drmModeConnector       *connector,
+                                       ply_output_t           *output)
 {
         int i, primary_id, rotation_prop_id;
         drmModePropertyPtr prop;
@@ -534,6 +541,9 @@ ply_renderer_connector_get_rotation_and_tiled (ply_renderer_backend_t      *back
                         output->link_status = connector->prop_values[i];
                         ply_trace ("link-status %d", output->link_status);
                 }
+                if (strcmp (prop->name, "non-desktop") == 0) {
+                        output->is_non_desktop = connector->prop_values[i];
+                }
 
                 drmModeFreeProperty (prop);
         }
@@ -548,7 +558,7 @@ ply_renderer_connector_get_rotation_and_tiled (ply_renderer_backend_t      *back
                                         &primary_id, &rotation_prop_id,
                                         &rotation) &&
             rotation == DRM_MODE_ROTATE_180) {
-                ply_trace("Keeping hw 180° rotation");
+                ply_trace ("Keeping hw 180° rotation");
                 output->rotation = PLY_PIXEL_BUFFER_ROTATE_UPRIGHT;
                 output->uses_hw_rotation = true;
         }
@@ -581,10 +591,10 @@ ply_renderer_head_add_connector (ply_renderer_head_t *head,
 }
 
 static ply_renderer_head_t *
-ply_renderer_head_new (ply_renderer_backend_t     *backend,
-                       ply_output_t               *output,
-                       uint32_t                    console_buffer_id,
-                       int                         gamma_size)
+ply_renderer_head_new (ply_renderer_backend_t *backend,
+                       ply_output_t           *output,
+                       uint32_t                console_buffer_id,
+                       int                     gamma_size)
 {
         ply_renderer_head_t *head;
         int i, step;
@@ -627,13 +637,21 @@ ply_renderer_head_new (ply_renderer_backend_t     *backend,
         /* Delay flush till first actual draw */
         ply_region_clear (ply_pixel_buffer_get_updated_areas (head->pixel_buffer));
 
-        if (output->connector_type == DRM_MODE_CONNECTOR_LVDS ||
+        /*
+         * On devices without a builtin display, use the info from the first
+         * enumerated output as panel info to sensure correct BGRT scaling.
+         * Note all outputs are enumerated before this info is used, so if
+         * there is a builtin display then that will override things.
+         */
+        if (!backend->panel_info_set ||
+            output->connector_type == DRM_MODE_CONNECTOR_LVDS ||
             output->connector_type == DRM_MODE_CONNECTOR_eDP ||
             output->connector_type == DRM_MODE_CONNECTOR_DSI) {
                 backend->panel_width = output->mode.hdisplay;
                 backend->panel_height = output->mode.vdisplay;
                 backend->panel_rotation = output->rotation;
                 backend->panel_scale = output->device_scale;
+                backend->panel_info_set = true;
         }
 
         ply_list_append_data (backend->heads, head);
@@ -774,7 +792,7 @@ ply_renderer_head_remove (ply_renderer_backend_t *backend,
 static void
 ply_renderer_head_remove_connector (ply_renderer_backend_t *backend,
                                     ply_renderer_head_t    *head,
-                                    uint32_t               connector_id)
+                                    uint32_t                connector_id)
 {
         int i, size = ply_array_get_size (head->connector_ids);
         uint32_t *connector_ids;
@@ -880,6 +898,7 @@ create_backend (const char     *device_name,
         backend->loop = ply_event_loop_get_default ();
         backend->heads = ply_list_new ();
         backend->input_source.key_buffer = ply_buffer_new ();
+        backend->input_source.input_devices = ply_list_new ();
         backend->terminal = terminal;
         backend->requires_explicit_flushing = true;
         backend->output_buffers = ply_hashtable_new (ply_hashtable_direct_hash,
@@ -904,6 +923,7 @@ destroy_backend (ply_renderer_backend_t *backend)
         free (backend->device_name);
         ply_hashtable_free (backend->output_buffers);
         ply_hashtable_free (backend->heads_by_controller_id);
+        ply_list_free (backend->input_source.input_devices);
 
         free (backend->outputs);
         free (backend);
@@ -951,6 +971,7 @@ on_active_vt_changed (ply_renderer_backend_t *backend)
 static bool
 load_driver (ply_renderer_backend_t *backend)
 {
+        drmVersion *version;
         int device_fd;
 
         ply_trace ("Opening '%s'", backend->device_name);
@@ -959,6 +980,15 @@ load_driver (ply_renderer_backend_t *backend)
         if (device_fd < 0) {
                 ply_trace ("open failed: %m");
                 return false;
+        }
+
+        version = drmGetVersion (device_fd);
+        if (version) {
+                ply_trace ("drm driver: %s", version->name);
+                if (strcmp (version->name, "simpledrm") == 0)
+                        backend->simpledrm = true;
+
+                drmFreeVersion (version);
         }
 
         backend->device_fd = device_fd;
@@ -983,7 +1013,6 @@ unload_backend (ply_renderer_backend_t *backend)
 
         destroy_backend (backend);
         backend = NULL;
-
 }
 
 static bool
@@ -1114,21 +1143,23 @@ get_preferred_mode (drmModeConnector *connector)
 {
         int i;
 
-        for (i = 0; i < connector->count_modes; i++)
+        for (i = 0; i < connector->count_modes; i++) {
                 if (connector->modes[i].type & DRM_MODE_TYPE_USERDEF) {
                         ply_trace ("Found user set mode %dx%d at index %d",
                                    connector->modes[i].hdisplay,
                                    connector->modes[i].vdisplay, i);
                         return &connector->modes[i];
                 }
+        }
 
-        for (i = 0; i < connector->count_modes; i++)
+        for (i = 0; i < connector->count_modes; i++) {
                 if (connector->modes[i].type & DRM_MODE_TYPE_PREFERRED) {
                         ply_trace ("Found preferred mode %dx%d at index %d",
                                    connector->modes[i].hdisplay,
                                    connector->modes[i].vdisplay, i);
                         return &connector->modes[i];
                 }
+        }
 
         return NULL;
 }
@@ -1178,10 +1209,13 @@ get_output_info (ply_renderer_backend_t *backend,
                 goto out;
 
         output_get_controller_info (backend, connector, output);
-        ply_renderer_connector_get_rotation_and_tiled (backend, connector, output);
+        ply_renderer_connector_get_properties (backend, connector, output);
+        /* ignore non-desktop outputs */
+        if (output->is_non_desktop)
+                goto out;
         if (output->rotation == PLY_PIXEL_BUFFER_ROTATE_COUNTER_CLOCKWISE ||
             output->rotation == PLY_PIXEL_BUFFER_ROTATE_CLOCKWISE)
-            has_90_rotation = true;
+                has_90_rotation = true;
 
         if (!output->tiled)
                 mode = get_preferred_mode (connector);
@@ -1195,9 +1229,13 @@ get_output_info (ply_renderer_backend_t *backend,
                 mode = &connector->modes[0];
         }
         output->mode = *mode;
-        output->device_scale = ply_get_device_scale (mode->hdisplay, mode->vdisplay,
-                                                     (!has_90_rotation) ? connector->mmWidth : connector->mmHeight,
-                                                     (!has_90_rotation) ? connector->mmHeight : connector->mmWidth);
+
+        if (backend->simpledrm)
+                output->device_scale = ply_guess_device_scale (mode->hdisplay, mode->vdisplay);
+        else
+                output->device_scale = ply_get_device_scale (mode->hdisplay, mode->vdisplay,
+                                                             (!has_90_rotation) ? connector->mmWidth : connector->mmHeight,
+                                                             (!has_90_rotation) ? connector->mmHeight : connector->mmWidth);
         output->connector_type = connector->connector_type;
         output->connected = true;
 out:
@@ -1214,7 +1252,6 @@ out:
  * This repeats until we find an assignment order which results in a controller
  * for all outputs, or we've tried all possible assignment orders.
  */
-
 static uint32_t
 find_controller_for_output (ply_renderer_backend_t *backend,
                             const ply_output_t     *outputs,
@@ -1229,14 +1266,12 @@ find_controller_for_output (ply_renderer_backend_t *backend,
 
                 if (!(possible_controllers & (1 << i)))
                         continue; /* controller not usable for this connector */
-
                 for (j = 0; j < outputs_len; j++) {
                         if (outputs[j].controller_id == controller_id)
                                 break;
                 }
                 if (j < outputs_len)
                         continue; /* controller already in use */
-
                 return controller_id;
         }
 
@@ -1296,7 +1331,7 @@ setup_outputs (ply_renderer_backend_t *backend,
                 count = count_setup_controllers (new_outputs, outputs_len);
                 if (count > best_count) {
                         if (best_outputs != outputs)
-                                free ((void *)best_outputs);
+                                free ((void *) best_outputs);
                         best_outputs = new_outputs;
                         best_count = count;
                 } else {
@@ -1305,14 +1340,15 @@ setup_outputs (ply_renderer_backend_t *backend,
         }
 
         if (best_outputs != outputs)
-                free ((void *)outputs);
+                free ((void *) outputs);
 
         /* Our caller is allowed to modify outputs, cast-away the const */
-        return (ply_output_t *)best_outputs;
+        return (ply_output_t *) best_outputs;
 }
 
 static void
-remove_output (ply_renderer_backend_t *backend, ply_output_t *output)
+remove_output (ply_renderer_backend_t *backend,
+               ply_output_t           *output)
 {
         ply_renderer_head_t *head;
 
@@ -1332,7 +1368,7 @@ remove_output (ply_renderer_backend_t *backend, ply_output_t *output)
  */
 static bool
 check_if_output_has_changed (ply_renderer_backend_t *backend,
-                             ply_output_t *new_output)
+                             ply_output_t           *new_output)
 {
         ply_output_t *old_output = NULL;
         int i;
@@ -1347,7 +1383,7 @@ check_if_output_has_changed (ply_renderer_backend_t *backend,
         if (!old_output || !old_output->controller_id)
                 return false;
 
-        if (memcmp(old_output, new_output, sizeof(ply_output_t)) == 0)
+        if (memcmp (old_output, new_output, sizeof(ply_output_t)) == 0)
                 return false;
 
         ply_trace ("Output for connector %u changed, removing", old_output->connector_id);
@@ -1360,7 +1396,8 @@ check_if_output_has_changed (ply_renderer_backend_t *backend,
  * Returns true if any heads were modified.
  */
 static bool
-create_heads_for_active_connectors (ply_renderer_backend_t *backend, bool change)
+create_heads_for_active_connectors (ply_renderer_backend_t *backend,
+                                    bool                    change)
 {
         int i, j, number_of_setup_outputs, outputs_len;
         ply_output_t *outputs;
@@ -1442,9 +1479,10 @@ create_heads_for_active_connectors (ply_renderer_backend_t *backend, bool change
                 }
                 outputs = setup_outputs (backend, outputs, outputs_len);
         }
-        for (i = 0; i < outputs_len; i++)
+        for (i = 0; i < outputs_len; i++) {
                 ply_trace ("Using controller %u for connector %u",
                            outputs[i].controller_id, outputs[i].connector_id);
+        }
 
         /* Step 5:
          * Create heads for all valid outputs
@@ -1628,9 +1666,9 @@ reset_scan_out_buffer_if_needed (ply_renderer_backend_t *backend,
                         return false;
 
         if (head->scan_out_buffer_needs_reset) {
-                ply_renderer_head_set_scan_out_buffer (backend, head,
-                                                       head->scan_out_buffer_id);
-                head->scan_out_buffer_needs_reset = false;
+                did_reset = ply_renderer_head_set_scan_out_buffer (backend, head,
+                                                                   head->scan_out_buffer_id);
+                head->scan_out_buffer_needs_reset = !did_reset;
                 return true;
         }
 
@@ -1661,15 +1699,32 @@ flush_head (ply_renderer_backend_t *backend,
         ply_pixel_buffer_t *pixel_buffer;
         char *map_address;
         bool dirty = false;
+        static enum { PLY_SET_MODE_ON_REDRAWS_UNKNOWN = -1,
+                      PLY_SET_MODE_ON_REDRAWS_DISABLED,
+                      PLY_SET_MODE_ON_REDRAWS_ENABLED } set_mode_on_redraws = PLY_SET_MODE_ON_REDRAWS_UNKNOWN;
 
         assert (backend != NULL);
+
+        if (set_mode_on_redraws == PLY_SET_MODE_ON_REDRAWS_UNKNOWN) {
+                if (ply_kernel_command_line_has_argument ("plymouth.set-mode-on-redraws")) {
+                        ply_trace ("Mode getting reset every redraw");
+                        set_mode_on_redraws = PLY_SET_MODE_ON_REDRAWS_ENABLED;
+                } else {
+                        set_mode_on_redraws = PLY_SET_MODE_ON_REDRAWS_DISABLED;
+                }
+        }
 
         if (!backend->is_active)
                 return;
 
         if (backend->terminal != NULL) {
                 ply_terminal_set_mode (backend->terminal, PLY_TERMINAL_MODE_GRAPHICS);
-                ply_terminal_set_unbuffered_input (backend->terminal);
+
+                if (using_input_device (&backend->input_source)) {
+                        ply_terminal_set_disabled_input (backend->terminal);
+                } else {
+                        ply_terminal_set_unbuffered_input (backend->terminal);
+                }
         }
         pixel_buffer = head->pixel_buffer;
         updated_region = ply_pixel_buffer_get_updated_areas (pixel_buffer);
@@ -1691,6 +1746,11 @@ flush_head (ply_renderer_backend_t *backend,
                 dirty = true;
 
                 node = ply_list_get_next_node (areas_to_flush, node);
+        }
+
+        if (set_mode_on_redraws == PLY_SET_MODE_ON_REDRAWS_ENABLED) {
+                dirty = true;
+                head->scan_out_buffer_needs_reset = true;
         }
 
         if (dirty) {
@@ -1734,14 +1794,53 @@ get_input_source (ply_renderer_backend_t *backend)
 }
 
 static void
-on_key_event (ply_renderer_input_source_t *input_source,
-              int                          terminal_fd)
+on_terminal_key_event (ply_renderer_input_source_t *input_source)
 {
+        ply_renderer_backend_t *backend = input_source->backend;
+        int terminal_fd;
+
+        if (using_input_device (input_source)) {
+                ply_terminal_flush_input (backend->terminal);
+                return;
+        }
+
+        terminal_fd = ply_terminal_get_fd (backend->terminal);
+
         ply_buffer_append_from_fd (input_source->key_buffer,
                                    terminal_fd);
 
         if (input_source->handler != NULL)
                 input_source->handler (input_source->user_data, input_source->key_buffer, input_source);
+}
+
+static ply_input_device_input_result_t
+on_input_device_key (ply_renderer_input_source_t *input_source,
+                     ply_input_device_t          *input_device,
+                     const char                  *text)
+{
+        ply_buffer_append_bytes (input_source->key_buffer, text, strlen (text));
+
+        if (input_source->handler == NULL)
+                return PLY_INPUT_RESULT_PROPAGATED;
+
+        input_source->handler (input_source->user_data, input_source->key_buffer, input_source);
+
+        return PLY_INPUT_RESULT_CONSUMED;
+}
+
+static void
+on_input_leds_changed (ply_renderer_input_source_t *input_source,
+                       ply_input_device_t          *input_device)
+{
+        ply_xkb_keyboard_state_t *state;
+        ply_list_node_t *node;
+
+        state = ply_input_device_get_state (input_device);
+
+        ply_list_foreach (input_source->input_devices, node) {
+                ply_input_device_t *set_input_device = ply_list_node_get_data (node);
+                ply_input_device_set_state (set_input_device, state);
+        }
 }
 
 static void
@@ -1753,6 +1852,37 @@ on_input_source_disconnected (ply_renderer_input_source_t *input_source)
 }
 
 static bool
+using_input_device (ply_renderer_input_source_t *input_source)
+{
+        return ply_list_get_length (input_source->input_devices) > 0;
+}
+
+static void
+watch_input_device (ply_renderer_backend_t *backend,
+                    ply_input_device_t     *input_device)
+{
+        ply_trace ("Listening for keys from device '%s'", ply_input_device_get_name (input_device));
+
+        ply_input_device_watch_for_input (input_device,
+                                          (ply_input_device_input_handler_t) on_input_device_key,
+                                          (ply_input_device_leds_changed_handler_t) on_input_leds_changed,
+                                          &backend->input_source);
+}
+
+static void
+watch_input_devices (ply_renderer_backend_t *backend)
+{
+        ply_list_node_t *node;
+        ply_renderer_input_source_t *input_source = &backend->input_source;
+
+        ply_list_foreach (input_source->input_devices, node) {
+                ply_input_device_t *input_device = ply_list_node_get_data (node);
+
+                watch_input_device (backend, input_device);
+        }
+}
+
+static bool
 open_input_source (ply_renderer_backend_t      *backend,
                    ply_renderer_input_source_t *input_source)
 {
@@ -1761,16 +1891,21 @@ open_input_source (ply_renderer_backend_t      *backend,
         assert (backend != NULL);
         assert (has_input_source (backend, input_source));
 
-        if (backend->terminal == NULL)
-                return false;
+        if (!backend->input_source_is_open)
+                watch_input_devices (backend);
 
-        terminal_fd = ply_terminal_get_fd (backend->terminal);
+        if (backend->terminal != NULL) {
+                terminal_fd = ply_terminal_get_fd (backend->terminal);
+
+                input_source->terminal_input_watch = ply_event_loop_watch_fd (backend->loop, terminal_fd, PLY_EVENT_LOOP_FD_STATUS_HAS_DATA,
+                                                                              (ply_event_handler_t) on_terminal_key_event,
+                                                                              (ply_event_handler_t)
+                                                                              on_input_source_disconnected, input_source);
+        }
 
         input_source->backend = backend;
-        input_source->terminal_input_watch = ply_event_loop_watch_fd (backend->loop, terminal_fd, PLY_EVENT_LOOP_FD_STATUS_HAS_DATA,
-                                                                      (ply_event_handler_t) on_key_event,
-                                                                      (ply_event_handler_t)
-                                                                      on_input_source_disconnected, input_source);
+        backend->input_source_is_open = true;
+
         return true;
 }
 
@@ -1794,12 +1929,28 @@ close_input_source (ply_renderer_backend_t      *backend,
         assert (backend != NULL);
         assert (has_input_source (backend, input_source));
 
-        if (backend->terminal == NULL)
+        if (!backend->input_source_is_open)
                 return;
 
-        ply_event_loop_stop_watching_fd (backend->loop, input_source->terminal_input_watch);
-        input_source->terminal_input_watch = NULL;
+        if (using_input_device (input_source)) {
+                ply_list_node_t *node;
+                ply_list_foreach (input_source->input_devices, node) {
+                        ply_input_device_t *input_device = ply_list_node_get_data (node);
+                        ply_input_device_stop_watching_for_input (input_device,
+                                                                  (ply_input_device_input_handler_t) on_input_device_key,
+                                                                  (ply_input_device_leds_changed_handler_t) on_input_leds_changed,
+                                                                  &backend->input_source);
+                }
+        }
+
+        if (input_source->terminal_input_watch != NULL) {
+                ply_event_loop_stop_watching_fd (backend->loop, input_source->terminal_input_watch);
+                input_source->terminal_input_watch = NULL;
+        }
+
         input_source->backend = NULL;
+
+        backend->input_source_is_open = false;
 }
 
 static bool
@@ -1812,16 +1963,37 @@ get_panel_properties (ply_renderer_backend_t      *backend,
         if (!backend->panel_width)
                 return false;
 
-        *width    = backend->panel_width;
-        *height   = backend->panel_height;
+        *width = backend->panel_width;
+        *height = backend->panel_height;
         *rotation = backend->panel_rotation;
-        *scale    = backend->panel_scale;
+        *scale = backend->panel_scale;
         return true;
+}
+
+static ply_input_device_t *
+get_any_input_device_with_leds (ply_renderer_backend_t *backend)
+{
+        ply_list_node_t *node;
+
+        ply_list_foreach (backend->input_source.input_devices, node) {
+                ply_input_device_t *input_device;
+
+                input_device = ply_list_node_get_data (node);
+
+                if (ply_input_device_is_keyboard_with_leds (input_device))
+                        return input_device;
+        }
+
+        return NULL;
 }
 
 static bool
 get_capslock_state (ply_renderer_backend_t *backend)
 {
+        if (using_input_device (&backend->input_source)) {
+                ply_input_device_t *dev = get_any_input_device_with_leds (backend);
+                return ply_input_device_get_capslock_state (dev);
+        }
         if (!backend->terminal)
                 return false;
 
@@ -1831,10 +2003,62 @@ get_capslock_state (ply_renderer_backend_t *backend)
 static const char *
 get_keymap (ply_renderer_backend_t *backend)
 {
+        if (using_input_device (&backend->input_source)) {
+                ply_input_device_t *dev = get_any_input_device_with_leds (backend);
+                const char *keymap = ply_input_device_get_keymap (dev);
+                if (keymap != NULL) {
+                        return keymap;
+                }
+        }
         if (!backend->terminal)
                 return NULL;
 
         return ply_terminal_get_keymap (backend->terminal);
+}
+
+static void
+sync_input_devices (ply_renderer_backend_t *backend)
+{
+        ply_list_node_t *node;
+        ply_xkb_keyboard_state_t *xkb_state;
+        ply_input_device_t *source_input_device;
+
+        source_input_device = get_any_input_device_with_leds (backend);
+
+        if (source_input_device == NULL)
+                return;
+
+        xkb_state = ply_input_device_get_state (source_input_device);
+
+        ply_list_foreach (backend->input_source.input_devices, node) {
+                ply_input_device_t *target_input_device = ply_list_node_get_data (node);
+
+                if (source_input_device == target_input_device)
+                        continue;
+
+                ply_input_device_set_state (target_input_device, xkb_state);
+        }
+}
+
+static void
+add_input_device (ply_renderer_backend_t *backend,
+                  ply_input_device_t     *input_device)
+{
+        ply_list_append_data (backend->input_source.input_devices, input_device);
+
+        if (backend->input_source_is_open)
+                watch_input_device (backend, input_device);
+
+        sync_input_devices (backend);
+}
+
+static void
+remove_input_device (ply_renderer_backend_t *backend,
+                     ply_input_device_t     *input_device)
+{
+        ply_list_remove_data (backend->input_source.input_devices, input_device);
+
+        sync_input_devices (backend);
 }
 
 ply_renderer_plugin_interface_t *
@@ -1863,9 +2087,9 @@ ply_renderer_backend_get_interface (void)
                 .get_panel_properties         = get_panel_properties,
                 .get_capslock_state           = get_capslock_state,
                 .get_keymap                   = get_keymap,
+                .add_input_device             = add_input_device,
+                .remove_input_device          = remove_input_device,
         };
 
         return &plugin_interface;
 }
-
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

@@ -19,7 +19,6 @@
  *
  * Written by: Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 #include "ply-buffer.h"
 
 #include <assert.h>
@@ -181,9 +180,11 @@ ply_buffer_append_bytes (ply_buffer_t *buffer,
 {
         assert (buffer != NULL);
         assert (bytes_in != NULL);
-        assert (length != 0);
 
         const uint8_t *bytes = bytes_in;
+
+        if (length == 0)
+                return;
 
         if (length > PLY_BUFFER_MAX_BUFFER_CAPACITY) {
                 bytes += length - (PLY_BUFFER_MAX_BUFFER_CAPACITY - 1);
@@ -223,6 +224,20 @@ ply_buffer_append_from_fd (ply_buffer_t *buffer,
                 ply_buffer_append_bytes (buffer, bytes, bytes_read);
 }
 
+void
+ply_buffer_set_bytes (ply_buffer_t *buffer,
+                      void         *bytes,
+                      size_t        number_of_bytes,
+                      size_t        capacity)
+{
+        if (buffer->data != bytes)
+                free (buffer->data);
+
+        buffer->data = bytes;
+        buffer->size = number_of_bytes;
+        buffer->capacity = capacity;
+}
+
 const char *
 ply_buffer_get_bytes (ply_buffer_t *buffer)
 {
@@ -246,6 +261,12 @@ ply_buffer_steal_bytes (ply_buffer_t *buffer)
 }
 
 size_t
+ply_buffer_get_capacity (ply_buffer_t *buffer)
+{
+        return buffer->capacity;
+}
+
+size_t
 ply_buffer_get_size (ply_buffer_t *buffer)
 {
         return buffer->size;
@@ -254,8 +275,9 @@ ply_buffer_get_size (ply_buffer_t *buffer)
 void
 ply_buffer_clear (ply_buffer_t *buffer)
 {
-        memset (buffer->data, '\0', buffer->capacity);
+        if (buffer->size == 0)
+                return;
+
+        memset (buffer->data, '\0', buffer->size);
         buffer->size = 0;
 }
-
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

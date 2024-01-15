@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <unistd.h>
 
+#include "ply-input-device.h"
 #include "ply-terminal.h"
 #include "ply-event-loop.h"
 #include "ply-list.h"
@@ -37,8 +38,8 @@ typedef struct _ply_renderer_backend ply_renderer_backend_t;
 
 typedef struct
 {
-        ply_renderer_backend_t * (*create_backend)(const char *device_name,
-                                                   ply_terminal_t * terminal);
+        ply_renderer_backend_t * (*create_backend)(const char     *device_name,
+                                                   ply_terminal_t *terminal);
         void (*destroy_backend)(ply_renderer_backend_t *backend);
         bool (*open_device)(ply_renderer_backend_t *backend);
         void (*close_device)(ply_renderer_backend_t *backend);
@@ -51,14 +52,13 @@ typedef struct
         void (*flush_head)(ply_renderer_backend_t *backend,
                            ply_renderer_head_t    *head);
 
-        ply_list_t * (*get_heads)(ply_renderer_backend_t * backend);
+        ply_list_t * (*get_heads)(ply_renderer_backend_t *backend);
 
-        ply_pixel_buffer_t * (*get_buffer_for_head)(ply_renderer_backend_t * backend,
-                                                    ply_renderer_head_t * head);
+        ply_pixel_buffer_t * (*get_buffer_for_head)(ply_renderer_backend_t *backend,
+                                                    ply_renderer_head_t    *head);
         unsigned int (*get_bits_per_pixel_for_head)(ply_renderer_backend_t * backend,
                                                     ply_renderer_head_t * head);
-
-        ply_renderer_input_source_t * (*get_input_source)(ply_renderer_backend_t * backend);
+        ply_renderer_input_source_t * (*get_input_source)(ply_renderer_backend_t *backend);
         bool (*open_input_source)(ply_renderer_backend_t      *backend,
                                   ply_renderer_input_source_t *input_source);
 
@@ -78,7 +78,11 @@ typedef struct
                                      int                         *scale);
         bool (*get_capslock_state)(ply_renderer_backend_t *backend);
         const char * (*get_keymap)(ply_renderer_backend_t *backend);
+
+        void (*add_input_device)(ply_renderer_backend_t *backend,
+                                 ply_input_device_t     *input_device);
+        void (*remove_input_device)(ply_renderer_backend_t *backend,
+                                    ply_input_device_t     *input_device);
 } ply_renderer_plugin_interface_t;
 
 #endif /* PLY_RENDERER_PLUGIN_H */
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

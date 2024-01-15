@@ -19,7 +19,6 @@
  *
  * Written by: Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 #include "ply-keyboard.h"
 
 #include <assert.h>
@@ -47,6 +46,12 @@
 #define KEY_ESCAPE ('\100' ^ '[')
 #define KEY_RETURN '\n'
 #define KEY_BACKSPACE '\177'
+
+#define CSI_SEQUENCE_PREFIX "\033["
+#define CSI_SEQUENCE_MINIMUM_LENGTH (strlen (CSI_SEQUENCE_PREFIX) + 1)
+
+#define FUNCTION_KEY_SEQUENCE_PREFIX (CSI_SEQUENCE_PREFIX "[")
+#define FUNCTION_KEY_SEQUENCE_MINIMUM_LENGTH (strlen (FUNCTION_KEY_SEQUENCE_PREFIX) + 1)
 
 typedef void (*ply_keyboard_handler_t) (void *);
 
@@ -94,7 +99,7 @@ struct _ply_keyboard
         ply_list_t                  *escape_handler_list;
         ply_list_t                  *enter_handler_list;
 
-        uint32_t is_active : 1;
+        uint32_t                     is_active : 1;
 };
 
 static bool ply_keyboard_watch_for_terminal_input (ply_keyboard_t *keyboard);
@@ -148,25 +153,14 @@ ply_keyboard_new_for_renderer (ply_renderer_t *renderer)
 static void
 process_backspace (ply_keyboard_t *keyboard)
 {
-        size_t bytes_to_remove;
-        ssize_t previous_character_size;
-        const char *bytes;
+        char *bytes;
         size_t size;
+        size_t capacity;
         ply_list_node_t *node;
 
-        bytes = ply_buffer_get_bytes (keyboard->line_buffer);
-        size = ply_buffer_get_size (keyboard->line_buffer);
-
-        bytes_to_remove = MIN (size, PLY_UTF8_CHARACTER_SIZE_MAX);
-        while ((previous_character_size = ply_utf8_character_get_size (bytes + size - bytes_to_remove, bytes_to_remove)) < (ssize_t) bytes_to_remove) {
-                if (previous_character_size > 0)
-                        bytes_to_remove -= previous_character_size;
-                else
-                        bytes_to_remove--;
+        ply_buffer_borrow_bytes (keyboard->line_buffer, &bytes, &size, &capacity) {
+                ply_utf8_string_remove_last_character (&bytes, &size);
         }
-
-        if (bytes_to_remove <= size)
-                ply_buffer_remove_bytes_at_end (keyboard->line_buffer, bytes_to_remove);
 
         for (node = ply_list_get_first_node (keyboard->backspace_handler_list);
              node; node = ply_list_get_next_node (keyboard->backspace_handler_list, node)) {
@@ -195,7 +189,11 @@ process_keyboard_input (ply_keyboard_t *keyboard,
         wchar_t key;
         ply_list_node_t *node;
 
-        if ((ssize_t) mbrtowc (&key, keyboard_input, character_size, NULL) > 0) {
+        if (keyboard_input[0] == KEY_ESCAPE && character_size >= 2) {
+                /* Escape sequence */
+                ply_buffer_append_bytes (keyboard->line_buffer,
+                                         keyboard_input, character_size);
+        } else if ((ssize_t) mbrtowc (&key, keyboard_input, character_size, NULL) > 0) {
                 switch (key) {
                 case KEY_CTRL_U:
                 case KEY_CTRL_W:
@@ -268,20 +266,64 @@ on_key_event (ply_keyboard_t *keyboard,
 
         i = 0;
         while (i < size) {
+                ply_utf8_character_byte_type_t character_byte_type;
                 ssize_t character_size;
                 char *keyboard_input;
+                size_t bytes_left = size - i;
 
-                character_size = (ssize_t) ply_utf8_character_get_size (bytes + i, size - i);
+                /* Control Sequence Introducer sequences
+                 */
+                if (bytes_left >= FUNCTION_KEY_SEQUENCE_MINIMUM_LENGTH &&
+                    strncmp (bytes + i, FUNCTION_KEY_SEQUENCE_PREFIX,
+                             strlen (FUNCTION_KEY_SEQUENCE_PREFIX)) == 0) {
+                        /* Special case - CSI [ after which the next character
+                         * is a function key
+                         */
+                        process_keyboard_input (keyboard, bytes + i, 4);
+                        i += 4;
+                        continue;
+                } else if (bytes_left >= CSI_SEQUENCE_MINIMUM_LENGTH && /* At least CSI + final byte */
+                           strncmp (bytes + i, CSI_SEQUENCE_PREFIX,
+                                    strlen (CSI_SEQUENCE_PREFIX)) == 0) {
+                        ssize_t csi_seq_size;
+                        csi_seq_size = 0;
+                        for (size_t j = strlen (CSI_SEQUENCE_PREFIX); j < bytes_left; j++) {
+                                if ((bytes[i + j] >= 0x40) &&
+                                    (bytes[i + j] <= 0x7E)) {
+                                        /* Final byte found */
+                                        csi_seq_size = j + 1;
+                                        break;
+                                }
+                                /* We presume if we aren't at the final byte, the intermediate
+                                 * bytes will be in the range 0x20-0x2F, but we don't validate
+                                 * that, since it's not really clear how invalid sequences should
+                                 * be handled, and letting them through to the keyboard input
+                                 * handlers seems just as reasonable as alternatives.
+                                 */
+                        }
+                        if (csi_seq_size == 0) /* No final byte found */
+                                continue;
+                        process_keyboard_input (keyboard, bytes + i, csi_seq_size);
+                        i += csi_seq_size;
+                        continue;
+                }
 
-                if (character_size < 0)
+                character_byte_type = ply_utf8_character_get_byte_type (bytes[i]);
+
+                if (PLY_UTF8_CHARACTER_BYTE_TYPE_IS_NOT_LEADING (character_byte_type))
                         break;
 
                 /* If we're at a NUL character walk through it
                  */
-                if (character_size == 0) {
+                if (character_byte_type == PLY_UTF8_CHARACTER_BYTE_TYPE_END_OF_STRING) {
                         i++;
                         continue;
                 }
+
+                character_size = ply_utf8_character_get_size_from_byte_type (character_byte_type);
+
+                if (character_size > bytes_left)
+                        break;
 
                 keyboard_input = strndup (bytes + i, character_size);
 
@@ -603,4 +645,19 @@ ply_keyboard_get_renderer (ply_keyboard_t *keyboard)
         return NULL;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */
+bool
+ply_keyboard_get_capslock_state (ply_keyboard_t *keyboard)
+{
+        assert (keyboard != NULL);
+
+        switch (keyboard->provider_type) {
+        case PLY_KEYBOARD_PROVIDER_TYPE_RENDERER:
+                return ply_renderer_get_capslock_state (keyboard->provider.if_renderer->renderer);
+
+
+        case PLY_KEYBOARD_PROVIDER_TYPE_TERMINAL:
+                return ply_terminal_get_capslock_state (keyboard->provider.if_terminal->terminal);
+        }
+
+        return NULL;
+}

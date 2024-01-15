@@ -1,8 +1,0 @@
-SUBDIRS =
-if ENABLE_PANGO
-SUBDIRS += label
-endif
-if ENABLE_FREETYPE
-SUBDIRS += label-ft
-endif
-MAINTAINERCLEANFILES = Makefile.in

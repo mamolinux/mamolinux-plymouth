@@ -55,7 +55,8 @@ typedef enum
 } ply_terminal_mode_t;
 
 #ifndef PLY_HIDE_FUNCTION_DECLARATIONS
-ply_terminal_t *ply_terminal_new (const char *device_name);
+ply_terminal_t *ply_terminal_new (const char *device_name,
+                                  const char *keymap);
 
 void ply_terminal_free (ply_terminal_t *terminal);
 
@@ -69,6 +70,7 @@ void ply_terminal_reset_colors (ply_terminal_t *terminal);
 
 bool ply_terminal_set_unbuffered_input (ply_terminal_t *terminal);
 bool ply_terminal_set_buffered_input (ply_terminal_t *terminal);
+bool ply_terminal_set_disabled_input (ply_terminal_t *terminal);
 bool ply_terminal_refresh_geometry (ply_terminal_t *terminal);
 
 __attribute__((__format__ (__printf__, 2, 3)))
@@ -116,8 +118,8 @@ void ply_terminal_stop_watching_for_input (ply_terminal_t              *terminal
                                            ply_terminal_input_handler_t input_handler,
                                            void                        *user_data);
 
+void ply_terminal_flush_input (ply_terminal_t *terminal);
+
 #endif
 
 #endif /* PLY_TERMINAL_H */
-
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

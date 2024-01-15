@@ -30,6 +30,7 @@
 #include "ply-pixel-buffer.h"
 #include "ply-terminal.h"
 #include "ply-utils.h"
+#include "ply-input-device.h"
 
 typedef struct _ply_renderer ply_renderer_t;
 typedef struct _ply_renderer_head ply_renderer_head_t;
@@ -70,6 +71,12 @@ unsigned int ply_renderer_get_bits_per_pixel_for_head (ply_renderer_t      *rend
 void ply_renderer_flush_head (ply_renderer_t      *renderer,
                               ply_renderer_head_t *head);
 
+void ply_renderer_add_input_device (ply_renderer_t     *renderer,
+                                    ply_input_device_t *input_device);
+
+void ply_renderer_remove_input_device (ply_renderer_t     *renderer,
+                                       ply_input_device_t *input_device);
+
 ply_renderer_input_source_t *ply_renderer_get_input_source (ply_renderer_t *renderer);
 bool ply_renderer_open_input_source (ply_renderer_t              *renderer,
                                      ply_renderer_input_source_t *input_source);
@@ -92,4 +99,3 @@ const char *ply_renderer_get_keymap (ply_renderer_t *renderer);
 #endif
 
 #endif /* PLY_RENDERER_H */
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

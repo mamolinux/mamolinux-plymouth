@@ -19,7 +19,6 @@
  *
  * Written by: Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 #include "ply-boot-client.h"
 
 #include <assert.h>
@@ -745,6 +744,18 @@ ply_boot_client_tell_daemon_to_quit (ply_boot_client_t                 *client,
 }
 
 void
+ply_boot_client_tell_daemon_to_reload (ply_boot_client_t                 *client,
+                                       ply_boot_client_response_handler_t handler,
+                                       ply_boot_client_response_handler_t failed_handler,
+                                       void                              *user_data)
+{
+        assert (client != NULL);
+
+        ply_boot_client_queue_request (client, PLY_BOOT_PROTOCOL_REQUEST_TYPE_RELOAD,
+                                       NULL, handler, failed_handler, user_data);
+}
+
+void
 ply_boot_client_tell_daemon_to_progress_pause (ply_boot_client_t                 *client,
                                                ply_boot_client_response_handler_t handler,
                                                ply_boot_client_response_handler_t failed_handler,
@@ -848,4 +859,3 @@ ply_boot_client_attach_to_event_loop (ply_boot_client_t *client,
                                        client);
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

@@ -19,7 +19,6 @@
  *
  * Written by: Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -206,6 +205,29 @@ view_write (view_t     *view,
 }
 
 static void
+view_write_boot_buffer (view_t *view)
+{
+        ply_boot_splash_plugin_t *plugin;
+        ply_terminal_t *terminal;
+
+        plugin = view->plugin;
+
+        terminal = ply_text_display_get_terminal (view->display);
+
+        ply_text_display_clear_screen (view->display);
+        ply_terminal_activate_vt (terminal);
+
+        if (plugin->boot_buffer != NULL) {
+                size_t size;
+                const char *bytes;
+
+                size = ply_buffer_get_size (plugin->boot_buffer);
+                bytes = ply_buffer_get_bytes (plugin->boot_buffer);
+                view_write (view, bytes, size);
+        }
+}
+
+static void
 write_on_views (ply_boot_splash_plugin_t *plugin,
                 const char               *text,
                 size_t                    number_of_bytes)
@@ -240,20 +262,12 @@ add_text_display (ply_boot_splash_plugin_t *plugin,
         view = view_new (plugin, display);
 
         terminal = ply_text_display_get_terminal (view->display);
-        if (ply_terminal_open (terminal)) {
-                ply_text_display_clear_screen (view->display);        
-                ply_terminal_activate_vt (terminal);
-        }
+        ply_terminal_open (terminal);
 
         ply_list_append_data (plugin->views, view);
 
-        if (plugin->boot_buffer != NULL) {
-                size_t size;
-                const char *bytes;
-
-                size = ply_buffer_get_size (plugin->boot_buffer);
-                bytes = ply_buffer_get_bytes (plugin->boot_buffer);
-                view_write (view, bytes, size);
+        if (ply_terminal_is_vt (terminal)) {
+                view_write_boot_buffer (view);
         }
 }
 
@@ -463,4 +477,3 @@ ply_boot_splash_plugin_get_interface (void)
         return &plugin_interface;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

@@ -7,10 +7,12 @@ Uploaders: Sjoerd Simons <sjoerd@debian.org>
 Build-Depends: debhelper-compat (= 13),
                docbook-xsl,
                libdrm-dev,
+               libevdev-dev,
                libgtk-3-dev (>= 3.14.0),
                libpango1.0-dev,
                libpng-dev,
                libudev-dev,
+               meson,
                pkg-config,
                systemd,
                xsltproc

@@ -19,7 +19,6 @@
  *
  * Written by: William Jon McCann <jmccann@redhat.com>
  */
-#include "config.h"
 
 #include <assert.h>
 #include <dirent.h>
@@ -281,7 +280,7 @@ out:
         }
         free (entries);
 
-        return (ply_array_get_size (animation->frames) > 0);
+        return ply_array_get_size (animation->frames) > 0;
 }
 
 bool
@@ -409,4 +408,3 @@ ply_animation_get_height (ply_animation_t *animation)
         return animation->height;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */
