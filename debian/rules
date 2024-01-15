@@ -17,7 +17,7 @@ else
 	DEB_LDFLAGS_MAINT_APPEND += -Wl,-O1
 endif
 
-export systemdsystemunitdir=/usr/$(shell pkg-config --variable=systemdsystemunitdir systemd | sed s,^/,,)
+export systemdsystemunitdir=$(shell pkg-config --variable=systemdsystemunitdir systemd | sed s,^/,,)
 
 %:
 	dh ${@}

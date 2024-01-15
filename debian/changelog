@@ -1,3 +1,9 @@
+plymouth (23.360.11-0ubuntu2) noble; urgency=medium
+
+  * Removed systemd workaround and fix the build with the newer revision
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Mon, 15 Jan 2024 16:33:10 +0100
+
 plymouth (23.360.11-0ubuntu1) noble; urgency=medium
 
   * New upstream version 23.360.11
