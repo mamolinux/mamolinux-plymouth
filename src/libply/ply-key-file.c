@@ -21,7 +21,6 @@
  *
  * Written by: Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 #include "ply-key-file.h"
 
 #include <assert.h>
@@ -56,10 +55,10 @@ typedef struct
 
 struct _ply_key_file
 {
-        char            *filename;
-        FILE            *fp;
+        char                 *filename;
+        FILE                 *fp;
 
-        ply_hashtable_t *groups;
+        ply_hashtable_t      *groups;
         ply_key_file_group_t *groupless_group;
 };
 
@@ -384,9 +383,9 @@ ply_key_file_get_bool (ply_key_file_t *key_file,
                 return false;
 
         /* We treat "1", "y" and "yes" and "true" as true, all else is false */
-        if (strcasecmp (raw_value, "1")    == 0 ||
-            strcasecmp (raw_value, "y")    == 0 ||
-            strcasecmp (raw_value, "yes")  == 0 ||
+        if (strcasecmp (raw_value, "1") == 0 ||
+            strcasecmp (raw_value, "y") == 0 ||
+            strcasecmp (raw_value, "yes") == 0 ||
             strcasecmp (raw_value, "true") == 0)
                 return true;
 
@@ -483,4 +482,3 @@ ply_key_file_load_groupless_file (ply_key_file_t *key_file)
         return key_file->groupless_group != NULL;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

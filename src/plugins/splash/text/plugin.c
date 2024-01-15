@@ -17,7 +17,6 @@
  * 02111-1307, USA.
  *
  */
-#include "config.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -720,4 +719,3 @@ ply_boot_splash_plugin_get_interface (void)
         return &plugin_interface;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

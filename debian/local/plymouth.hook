@@ -71,7 +71,7 @@ do
 			;;
 
 		*)
-			PLUGINS="details.so label.so"
+			PLUGINS="details.so label-pango.so"
 			;;
 	esac
 

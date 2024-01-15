@@ -19,7 +19,6 @@
  *
  * Written by: Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 
 #include <assert.h>
 #include <dirent.h>
@@ -149,6 +148,9 @@ ply_entry_load (ply_entry_t *entry)
 static void
 ply_entry_draw (ply_entry_t *entry)
 {
+        if (entry->is_hidden)
+                return;
+
         ply_pixel_display_draw_area (entry->display,
                                      entry->area.x,
                                      entry->area.y,
@@ -226,7 +228,8 @@ ply_entry_draw_area (ply_entry_t        *entry,
 }
 
 void
-ply_entry_set_bullet_count (ply_entry_t *entry, int count)
+ply_entry_set_bullet_count (ply_entry_t *entry,
+                            int          count)
 {
         count = MAX (0, count);
         if (!entry->is_password || entry->number_of_bullets != count) {
@@ -261,7 +264,8 @@ ply_entry_remove_all_bullets (ply_entry_t *entry)
 }
 
 void
-ply_entry_set_text (ply_entry_t *entry, const char *text)
+ply_entry_set_text (ply_entry_t *entry,
+                    const char  *text)
 {
         if (entry->is_password || strcmp (entry->text, text) != 0) {
                 entry->is_password = false;
@@ -331,4 +335,3 @@ ply_entry_get_height (ply_entry_t *entry)
         return entry->area.height;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

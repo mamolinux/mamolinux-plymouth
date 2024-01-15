@@ -44,15 +44,31 @@ __attribute__((__format__ (__printf__, 2, 3)))
 void ply_buffer_append_with_non_literal_format_string (ply_buffer_t *buffer,
                                                        const char   *format,
                                                        ...);
+void ply_buffer_set_bytes (ply_buffer_t *buffer,
+                           void         *bytes,
+                           size_t        number_of_bytes,
+                           size_t        capacity);
 void ply_buffer_remove_bytes (ply_buffer_t *buffer,
                               size_t        number_of_bytes);
 void ply_buffer_remove_bytes_at_end (ply_buffer_t *buffer,
                                      size_t        number_of_bytes);
 const char *ply_buffer_get_bytes (ply_buffer_t *buffer);
+size_t ply_buffer_get_capacity (ply_buffer_t *buffer);
 char *ply_buffer_steal_bytes (ply_buffer_t *buffer);
+#define ply_buffer_borrow_bytes(buffer, bytes, size, capacity)                 \
+        for (bool _ran = false;                                                \
+             !_ran && (*bytes = (char *) ply_buffer_get_bytes (buffer),        \
+                       *size = ply_buffer_get_size (buffer),                   \
+                       *capacity = ply_buffer_get_capacity (buffer)),          \
+             !_ran;                                                            \
+             ply_buffer_set_bytes (buffer, *bytes, *size, *capacity),          \
+             _ran = true,                                                      \
+             *bytes = NULL,                                                    \
+             *size = 0,                                                        \
+             *capacity = 0)
+
 size_t ply_buffer_get_size (ply_buffer_t *buffer);
 void ply_buffer_clear (ply_buffer_t *buffer);
 #endif
 
 #endif /* PLY_BUFFER_H */
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

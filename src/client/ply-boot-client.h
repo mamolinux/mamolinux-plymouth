@@ -132,6 +132,10 @@ void ply_boot_client_tell_daemon_to_quit (ply_boot_client_t                 *cli
                                           ply_boot_client_response_handler_t handler,
                                           ply_boot_client_response_handler_t failed_handler,
                                           void                              *user_data);
+void ply_boot_client_tell_daemon_to_reload (ply_boot_client_t                 *client,
+                                            ply_boot_client_response_handler_t handler,
+                                            ply_boot_client_response_handler_t failed_handler,
+                                            void                              *user_data);
 void ply_boot_client_tell_daemon_to_progress_pause (ply_boot_client_t                 *client,
                                                     ply_boot_client_response_handler_t handler,
                                                     ply_boot_client_response_handler_t failed_handler,
@@ -156,4 +160,3 @@ void ply_boot_client_tell_daemon_about_error (ply_boot_client_t                 
 #endif
 
 #endif /* PLY_BOOT_CLIENT_H */
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

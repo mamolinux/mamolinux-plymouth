@@ -20,7 +20,6 @@
  * Written by: William Jon McCann <jmccann@redhat.com>
  *
  */
-#include "config.h"
 
 #include <assert.h>
 #include <dirent.h>
@@ -469,4 +468,3 @@ ply_progress_animation_get_fraction_done (ply_progress_animation_t *progress_ani
         return progress_animation->fraction_done;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

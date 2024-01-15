@@ -19,8 +19,8 @@
  *
  * Written by: Charlie Brej <cbrej@cs.man.ac.uk>
  */
+#pragma weak ply_keyboard_get_capslock_state
 
-#include "config.h"
 
 #include "ply-boot-splash-plugin.h"
 #include "ply-utils.h"
@@ -51,10 +51,11 @@ static script_return_t plymouth_set_function (script_state_t *state,
 static script_return_t plymouth_set_refresh_rate (script_state_t *state,
                                                   void           *user_data)
 {
-      script_lib_plymouth_data_t *data = user_data;
-      data->refresh_rate = script_obj_hash_get_number (state->local, "value");
+        script_lib_plymouth_data_t *data = user_data;
 
-      return script_return_obj_null ();
+        data->refresh_rate = script_obj_hash_get_number (state->local, "value");
+
+        return script_return_obj_null ();
 }
 
 static script_return_t plymouth_get_mode (script_state_t *state,
@@ -82,6 +83,9 @@ static script_return_t plymouth_get_mode (script_state_t *state,
         case PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE:
                 obj = script_obj_new_string ("firmware-upgrade");
                 break;
+        case PLY_BOOT_SPLASH_MODE_SYSTEM_RESET:
+                obj = script_obj_new_string ("system-reset");
+                break;
         case PLY_BOOT_SPLASH_MODE_INVALID:
         default:
                 obj = script_obj_new_string ("unknown");
@@ -90,9 +94,28 @@ static script_return_t plymouth_get_mode (script_state_t *state,
         return script_return_obj (obj);
 }
 
+static script_return_t plymouth_get_capslock_state (script_state_t *state,
+                                                    void           *user_data)
+{
+        script_lib_plymouth_data_t *data = user_data;
+        script_obj_t *obj;
+
+        bool is_on = false;
+
+        if (ply_keyboard_get_capslock_state != NULL) {
+                is_on = ply_keyboard_get_capslock_state (data->keyboard);
+        }
+
+
+        obj = is_on ? script_obj_new_number (1) : script_obj_new_number (0);
+
+        return script_return_obj (obj);
+}
+
 script_lib_plymouth_data_t *script_lib_plymouth_setup (script_state_t        *state,
                                                        ply_boot_splash_mode_t mode,
-                                                       int refresh_rate)
+                                                       int                    refresh_rate,
+                                                       ply_keyboard_t        *keyboard)
 {
         script_lib_plymouth_data_t *data = malloc (sizeof(script_lib_plymouth_data_t));
 
@@ -104,14 +127,19 @@ script_lib_plymouth_data_t *script_lib_plymouth_setup (script_state_t        *st
         data->script_display_normal_func = script_obj_new_null ();
         data->script_display_password_func = script_obj_new_null ();
         data->script_display_question_func = script_obj_new_null ();
+        data->script_display_prompt_func = script_obj_new_null ();
+        data->script_validate_input_func = script_obj_new_null ();
         data->script_display_message_func = script_obj_new_null ();
+        data->script_display_hotplug_func = script_obj_new_null ();
         data->script_hide_message_func = script_obj_new_null ();
         data->script_quit_func = script_obj_new_null ();
         data->script_system_update_func = script_obj_new_null ();
         data->mode = mode;
         data->refresh_rate = refresh_rate;
+        data->keyboard = keyboard;
 
         script_obj_t *plymouth_hash = script_obj_hash_get_element (state->global, "Plymouth");
+
         script_add_native_function (plymouth_hash,
                                     "SetRefreshFunction",
                                     plymouth_set_function,
@@ -167,6 +195,24 @@ script_lib_plymouth_data_t *script_lib_plymouth_setup (script_state_t        *st
                                     "function",
                                     NULL);
         script_add_native_function (plymouth_hash,
+                                    "SetDisplayPromptFunction",
+                                    plymouth_set_function,
+                                    &data->script_display_prompt_func,
+                                    "function",
+                                    NULL);
+        script_add_native_function (plymouth_hash,
+                                    "SetDisplayHotplugFunction",
+                                    plymouth_set_function,
+                                    &data->script_display_hotplug_func,
+                                    "function",
+                                    NULL);
+        script_add_native_function (plymouth_hash,
+                                    "SetValidateInputFunction",
+                                    plymouth_set_function,
+                                    &data->script_validate_input_func,
+                                    "function",
+                                    NULL);
+        script_add_native_function (plymouth_hash,
                                     "SetDisplayMessageFunction",
                                     plymouth_set_function,
                                     &data->script_display_message_func,
@@ -185,6 +231,11 @@ script_lib_plymouth_data_t *script_lib_plymouth_setup (script_state_t        *st
                                     "function",
                                     NULL);
         script_add_native_function (plymouth_hash,
+                                    "GetCapslockState",
+                                    plymouth_get_capslock_state,
+                                    data,
+                                    NULL);
+        script_add_native_function (plymouth_hash,
                                     "GetMode",
                                     plymouth_get_mode,
                                     data,
@@ -199,6 +250,7 @@ script_lib_plymouth_data_t *script_lib_plymouth_setup (script_state_t        *st
 
         data->script_main_op = script_parse_string (script_lib_plymouth_string, "script-lib-plymouth.script");
         script_return_t ret = script_execute (state, data->script_main_op);
+
         script_obj_unref (ret.object);          /* Throw anything sent back away */
 
         return data;
@@ -215,6 +267,9 @@ void script_lib_plymouth_destroy (script_lib_plymouth_data_t *data)
         script_obj_unref (data->script_display_normal_func);
         script_obj_unref (data->script_display_password_func);
         script_obj_unref (data->script_display_question_func);
+        script_obj_unref (data->script_display_prompt_func);
+        script_obj_unref (data->script_display_hotplug_func);
+        script_obj_unref (data->script_validate_input_func);
         script_obj_unref (data->script_display_message_func);
         script_obj_unref (data->script_hide_message_func);
         script_obj_unref (data->script_quit_func);
@@ -342,6 +397,65 @@ void script_lib_plymouth_on_display_question (script_state_t             *state,
         script_obj_unref (ret.object);
 }
 
+void script_lib_plymouth_on_display_prompt (script_state_t             *state,
+                                            script_lib_plymouth_data_t *data,
+                                            const char                 *prompt,
+                                            const char                 *entry_text,
+                                            bool                        is_secret)
+{
+        script_obj_t *prompt_obj = script_obj_new_string (prompt);
+        script_obj_t *entry_text_obj = script_obj_new_string (entry_text);
+        script_obj_t *is_secret_obj = script_obj_new_number (is_secret);
+        script_return_t ret = script_execute_object (state,
+                                                     data->script_display_prompt_func,
+                                                     NULL,
+                                                     prompt_obj,
+                                                     entry_text_obj,
+                                                     is_secret_obj,
+                                                     NULL);
+
+        script_obj_unref (prompt_obj);
+        script_obj_unref (entry_text_obj);
+        script_obj_unref (is_secret_obj);
+        script_obj_unref (ret.object);
+}
+
+void script_lib_plymouth_on_display_hotplug (script_state_t             *state,
+                                             script_lib_plymouth_data_t *data)
+{
+        script_return_t ret = script_execute_object (state,
+                                                     data->script_display_hotplug_func,
+                                                     NULL,
+                                                     NULL);
+        script_obj_unref (ret.object);
+}
+
+bool script_lib_plymouth_on_validate_input (script_state_t             *state,
+                                            script_lib_plymouth_data_t *data,
+                                            const char                 *entry_text,
+                                            const char                 *add_text)
+{
+        bool input_valid;
+
+        if (script_obj_is_null (data->script_validate_input_func))
+                return true;
+
+        script_obj_t *entry_text_obj = script_obj_new_string (entry_text);
+        script_obj_t *add_text_obj = script_obj_new_string (add_text);
+        script_return_t ret = script_execute_object (state,
+                                                     data->script_validate_input_func,
+                                                     NULL,
+                                                     entry_text_obj,
+                                                     add_text_obj,
+                                                     NULL);
+
+        script_obj_unref (add_text_obj);
+        script_obj_unref (entry_text_obj);
+        input_valid = script_obj_as_bool (ret.object);
+        script_obj_unref (ret.object);
+        return input_valid;
+}
+
 void script_lib_plymouth_on_display_message (script_state_t             *state,
                                              script_lib_plymouth_data_t *data,
                                              const char                 *message)
@@ -374,7 +488,7 @@ void script_lib_plymouth_on_hide_message (script_state_t             *state,
 
 void script_lib_plymouth_on_system_update (script_state_t             *state,
                                            script_lib_plymouth_data_t *data,
-                                           int                 progress)
+                                           int                         progress)
 {
         script_obj_t *new_status_obj = script_obj_new_number (progress);
         script_return_t ret = script_execute_object (state,
@@ -382,6 +496,7 @@ void script_lib_plymouth_on_system_update (script_state_t             *state,
                                                      NULL,
                                                      new_status_obj,
                                                      NULL);
+
         script_obj_unref (new_status_obj);
         script_obj_unref (ret.object);
 }

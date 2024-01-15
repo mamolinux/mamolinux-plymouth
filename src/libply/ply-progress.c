@@ -23,7 +23,6 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
 #endif
 
 #include <assert.h>
@@ -127,7 +126,8 @@ ply_progress_free (ply_progress_t *progress)
 
 
 static ply_progress_message_t *
-ply_progress_message_search (ply_list_t *message_list, const char *string)
+ply_progress_message_search (ply_list_t *message_list,
+                             const char *string)
 {
         ply_list_node_t *node;
 
@@ -144,12 +144,14 @@ ply_progress_message_search (ply_list_t *message_list, const char *string)
 
 
 static ply_progress_message_t *
-ply_progress_message_search_next (ply_list_t *message_list, double time)
+ply_progress_message_search_next (ply_list_t *message_list,
+                                  double      time)
 {
         ply_list_node_t *node;
 
         node = ply_list_get_first_node (message_list);
         ply_progress_message_t *best = NULL;
+
         while (node) {
                 ply_progress_message_t *message = ply_list_node_get_data (node);
                 if (message->time > time && (!best || message->time < best->time))
@@ -260,7 +262,8 @@ ply_progress_get_percentage (ply_progress_t *progress)
 }
 
 void
-ply_progress_set_percentage (ply_progress_t *progress, double percentage)
+ply_progress_set_percentage (ply_progress_t *progress,
+                             double          percentage)
 {
         progress->next_message_percentage = 1;
         progress->scalar += percentage / (ply_progress_get_time (progress) - progress->dead_time);
@@ -323,4 +326,3 @@ ply_progress_status_update (ply_progress_t *progress,
         }
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

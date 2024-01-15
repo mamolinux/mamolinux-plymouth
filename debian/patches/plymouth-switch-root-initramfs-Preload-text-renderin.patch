@@ -1,4 +1,3 @@
-From f311eafc7b769d0097d3f9812bea5540c0dbbc19 Mon Sep 17 00:00:00 2001
 From: Daniel van Vugt <daniel.van.vugt@canonical.com>
 Date: Wed, 15 Sep 2021 17:32:52 +0800
 Subject: [PATCH] plymouth-switch-root-initramfs: Preload text rendering libs
@@ -12,10 +11,10 @@ Last-Update: 2021-09-15
  1 file changed, 5 insertions(+)
 
 diff --git a/systemd-units/plymouth-switch-root-initramfs.service.in b/systemd-units/plymouth-switch-root-initramfs.service.in
-index 0610803c..311b6ccf 100644
+index e7b5a5e..80bff6f 100644
 --- a/systemd-units/plymouth-switch-root-initramfs.service.in
 +++ b/systemd-units/plymouth-switch-root-initramfs.service.in
-@@ -10,6 +10,11 @@ ConditionPathExists=/run/initramfs/bin/sh
+@@ -11,6 +11,11 @@ ConditionPathExists=|/run/initramfs/shutdown
  [Service]
  Type=oneshot
  RemainAfterExit=yes
@@ -27,6 +26,3 @@ index 0610803c..311b6ccf 100644
  ExecStart=-@PLYMOUTH_CLIENT_DIR@/plymouth update-root-fs --new-root-dir=/run/initramfs
  Type=oneshot
  RemainAfterExit=yes
--- 
-2.32.0
-

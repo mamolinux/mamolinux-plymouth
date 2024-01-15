@@ -21,7 +21,6 @@
  * Written by: Charlie Brej <cbrej@cs.man.ac.uk>
  *             Ray Strode <rstrode@redhat.com>
  */
-#include "config.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -54,6 +53,7 @@
 #include "ply-pixel-display.h"
 #include "ply-trigger.h"
 #include "ply-utils.h"
+#include "ply-console-viewer.h"
 
 #ifndef FRAMES_PER_SECOND
 #define FRAMES_PER_SECOND 40
@@ -168,6 +168,8 @@ typedef struct
         ply_list_t               *sprites;
         ply_rectangle_t           box_area, lock_area, logo_area;
         ply_image_t              *scaled_background_image;
+
+        ply_console_viewer_t     *console_viewer;
 } view_t;
 
 struct _ply_boot_splash_plugin
@@ -200,12 +202,29 @@ struct _ply_boot_splash_plugin
         double                         progress_target;
 
         uint32_t                       root_is_mounted : 1;
+        uint32_t                       needs_redraw : 1;
         uint32_t                       is_visible : 1;
         uint32_t                       is_animating : 1;
+
+        char                          *monospace_font;
+        uint32_t                       plugin_console_messages_updating : 1;
+        uint32_t                       should_show_console_messages : 1;
+        ply_buffer_t                  *boot_buffer;
+        uint32_t                       console_text_color;
 };
 
 ply_boot_splash_plugin_interface_t *ply_boot_splash_plugin_get_interface (void);
 static void detach_from_event_loop (ply_boot_splash_plugin_t *plugin);
+static bool validate_input (ply_boot_splash_plugin_t *plugin,
+                            const char               *entry_text,
+                            const char               *add_text);
+static void on_boot_output (ply_boot_splash_plugin_t *plugin,
+                            const char               *output,
+                            size_t                    size);
+static void toggle_console_messages (ply_boot_splash_plugin_t *plugin);
+static void display_console_messages (ply_boot_splash_plugin_t *plugin);
+static void hide_console_messages (ply_boot_splash_plugin_t *plugin);
+static void unhide_console_messages (ply_boot_splash_plugin_t *plugin);
 
 static view_t *
 view_new (ply_boot_splash_plugin_t *plugin,
@@ -223,6 +242,16 @@ view_new (ply_boot_splash_plugin_t *plugin,
 
         view->sprites = ply_list_new ();
 
+        if (ply_console_viewer_preferred ()) {
+                view->console_viewer = ply_console_viewer_new (view->display, plugin->monospace_font);
+                ply_console_viewer_set_text_color (view->console_viewer, plugin->console_text_color);
+
+                if (plugin->boot_buffer)
+                        ply_console_viewer_convert_boot_buffer (view->console_viewer, plugin->boot_buffer);
+        } else {
+                view->console_viewer = NULL;
+        }
+
         return view;
 }
 
@@ -236,6 +265,9 @@ view_free (view_t *view)
         ply_label_free (view->message_label);
         view_free_sprites (view);
         ply_list_free (view->sprites);
+
+        if (view->console_viewer)
+                ply_console_viewer_free (view->console_viewer);
 
         ply_image_free (view->scaled_background_image);
 
@@ -314,7 +346,16 @@ view_redraw (view_t *view)
 static void
 redraw_views (ply_boot_splash_plugin_t *plugin)
 {
+        plugin->needs_redraw = true;
+}
+
+static void
+process_needed_redraws (ply_boot_splash_plugin_t *plugin)
+{
         ply_list_node_t *node;
+
+        if (!plugin->needs_redraw)
+                return;
 
         node = ply_list_get_first_node (plugin->views);
         while (node != NULL) {
@@ -328,6 +369,8 @@ redraw_views (ply_boot_splash_plugin_t *plugin)
 
                 node = next_node;
         }
+
+        plugin->needs_redraw = false;
 }
 
 static void
@@ -412,6 +455,32 @@ view_start_animation (view_t *view)
 }
 
 static void
+view_show_prompt_on_console_viewer (view_t     *view,
+                                    const char *prompt,
+                                    const char *entry_text,
+                                    int         number_of_bullets)
+{
+        ply_boot_splash_plugin_t *plugin = view->plugin;
+
+        if (plugin->state == PLY_BOOT_SPLASH_DISPLAY_NORMAL)
+                ply_console_viewer_print (view->console_viewer, "\n");
+
+        ply_console_viewer_clear_line (view->console_viewer);
+
+        ply_console_viewer_print (view->console_viewer, prompt);
+
+        ply_console_viewer_print (view->console_viewer, ": ");
+        if (entry_text)
+                ply_console_viewer_print (view->console_viewer, "%s", entry_text);
+
+        for (int i = 0; i < number_of_bullets; i++) {
+                ply_console_viewer_print (view->console_viewer, " ");
+        }
+
+        ply_console_viewer_print (view->console_viewer, "_");
+}
+
+static void
 view_show_prompt (view_t     *view,
                   const char *prompt)
 {
@@ -462,7 +531,17 @@ view_show_prompt (view_t     *view,
 static void
 view_hide_prompt (view_t *view)
 {
+        ply_boot_splash_plugin_t *plugin;
+
         assert (view != NULL);
+
+        plugin = view->plugin;
+
+        /* Obscure the password length in the scroll back */
+        if (plugin->state == PLY_BOOT_SPLASH_DISPLAY_PASSWORD_ENTRY)
+                ply_console_viewer_clear_line (view->console_viewer);
+
+        ply_console_viewer_print (view->console_viewer, "\n");
 
         ply_entry_hide (view->entry);
         ply_label_hide (view->label);
@@ -493,7 +572,6 @@ create_plugin (ply_key_file_t *key_file)
         ply_boot_splash_plugin_t *plugin;
         char *image_dir, *image_path;
 
-        srand ((int) ply_get_timestamp ());
         plugin = calloc (1, sizeof(ply_boot_splash_plugin_t));
 
         plugin->logo_image = ply_image_new (PLYMOUTH_LOGO_FILE);
@@ -541,6 +619,21 @@ create_plugin (ply_key_file_t *key_file)
         plugin->progress_barimage = ply_image_new (image_path);
         free (image_path);
 #endif
+
+        plugin->plugin_console_messages_updating = false;
+        plugin->should_show_console_messages = false;
+
+        /* Likely only able to set the font if the font is in the initrd */
+        plugin->monospace_font = ply_key_file_get_value (key_file, "two-step", "MonospaceFont");
+
+        if (plugin->monospace_font == NULL)
+                plugin->monospace_font = strdup ("monospace 10");
+
+        plugin->console_text_color =
+                ply_key_file_get_long (key_file, "two-step",
+                                       "ConsoleLogTextColor",
+                                       PLY_CONSOLE_VIEWER_LOG_TEXT_COLOR);
+
         plugin->state = PLY_BOOT_SPLASH_DISPLAY_NORMAL;
         plugin->progress = 0;
         plugin->progress_target = -1;
@@ -548,6 +641,8 @@ create_plugin (ply_key_file_t *key_file)
         plugin->image_dir = image_dir;
 
         plugin->views = ply_list_new ();
+
+        plugin->needs_redraw = true;
 
         return plugin;
 }
@@ -564,6 +659,7 @@ destroy_plugin (ply_boot_splash_plugin_t *plugin)
                 ply_event_loop_stop_watching_for_exit (plugin->loop, (ply_event_loop_exit_handler_t)
                                                        detach_from_event_loop,
                                                        plugin);
+
                 detach_from_event_loop (plugin);
         }
 
@@ -582,6 +678,8 @@ destroy_plugin (ply_boot_splash_plugin_t *plugin)
 #ifdef  SHOW_PROGRESS_BAR
         ply_image_free (plugin->progress_barimage);
 #endif
+
+        free (plugin->monospace_font);
 
         free_views (plugin);
 
@@ -633,7 +731,8 @@ free_sprite (sprite_t *sprite)
 }
 
 static int
-sprite_compare_z (void *data_a, void *data_b)
+sprite_compare_z (void *data_a,
+                  void *data_b)
 {
         sprite_t *sprite_a = data_a;
         sprite_t *sprite_b = data_b;
@@ -642,7 +741,9 @@ sprite_compare_z (void *data_a, void *data_b)
 }
 
 static void
-stretch_image (ply_image_t *scaled_image, ply_image_t *orig_image, int width)
+stretch_image (ply_image_t *scaled_image,
+               ply_image_t *orig_image,
+               int          width)
 {
         int x, y;
         int stretched_width = ply_image_get_width (scaled_image);
@@ -676,7 +777,9 @@ stretch_image (ply_image_t *scaled_image, ply_image_t *orig_image, int width)
 }
 
 static void
-progress_update (view_t *view, sprite_t *sprite, double time)
+progress_update (view_t   *view,
+                 sprite_t *sprite,
+                 double    time)
 {
         progress_t *progress = sprite->data;
         ply_boot_splash_plugin_t *plugin = view->plugin;
@@ -691,7 +794,12 @@ progress_update (view_t *view, sprite_t *sprite, double time)
 
 
 static inline uint32_t
-star_bg_gradient_colour (int x, int y, int width, int height, bool star, float time)
+star_bg_gradient_colour (int   x,
+                         int   y,
+                         int   width,
+                         int   height,
+                         bool  star,
+                         float time)
 {
         int full_dist = sqrt (width * width + height * height);
         int my_dist = sqrt (x * x + y * y);
@@ -744,7 +852,9 @@ star_bg_gradient_colour (int x, int y, int width, int height, bool star, float t
 
 
 static void
-star_bg_update (view_t *view, sprite_t *sprite, double time)
+star_bg_update (view_t   *view,
+                sprite_t *sprite,
+                double    time)
 {
         star_bg_t *star_bg = sprite->data;
         int width = ply_image_get_width (sprite->image);
@@ -759,7 +869,7 @@ star_bg_update (view_t *view, sprite_t *sprite, double time)
                 x = star_bg->star_x[i];
                 y = star_bg->star_y[i];
                 uint32_t pixel_colour = star_bg_gradient_colour (x, y, width, height, true, time);
-                if (abs ((int)((image_data[x + y * width] >> 16) & 0xff) - (int)((pixel_colour >> 16) & 0xff)) > 8) {
+                if (abs ((int) ((image_data[x + y * width] >> 16) & 0xff) - (int) ((pixel_colour >> 16) & 0xff)) > 8) {
                         image_data[x + y * width] = pixel_colour;
                         star_bg->star_refresh[i] = 1;
                 }
@@ -770,7 +880,9 @@ star_bg_update (view_t *view, sprite_t *sprite, double time)
 }
 
 static void
-satellite_move (view_t *view, sprite_t *sprite, double time)
+satellite_move (view_t   *view,
+                sprite_t *sprite,
+                double    time)
 {
         ply_boot_splash_plugin_t *plugin = view->plugin;
         satellite_t *satellite = sprite->data;
@@ -785,11 +897,13 @@ satellite_move (view_t *view, sprite_t *sprite, double time)
 
         float distance = sqrt (sprite->z * sprite->z + sprite->y * sprite->y);
         float angle_zy = atan2 (sprite->y, sprite->z) - M_PI * 0.4;
+
         sprite->z = distance * cos (angle_zy);
         sprite->y = distance * sin (angle_zy);
 
         float angle_offset = atan2 (sprite->x, sprite->y);
         float cresent_angle = atan2 (sqrt (sprite->x * sprite->x + sprite->y * sprite->y), sprite->z);
+
         screen_width = ply_pixel_display_get_width (view->display);
         screen_height = ply_pixel_display_get_height (view->display);
 
@@ -896,19 +1010,21 @@ sprite_list_sort (view_t *view)
 }
 
 static void
-flare_reset (flare_t *flare, int index)
+flare_reset (flare_t *flare,
+             int      index)
 {
-        flare->rotate_yz[index] = ((float) (rand () % 1000) / 1000) * 2 * M_PI;
-        flare->rotate_xy[index] = ((float) (rand () % 1000) / 1000) * 2 * M_PI;
-        flare->rotate_xz[index] = ((float) (rand () % 1000) / 1000) * 2 * M_PI;
-        flare->y_size[index] = ((float) (rand () % 1000) / 1000) * 0.8 + 0.2;
-        flare->increase_speed[index] = ((float) (rand () % 1000) / 1000) * 0.08 + 0.08;
-        flare->stretch[index] = (((float) (rand () % 1000) / 1000) * 0.1 + 0.3) * flare->y_size[index];
+        flare->rotate_yz[index] = ((float) (ply_get_random_number (0, 1000)) / 1000) * 2 * M_PI;
+        flare->rotate_xy[index] = ((float) (ply_get_random_number (0, 1000)) / 1000) * 2 * M_PI;
+        flare->rotate_xz[index] = ((float) (ply_get_random_number (0, 1000)) / 1000) * 2 * M_PI;
+        flare->y_size[index] = ((float) (ply_get_random_number (0, 1000)) / 1000) * 0.8 + 0.2;
+        flare->increase_speed[index] = ((float) (ply_get_random_number (0, 1000)) / 1000) * 0.08 + 0.08;
+        flare->stretch[index] = (((float) (ply_get_random_number (0, 1000)) / 1000) * 0.1 + 0.3) * flare->y_size[index];
         flare->z_offset_strength[index] = 0.1;
 }
 
 static void
-flare_update (sprite_t *sprite, double time)
+flare_update (sprite_t *sprite,
+              double    time)
 {
         int width;
         int height;
@@ -933,6 +1049,7 @@ flare_update (sprite_t *sprite, double time)
 
 
         int b;
+
         for (b = 0; b < FLARE_COUNT; b++) {
                 int flare_line;
                 flare->stretch[b] += (flare->stretch[b] * flare->increase_speed[b]) * (1 - (1 / (3.01 - flare->stretch[b])));
@@ -1025,7 +1142,9 @@ flare_update (sprite_t *sprite, double time)
 }
 
 static void
-sprite_move (view_t *view, sprite_t *sprite, double time)
+sprite_move (view_t   *view,
+             sprite_t *sprite,
+             double    time)
 {
         sprite->oldx = sprite->x;
         sprite->oldy = sprite->y;
@@ -1049,7 +1168,8 @@ sprite_move (view_t *view, sprite_t *sprite, double time)
 }
 
 static void
-view_animate_attime (view_t *view, double time)
+view_animate_attime (view_t *view,
+                     double  time)
 {
         ply_list_node_t *node;
         ply_boot_splash_plugin_t *plugin;
@@ -1264,11 +1384,12 @@ on_draw (view_t             *view,
         if (width == 1 && height == 1)
                 single_pixel = true;
 
-        if (plugin->state == PLY_BOOT_SPLASH_DISPLAY_QUESTION_ENTRY ||
-            plugin->state == PLY_BOOT_SPLASH_DISPLAY_PASSWORD_ENTRY) {
-                uint32_t *box_data, *lock_data;
+        draw_background (view, pixel_buffer, x, y, width, height);
 
-                draw_background (view, pixel_buffer, x, y, width, height);
+        if ((plugin->state == PLY_BOOT_SPLASH_DISPLAY_QUESTION_ENTRY ||
+             plugin->state == PLY_BOOT_SPLASH_DISPLAY_PASSWORD_ENTRY) &&
+            !plugin->should_show_console_messages) {
+                uint32_t *box_data, *lock_data;
 
                 box_data = ply_image_get_data (plugin->box_image);
                 ply_pixel_buffer_fill_with_argb32_data (pixel_buffer,
@@ -1280,10 +1401,9 @@ on_draw (view_t             *view,
                 ply_pixel_buffer_fill_with_argb32_data (pixel_buffer,
                                                         &view->lock_area,
                                                         lock_data);
-        } else {
+        } else if (!plugin->should_show_console_messages) {
                 ply_list_node_t *node;
 
-                draw_background (view, pixel_buffer, x, y, width, height);
 
                 for (node = ply_list_get_first_node (view->sprites); node; node = ply_list_get_next_node (view->sprites, node)) {
                         sprite_t *sprite = ply_list_node_get_data (node);
@@ -1321,9 +1441,15 @@ on_draw (view_t             *view,
         }
         if (single_pixel)
                 ply_pixel_buffer_fill_with_color (pixel_buffer, &clip_area, pixel_r, pixel_g, pixel_b, 1.0);
-        ply_label_draw_area (view->message_label,
-                             pixel_buffer,
-                             x, y, width, height);
+
+        if (!plugin->should_show_console_messages)
+                ply_label_draw_area (view->message_label,
+                                     pixel_buffer,
+                                     x, y, width, height);
+
+        if (plugin->plugin_console_messages_updating == false && view->console_viewer) {
+                ply_console_viewer_draw_area (view->console_viewer, pixel_buffer, x, y, width, height);
+        }
 }
 
 static void
@@ -1349,6 +1475,11 @@ draw_background (view_t             *view,
         image_area.y = 0;
         image_area.width = ply_image_get_width (view->scaled_background_image);
         image_area.height = ply_image_get_height (view->scaled_background_image);
+
+        if (plugin->should_show_console_messages) {
+                ply_pixel_buffer_fill_with_hex_color (pixel_buffer, &area, 0);
+                return;
+        }
 
         ply_pixel_buffer_fill_with_argb32_data_with_clip (pixel_buffer,
                                                           &image_area, &area,
@@ -1461,8 +1592,8 @@ view_setup_scene (view_t *view)
 
                 for (i = 0; i < star_bg->star_count; i++) {
                         do {
-                                x = rand () % screen_width;
-                                y = rand () % screen_height;
+                                x = ply_get_random_number (0, screen_width);
+                                y = ply_get_random_number (0, screen_height);
                         } while (image_data[x + y * screen_width] == 0xFFFFFFFF);
                         star_bg->star_refresh[i] = 0;
                         star_bg->star_x[i] = x;
@@ -1470,8 +1601,8 @@ view_setup_scene (view_t *view)
                         image_data[x + y * screen_width] = 0xFFFFFFFF;
                 }
                 for (i = 0; i < (int) (screen_width * screen_height) / 400; i++) {
-                        x = rand () % screen_width;
-                        y = rand () % screen_height;
+                        x = ply_get_random_number (0, screen_width);
+                        y = ply_get_random_number (0, screen_height);
                         image_data[x + y * screen_width] = star_bg_gradient_colour (x, y, screen_width, screen_height, true, ((float) x * y * 13 / 10000));
                 }
 
@@ -1601,11 +1732,30 @@ show_splash_screen (ply_boot_splash_plugin_t *plugin,
                     ply_buffer_t             *boot_buffer,
                     ply_boot_splash_mode_t    mode)
 {
+        ply_list_node_t *node;
+
         assert (plugin != NULL);
         assert (plugin->logo_image != NULL);
 
         plugin->loop = loop;
         plugin->mode = mode;
+
+        if (boot_buffer && ply_console_viewer_preferred ()) {
+                plugin->boot_buffer = boot_buffer;
+
+                node = ply_list_get_first_node (plugin->views);
+                while (node != NULL) {
+                        view_t *view;
+                        ply_list_node_t *next_node;
+
+                        view = ply_list_node_get_data (node);
+                        next_node = ply_list_get_next_node (plugin->views, node);
+
+                        ply_console_viewer_convert_boot_buffer (view->console_viewer, plugin->boot_buffer);
+
+                        node = next_node;
+                }
+        }
 
         ply_trace ("loading logo image");
         if (!ply_image_load (plugin->logo_image))
@@ -1699,6 +1849,7 @@ show_password_prompt (ply_boot_splash_plugin_t *plugin,
                 view = ply_list_node_get_data (node);
                 next_node = ply_list_get_next_node (plugin->views, node);
 
+                view_show_prompt_on_console_viewer (view, text, NULL, number_of_bullets);
                 view_show_prompt (view, text);
                 ply_entry_set_bullet_count (view->entry, number_of_bullets);
 
@@ -1721,6 +1872,7 @@ show_prompt (ply_boot_splash_plugin_t *plugin,
                 view = ply_list_node_get_data (node);
                 next_node = ply_list_get_next_node (plugin->views, node);
 
+                view_show_prompt_on_console_viewer (view, prompt, entry_text, -1);
                 view_show_prompt (view, prompt);
                 ply_entry_set_text (view->entry, entry_text);
 
@@ -1757,6 +1909,7 @@ show_message (ply_boot_splash_plugin_t *plugin,
                 next_node = ply_list_get_next_node (plugin->views, node);
                 ply_label_set_text (view->message_label, message);
                 ply_label_show (view->message_label, view->display, 10, 10);
+                ply_console_viewer_print (view->console_viewer, "\n%s\n", message);
 
                 ply_pixel_display_draw_area (view->display, 10, 10,
                                              ply_label_get_width (view->message_label),
@@ -1773,8 +1926,15 @@ display_normal (ply_boot_splash_plugin_t *plugin)
                 hide_prompt (plugin);
 
         plugin->state = PLY_BOOT_SPLASH_DISPLAY_NORMAL;
-        start_animation (plugin);
+        if (!plugin->should_show_console_messages)
+                start_animation (plugin);
+
         redraw_views (plugin);
+
+        if (plugin->should_show_console_messages)
+                display_console_messages (plugin);
+
+        process_needed_redraws (plugin);
         unpause_views (plugin);
 }
 
@@ -1790,6 +1950,11 @@ display_password (ply_boot_splash_plugin_t *plugin,
         plugin->state = PLY_BOOT_SPLASH_DISPLAY_PASSWORD_ENTRY;
         show_password_prompt (plugin, prompt, bullets);
         redraw_views (plugin);
+
+        if (plugin->should_show_console_messages)
+                display_console_messages (plugin);
+
+        process_needed_redraws (plugin);
         unpause_views (plugin);
 }
 
@@ -1805,6 +1970,11 @@ display_question (ply_boot_splash_plugin_t *plugin,
         plugin->state = PLY_BOOT_SPLASH_DISPLAY_QUESTION_ENTRY;
         show_prompt (plugin, prompt, entry_text);
         redraw_views (plugin);
+
+        if (plugin->should_show_console_messages)
+                display_console_messages (plugin);
+
+        process_needed_redraws (plugin);
         unpause_views (plugin);
 }
 
@@ -1813,6 +1983,109 @@ display_message (ply_boot_splash_plugin_t *plugin,
                  const char               *message)
 {
         show_message (plugin, message);
+}
+
+static bool
+validate_input (ply_boot_splash_plugin_t *plugin,
+                const char               *entry_text,
+                const char               *add_text)
+{
+        if (!ply_console_viewer_preferred ())
+                return true;
+
+        if (strcmp (add_text, "\e") == 0) {
+                toggle_console_messages (plugin);
+                return false;
+        }
+
+        return true;
+}
+
+static void
+toggle_console_messages (ply_boot_splash_plugin_t *plugin)
+{
+        if (plugin->should_show_console_messages) {
+                plugin->should_show_console_messages = false;
+                hide_console_messages (plugin);
+        } else {
+                unhide_console_messages (plugin);
+        }
+}
+
+static void
+display_console_messages (ply_boot_splash_plugin_t *plugin)
+{
+        ply_list_node_t *node;
+        view_t *view;
+
+        pause_views (plugin);
+
+        if (plugin->should_show_console_messages)
+                stop_animation (plugin);
+
+        plugin->plugin_console_messages_updating = true;
+        node = ply_list_get_first_node (plugin->views);
+        while (node != NULL) {
+                view = ply_list_node_get_data (node);
+                ply_console_viewer_show (view->console_viewer, view->display);
+                node = ply_list_get_next_node (plugin->views, node);
+        }
+        plugin->plugin_console_messages_updating = false;
+
+        redraw_views (plugin);
+        process_needed_redraws (plugin);
+        unpause_views (plugin);
+}
+
+static void
+unhide_console_messages (ply_boot_splash_plugin_t *plugin)
+{
+        plugin->should_show_console_messages = true;
+        display_console_messages (plugin);
+}
+
+static void
+hide_console_messages (ply_boot_splash_plugin_t *plugin)
+{
+        ply_list_node_t *node;
+        view_t *view;
+
+        plugin->should_show_console_messages = false;
+
+        pause_views (plugin);
+        plugin->plugin_console_messages_updating = true;
+        node = ply_list_get_first_node (plugin->views);
+        while (node != NULL) {
+                view = ply_list_node_get_data (node);
+                ply_console_viewer_hide (view->console_viewer);
+                node = ply_list_get_next_node (plugin->views, node);
+        }
+        plugin->plugin_console_messages_updating = false;
+        if (plugin->state == PLY_BOOT_SPLASH_DISPLAY_NORMAL)
+                start_animation (plugin);
+
+        redraw_views (plugin);
+        process_needed_redraws (plugin);
+        unpause_views (plugin);
+}
+
+static void
+on_boot_output (ply_boot_splash_plugin_t *plugin,
+                const char               *output,
+                size_t                    size)
+{
+        ply_list_node_t *node;
+        view_t *view;
+
+        if (!ply_console_viewer_preferred ())
+                return;
+
+        node = ply_list_get_first_node (plugin->views);
+        while (node != NULL) {
+                view = ply_list_node_get_data (node);
+                ply_console_viewer_write (view->console_viewer, output, size);
+                node = ply_list_get_next_node (plugin->views, node);
+        }
 }
 
 ply_boot_splash_plugin_interface_t *
@@ -1834,9 +2107,10 @@ ply_boot_splash_plugin_get_interface (void)
                 .display_password     = display_password,
                 .display_question     = display_question,
                 .display_message      = display_message,
+                .on_boot_output       = on_boot_output,
+                .validate_input       = validate_input,
         };
 
         return &plugin_interface;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

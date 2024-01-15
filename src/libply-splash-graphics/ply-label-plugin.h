@@ -36,7 +36,7 @@ typedef struct _ply_label_plugin_control ply_label_plugin_control_t;
 
 typedef struct
 {
-        ply_label_plugin_control_t * (*create_control)(void);
+        ply_label_plugin_control_t *(*create_control)(void);
         void (*destroy_control)(ply_label_plugin_control_t *label);
         bool (*show_control)(ply_label_plugin_control_t *label,
                              ply_pixel_display_t        *display,
@@ -53,6 +53,9 @@ typedef struct
 
         void (*set_text_for_control)(ply_label_plugin_control_t *label,
                                      const char                 *text);
+        void (*set_rich_text_for_control)(ply_label_plugin_control_t *label,
+                                          ply_rich_text_t            *rich_text,
+                                          ply_rich_text_span_t       *span);
         void (*set_font_for_control)(ply_label_plugin_control_t *label,
                                      const char                 *fontdesc);
         void (*set_color_for_control)(ply_label_plugin_control_t *label,
@@ -71,4 +74,3 @@ typedef struct
 } ply_label_plugin_interface_t;
 
 #endif /* PLY_LABEL_PLUGIN_H */
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

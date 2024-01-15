@@ -20,7 +20,6 @@
  * Written by: William Jon McCann, Hans de Goede <hdegoede@redhat.com>
  *
  */
-#include "config.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -61,6 +60,7 @@
 #include "ply-progress-animation.h"
 #include "ply-throbber.h"
 #include "ply-progress-bar.h"
+#include "ply-console-viewer.h"
 
 #include <linux/kd.h>
 
@@ -109,22 +109,24 @@ typedef struct
         ply_label_t              *message_label;
         ply_label_t              *title_label;
         ply_label_t              *subtitle_label;
-        ply_rectangle_t           box_area, lock_area, watermark_area, dialog_area;
+        ply_rectangle_t           box_area, lock_area, watermark_area, dialog_area, secure_boot_area;
         ply_trigger_t            *end_trigger;
         ply_pixel_buffer_t       *background_buffer;
         int                       animation_bottom;
+
+        ply_console_viewer_t     *console_viewer;
 } view_t;
 
 typedef struct
 {
-        bool                      suppress_messages;
-        bool                      progress_bar_show_percent_complete;
-        bool                      use_progress_bar;
-        bool                      use_animation;
-        bool                      use_end_animation;
-        bool                      use_firmware_background;
-        char                     *title;
-        char                     *subtitle;
+        bool  suppress_messages;
+        bool  progress_bar_show_percent_complete;
+        bool  use_progress_bar;
+        bool  use_animation;
+        bool  use_end_animation;
+        bool  use_firmware_background;
+        char *title;
+        char *subtitle;
 } mode_settings_t;
 
 struct _ply_boot_splash_plugin
@@ -137,10 +139,11 @@ struct _ply_boot_splash_plugin
         ply_image_t                        *box_image;
         ply_image_t                        *corner_image;
         ply_image_t                        *header_image;
-        ply_image_t                        *background_tile_image;
+        ply_image_t                        *background_image;
         ply_image_t                        *background_bgrt_image;
         ply_image_t                        *background_bgrt_fallback_image;
         ply_image_t                        *watermark_image;
+        ply_image_t                        *secure_boot_warning_image;
         ply_list_t                         *views;
 
         ply_boot_splash_display_type_t      state;
@@ -154,6 +157,9 @@ struct _ply_boot_splash_plugin
 
         double                              watermark_horizontal_alignment;
         double                              watermark_vertical_alignment;
+
+        double                              secure_boot_horizontal_alignment;
+        double                              secure_boot_vertical_alignment;
 
         double                              animation_horizontal_alignment;
         double                              animation_vertical_alignment;
@@ -181,12 +187,20 @@ struct _ply_boot_splash_plugin
         ply_trigger_t                      *stop_trigger;
 
         uint32_t                            root_is_mounted : 1;
+        uint32_t                            needs_redraw : 1;
         uint32_t                            is_visible : 1;
         uint32_t                            is_animating : 1;
         uint32_t                            is_idle : 1;
         uint32_t                            use_firmware_background : 1;
+        uint32_t                            background_image_is_scaled : 1;
         uint32_t                            dialog_clears_firmware_background : 1;
         uint32_t                            message_below_animation : 1;
+
+        char                               *monospace_font;
+        uint32_t                            plugin_console_messages_updating : 1;
+        uint32_t                            should_show_console_messages : 1;
+        ply_buffer_t                       *boot_buffer;
+        uint32_t                            console_text_color;
 };
 
 ply_boot_splash_plugin_interface_t *ply_boot_splash_plugin_get_interface (void);
@@ -197,7 +211,18 @@ static void display_message (ply_boot_splash_plugin_t *plugin,
                              const char               *message);
 static void become_idle (ply_boot_splash_plugin_t *plugin,
                          ply_trigger_t            *idle_trigger);
-static void view_show_message (view_t *view, const char *message);
+static void view_show_message (view_t     *view,
+                               const char *message);
+static bool validate_input (ply_boot_splash_plugin_t *plugin,
+                            const char               *entry_text,
+                            const char               *add_text);
+static void on_boot_output (ply_boot_splash_plugin_t *plugin,
+                            const char               *output,
+                            size_t                    size);
+static void toggle_console_messages (ply_boot_splash_plugin_t *plugin);
+static void display_console_messages (ply_boot_splash_plugin_t *plugin);
+static void hide_console_messages (ply_boot_splash_plugin_t *plugin);
+static void unhide_console_messages (ply_boot_splash_plugin_t *plugin);
 
 static view_t *
 view_new (ply_boot_splash_plugin_t *plugin,
@@ -238,6 +263,16 @@ view_new (ply_boot_splash_plugin_t *plugin,
         view->subtitle_label = ply_label_new ();
         ply_label_set_font (view->subtitle_label, plugin->font);
 
+        if (ply_console_viewer_preferred ()) {
+                view->console_viewer = ply_console_viewer_new (view->display, plugin->monospace_font);
+                ply_console_viewer_set_text_color (view->console_viewer, plugin->console_text_color);
+
+                if (plugin->boot_buffer)
+                        ply_console_viewer_convert_boot_buffer (view->console_viewer, plugin->boot_buffer);
+        } else {
+                view->console_viewer = NULL;
+        }
+
         return view;
 }
 
@@ -255,6 +290,9 @@ view_free (view_t *view)
         ply_label_free (view->message_label);
         ply_label_free (view->title_label);
         ply_label_free (view->subtitle_label);
+
+        if (view->console_viewer)
+                ply_console_viewer_free (view->console_viewer);
 
         if (view->background_buffer != NULL)
                 ply_pixel_buffer_free (view->background_buffer);
@@ -278,6 +316,7 @@ view_load_end_animation (view_t *view)
         case PLY_BOOT_SPLASH_MODE_UPDATES:
         case PLY_BOOT_SPLASH_MODE_SYSTEM_UPGRADE:
         case PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE:
+        case PLY_BOOT_SPLASH_MODE_SYSTEM_RESET:
                 animation_prefix = "startup-animation-";
                 break;
         case PLY_BOOT_SPLASH_MODE_SHUTDOWN:
@@ -323,25 +362,26 @@ view_load_end_animation (view_t *view)
 }
 
 static bool
-get_bgrt_sysfs_info(int *x_offset, int *y_offset,
-                    ply_pixel_buffer_rotation_t *rotation)
+get_bgrt_sysfs_info (int                         *x_offset,
+                     int                         *y_offset,
+                     ply_pixel_buffer_rotation_t *rotation)
 {
         bool ret = false;
         char buf[64];
         int status;
         FILE *f;
 
-        f = fopen("/sys/firmware/acpi/bgrt/status", "r");
+        f = fopen ("/sys/firmware/acpi/bgrt/status", "r");
         if (!f)
                 return false;
 
-        if (!fgets(buf, sizeof(buf), f))
+        if (!fgets (buf, sizeof(buf), f))
                 goto out;
 
-        if (sscanf(buf, "%d", &status) != 1)
+        if (sscanf (buf, "%d", &status) != 1)
                 goto out;
 
-        fclose(f);
+        fclose (f);
 
         switch (status & BGRT_STATUS_ORIENTATION_OFFSET_MASK) {
         case BGRT_STATUS_ORIENTATION_OFFSET_0:
@@ -358,31 +398,31 @@ get_bgrt_sysfs_info(int *x_offset, int *y_offset,
                 break;
         }
 
-        f = fopen("/sys/firmware/acpi/bgrt/xoffset", "r");
+        f = fopen ("/sys/firmware/acpi/bgrt/xoffset", "r");
         if (!f)
                 return false;
 
-        if (!fgets(buf, sizeof(buf), f))
+        if (!fgets (buf, sizeof(buf), f))
                 goto out;
 
-        if (sscanf(buf, "%d", x_offset) != 1)
+        if (sscanf (buf, "%d", x_offset) != 1)
                 goto out;
 
-        fclose(f);
+        fclose (f);
 
-        f = fopen("/sys/firmware/acpi/bgrt/yoffset", "r");
+        f = fopen ("/sys/firmware/acpi/bgrt/yoffset", "r");
         if (!f)
                 return false;
 
-        if (!fgets(buf, sizeof(buf), f))
+        if (!fgets (buf, sizeof(buf), f))
                 goto out;
 
-        if (sscanf(buf, "%d", y_offset) != 1)
+        if (sscanf (buf, "%d", y_offset) != 1)
                 goto out;
 
         ret = true;
 out:
-        fclose(f);
+        fclose (f);
         return ret;
 }
 
@@ -411,8 +451,8 @@ view_set_bgrt_background (view_t *view)
         if (!view->plugin->background_bgrt_image)
                 return;
 
-        if (!get_bgrt_sysfs_info(&sysfs_x_offset, &sysfs_y_offset,
-                                 &bgrt_rotation)) {
+        if (!get_bgrt_sysfs_info (&sysfs_x_offset, &sysfs_y_offset,
+                                  &bgrt_rotation)) {
                 ply_trace ("get bgrt sysfs info failed");
                 return;
         }
@@ -440,7 +480,7 @@ view_set_bgrt_background (view_t *view)
         if (have_panel_props &&
             (panel_rotation == PLY_PIXEL_BUFFER_ROTATE_CLOCKWISE ||
              panel_rotation == PLY_PIXEL_BUFFER_ROTATE_COUNTER_CLOCKWISE) &&
-            (panel_width  - view->plugin->background_bgrt_raw_width) / 2 != sysfs_x_offset &&
+            (panel_width - view->plugin->background_bgrt_raw_width) / 2 != sysfs_x_offset &&
             (panel_height - view->plugin->background_bgrt_raw_width) / 2 == sysfs_x_offset)
                 bgrt_rotation = panel_rotation;
 
@@ -458,7 +498,7 @@ view_set_bgrt_background (view_t *view)
          */
         if (bgrt_rotation != PLY_PIXEL_BUFFER_ROTATE_UPRIGHT) {
                 if (bgrt_rotation != panel_rotation) {
-                        ply_trace ("bgrt orientation mismatch, bgrt_rot %d panel_rot %d", (int)bgrt_rotation, (int)panel_rotation);
+                        ply_trace ("bgrt orientation mismatch, bgrt_rot %d panel_rot %d", (int) bgrt_rotation, (int) panel_rotation);
                         return;
                 }
 
@@ -534,7 +574,7 @@ view_set_bgrt_background (view_t *view)
         /*
          * On desktops (no panel) we normally do not use the BGRT provided
          * xoffset and yoffset because the resolution they are intended for
-         * may be differtent then the resolution of the current display.
+         * may be different then the resolution of the current display.
          *
          * On some desktops (no panel) the image gets centered not only
          * horizontally, but also vertically. In this case our default of using
@@ -543,7 +583,7 @@ view_set_bgrt_background (view_t *view)
          * yoffset perfectly center the image and in that case we use them.
          */
         if (!have_panel_props && screen_scale == 1 &&
-            (screen_width  - width ) / 2 == sysfs_x_offset &&
+            (screen_width - width) / 2 == sysfs_x_offset &&
             (screen_height - height) / 2 == sysfs_y_offset) {
                 x_offset = sysfs_x_offset;
                 y_offset = sysfs_y_offset;
@@ -599,9 +639,9 @@ view_load (view_t *view)
         screen_width = ply_pixel_display_get_width (view->display);
         screen_height = ply_pixel_display_get_height (view->display);
 
-        buffer = ply_renderer_get_buffer_for_head(
-                        ply_pixel_display_get_renderer (view->display),
-                        ply_pixel_display_get_renderer_head (view->display));
+        buffer = ply_renderer_get_buffer_for_head (
+                ply_pixel_display_get_renderer (view->display),
+                ply_pixel_display_get_renderer_head (view->display));
         screen_scale = ply_pixel_buffer_get_device_scale (buffer);
 
         view_set_bgrt_background (view);
@@ -609,7 +649,7 @@ view_load (view_t *view)
         if (!view->background_buffer && plugin->background_bgrt_fallback_image != NULL)
                 view_set_bgrt_fallback_background (view);
 
-        if (!view->background_buffer && plugin->background_tile_image != NULL) {
+        if (!view->background_buffer && plugin->background_image != NULL) {
                 ply_trace ("tiling background to %lux%lu", screen_width, screen_height);
 
                 /* Create a buffer at screen scale so that we only do the slow interpolating scale once */
@@ -624,7 +664,12 @@ view_load (view_t *view)
                         ply_pixel_buffer_fill_with_hex_color (view->background_buffer, NULL,
                                                               plugin->background_start_color);
 
-                buffer = ply_pixel_buffer_tile (ply_image_get_buffer (plugin->background_tile_image), screen_width, screen_height);
+                if (plugin->background_image_is_scaled) {
+                        buffer = ply_pixel_buffer_resize (ply_image_get_buffer (plugin->background_image), screen_width, screen_height);
+                } else {
+                        buffer = ply_pixel_buffer_tile (ply_image_get_buffer (plugin->background_image), screen_width, screen_height);
+                }
+
                 ply_pixel_buffer_fill_with_buffer (view->background_buffer, buffer, 0, 0);
                 ply_pixel_buffer_free (buffer);
         }
@@ -637,6 +682,17 @@ view_load (view_t *view)
                 ply_trace ("using %ldx%ld watermark centered at %ldx%ld for %ldx%ld screen",
                            view->watermark_area.width, view->watermark_area.height,
                            view->watermark_area.x, view->watermark_area.y,
+                           screen_width, screen_height);
+        }
+
+        if (plugin->secure_boot_warning_image != NULL) {
+                view->secure_boot_area.width = ply_image_get_width (plugin->secure_boot_warning_image);
+                view->secure_boot_area.height = ply_image_get_height (plugin->secure_boot_warning_image);
+                view->secure_boot_area.x = screen_width * plugin->secure_boot_horizontal_alignment - ply_image_get_width (plugin->secure_boot_warning_image) * plugin->secure_boot_horizontal_alignment;
+                view->secure_boot_area.y = screen_height * plugin->secure_boot_vertical_alignment - ply_image_get_height (plugin->secure_boot_warning_image) * plugin->secure_boot_vertical_alignment;
+                ply_trace ("using %ldx%ld secure_boot_warning_image centered at %ldx%ld for %ldx%ld screen",
+                           view->secure_boot_area.width, view->secure_boot_area.height,
+                           view->secure_boot_area.x, view->secure_boot_area.y,
                            screen_width, screen_height);
         }
 
@@ -673,7 +729,7 @@ view_load (view_t *view)
 
         if (plugin->mode_settings[plugin->mode].title) {
                 ply_label_set_text (view->title_label,
-                                    _(plugin->mode_settings[plugin->mode].title));
+                                    _ (plugin->mode_settings[plugin->mode].title));
                 title_height = ply_label_get_height (view->title_label);
         } else {
                 ply_label_hide (view->title_label);
@@ -681,7 +737,7 @@ view_load (view_t *view)
 
         if (plugin->mode_settings[plugin->mode].subtitle) {
                 ply_label_set_text (view->subtitle_label,
-                                    _(plugin->mode_settings[plugin->mode].subtitle));
+                                    _ (plugin->mode_settings[plugin->mode].subtitle));
                 subtitle_height = ply_label_get_height (view->subtitle_label);
         } else {
                 ply_label_hide (view->subtitle_label);
@@ -747,8 +803,17 @@ view_redraw (view_t *view)
 static void
 redraw_views (ply_boot_splash_plugin_t *plugin)
 {
+        plugin->needs_redraw = true;
+}
+
+static void
+process_needed_redraws (ply_boot_splash_plugin_t *plugin)
+{
         ply_list_node_t *node;
         view_t *view;
+
+        if (!plugin->needs_redraw)
+                return;
 
         node = ply_list_get_first_node (plugin->views);
         while (node != NULL) {
@@ -756,6 +821,8 @@ redraw_views (ply_boot_splash_plugin_t *plugin)
                 view_redraw (view);
                 node = ply_list_get_next_node (plugin->views, node);
         }
+
+        plugin->needs_redraw = false;
 }
 
 static void
@@ -893,6 +960,32 @@ view_start_progress_animation (view_t *view)
 }
 
 static void
+view_show_prompt_on_console_viewer (view_t     *view,
+                                    const char *prompt,
+                                    const char *entry_text,
+                                    int         number_of_bullets)
+{
+        ply_boot_splash_plugin_t *plugin = view->plugin;
+
+        if (plugin->state == PLY_BOOT_SPLASH_DISPLAY_NORMAL)
+                ply_console_viewer_print (view->console_viewer, "\n");
+
+        ply_console_viewer_clear_line (view->console_viewer);
+
+        ply_console_viewer_print (view->console_viewer, prompt);
+
+        ply_console_viewer_print (view->console_viewer, ": ");
+        if (entry_text)
+                ply_console_viewer_print (view->console_viewer, "%s", entry_text);
+
+        for (int i = 0; i < number_of_bullets; i++) {
+                ply_console_viewer_print (view->console_viewer, " ");
+        }
+
+        ply_console_viewer_print (view->console_viewer, "_");
+}
+
+static void
 view_show_prompt (view_t     *view,
                   const char *prompt,
                   const char *entry_text,
@@ -927,18 +1020,18 @@ view_show_prompt (view_t     *view,
                         view->dialog_area = view->box_area;
                 } else {
                         view->dialog_area.width = view->lock_area.width + entry_width;
-                        view->dialog_area.height = MAX(view->lock_area.height, entry_height);
+                        view->dialog_area.height = MAX (view->lock_area.height, entry_height);
                         view->dialog_area.x = (screen_width - view->dialog_area.width) * plugin->dialog_horizontal_alignment;
                         view->dialog_area.y = (screen_height - view->dialog_area.height) * plugin->dialog_vertical_alignment;
                 }
 
                 view->lock_area.x =
-                    view->dialog_area.x +
-                    (view->dialog_area.width -
-                     (view->lock_area.width + entry_width)) / 2.0;
+                        view->dialog_area.x +
+                        (view->dialog_area.width -
+                         (view->lock_area.width + entry_width)) / 2.0;
                 view->lock_area.y =
-                    view->dialog_area.y +
-                    (view->dialog_area.height - view->lock_area.height) / 2.0;
+                        view->dialog_area.y +
+                        (view->dialog_area.height - view->lock_area.height) / 2.0;
 
                 x = view->lock_area.x + view->lock_area.width;
                 y = view->dialog_area.y +
@@ -976,7 +1069,7 @@ view_show_prompt (view_t     *view,
         if (show_keyboard_indicators) {
                 keyboard_indicator_width =
                         ply_keymap_icon_get_width (view->keymap_icon);
-                keyboard_indicator_height = MAX(
+                keyboard_indicator_height = MAX (
                         ply_capslock_icon_get_height (view->capslock_icon),
                         ply_keymap_icon_get_height (view->keymap_icon));
 
@@ -995,9 +1088,20 @@ view_show_prompt (view_t     *view,
 static void
 view_hide_prompt (view_t *view)
 {
+        ply_boot_splash_plugin_t *plugin;
+
         assert (view != NULL);
 
+        plugin = view->plugin;
+
+        /* Obscure the password length in the scroll back */
+        if (plugin->state == PLY_BOOT_SPLASH_DISPLAY_PASSWORD_ENTRY)
+                ply_console_viewer_clear_line (view->console_viewer);
+
+        ply_console_viewer_print (view->console_viewer, "\n");
+
         ply_entry_hide (view->entry);
+
         ply_capslock_icon_hide (view->capslock_icon);
         ply_keymap_icon_hide (view->keymap_icon);
         ply_label_hide (view->label);
@@ -1051,7 +1155,6 @@ create_plugin (ply_key_file_t *key_file)
         char *progress_function;
         char *show_animation_fraction;
 
-        srand ((int) ply_get_timestamp ());
         plugin = calloc (1, sizeof(ply_boot_splash_plugin_t));
 
         image_dir = ply_key_file_get_value (key_file, "two-step", "ImageDir");
@@ -1074,13 +1177,29 @@ create_plugin (ply_key_file_t *key_file)
         plugin->header_image = ply_image_new (image_path);
         free (image_path);
 
-        asprintf (&image_path, "%s/background-tile.png", image_dir);
-        plugin->background_tile_image = ply_image_new (image_path);
+        asprintf (&image_path, "%s/background.png", image_dir);
+        if (!ply_file_exists (image_path)) {
+                free (image_path);
+                asprintf (&image_path, "%s/background-tile.png", image_dir);
+        }
+
+        plugin->background_image = ply_image_new (image_path);
+
         free (image_path);
 
         asprintf (&image_path, "%s/watermark.png", image_dir);
         plugin->watermark_image = ply_image_new (image_path);
         free (image_path);
+
+        plugin->background_image_is_scaled =
+                ply_key_file_get_bool (key_file, "two-step", "ScaleBackgroundImage");
+
+        if (!ply_kernel_command_line_has_argument ("secure_boot.warn_if_disabled=false") &&
+            !ply_is_secure_boot_enabled ()) {
+                asprintf (&image_path, "%s/emblem-warning.png", image_dir);
+                plugin->secure_boot_warning_image = ply_image_new (image_path);
+                free (image_path);
+        }
 
         plugin->animation_dir = image_dir;
 
@@ -1115,6 +1234,14 @@ create_plugin (ply_key_file_t *key_file)
                 ply_key_file_get_double (key_file, "two-step",
                                          "WatermarkVerticalAlignment", 0.5);
 
+        /* Secure boot warning icon alignment */
+        plugin->secure_boot_horizontal_alignment =
+                ply_key_file_get_double (key_file, "two-step",
+                                         "SecureBootHorizontalAlignment", 0.05);
+        plugin->secure_boot_vertical_alignment =
+                ply_key_file_get_double (key_file, "two-step",
+                                         "SecureBootVerticalAlignment", 0.95);
+
         /* Password (or other) dialog alignment */
         plugin->dialog_horizontal_alignment =
                 ply_key_file_get_double (key_file, "two-step",
@@ -1142,6 +1269,21 @@ create_plugin (ply_key_file_t *key_file)
                         plugin->transition = PLY_PROGRESS_ANIMATION_TRANSITION_MERGE_FADE;
         }
         free (transition);
+
+        plugin->plugin_console_messages_updating = false;
+        plugin->should_show_console_messages = false;
+
+        /* Likely only able to set the font if the font is in the initrd */
+        plugin->monospace_font = ply_key_file_get_value (key_file, "two-step", "MonospaceFont");
+
+        if (plugin->monospace_font == NULL)
+                plugin->monospace_font = strdup ("monospace 10");
+
+
+        plugin->console_text_color =
+                ply_key_file_get_long (key_file, "two-step",
+                                       "ConsoleLogTextColor",
+                                       PLY_CONSOLE_VIEWER_LOG_TEXT_COLOR);
 
         plugin->transition_duration =
                 ply_key_file_get_double (key_file, "two-step",
@@ -1179,6 +1321,7 @@ create_plugin (ply_key_file_t *key_file)
         load_mode_settings (plugin, key_file, "updates", PLY_BOOT_SPLASH_MODE_UPDATES);
         load_mode_settings (plugin, key_file, "system-upgrade", PLY_BOOT_SPLASH_MODE_SYSTEM_UPGRADE);
         load_mode_settings (plugin, key_file, "firmware-upgrade", PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE);
+        load_mode_settings (plugin, key_file, "system-reset", PLY_BOOT_SPLASH_MODE_SYSTEM_RESET);
 
         if (plugin->use_firmware_background) {
                 plugin->background_bgrt_image = ply_image_new ("/sys/firmware/acpi/bgrt/image");
@@ -1219,6 +1362,8 @@ create_plugin (ply_key_file_t *key_file)
         free (show_animation_fraction);
 
         plugin->views = ply_list_new ();
+
+        plugin->needs_redraw = true;
 
         return plugin;
 }
@@ -1265,6 +1410,7 @@ destroy_plugin (ply_boot_splash_plugin_t *plugin)
                 ply_event_loop_stop_watching_for_exit (plugin->loop, (ply_event_loop_exit_handler_t)
                                                        detach_from_event_loop,
                                                        plugin);
+
                 detach_from_event_loop (plugin);
         }
 
@@ -1279,8 +1425,8 @@ destroy_plugin (ply_boot_splash_plugin_t *plugin)
         if (plugin->header_image != NULL)
                 ply_image_free (plugin->header_image);
 
-        if (plugin->background_tile_image != NULL)
-                ply_image_free (plugin->background_tile_image);
+        if (plugin->background_image != NULL)
+                ply_image_free (plugin->background_image);
 
         if (plugin->background_bgrt_image != NULL)
                 ply_image_free (plugin->background_bgrt_image);
@@ -1298,6 +1444,7 @@ destroy_plugin (ply_boot_splash_plugin_t *plugin)
 
         free (plugin->font);
         free (plugin->title_font);
+        free (plugin->monospace_font);
         free (plugin->animation_dir);
         free_views (plugin);
         free (plugin);
@@ -1465,6 +1612,10 @@ draw_background (view_t             *view,
             using_fw_background && plugin->dialog_clears_firmware_background)
                 use_black_background = true;
 
+        if (plugin->should_show_console_messages) {
+                use_black_background = true;
+        }
+
         if (use_black_background)
                 ply_pixel_buffer_fill_with_hex_color (pixel_buffer, &area, 0);
         else if (view->background_buffer != NULL)
@@ -1477,11 +1628,21 @@ draw_background (view_t             *view,
                 ply_pixel_buffer_fill_with_hex_color (pixel_buffer, &area,
                                                       plugin->background_start_color);
 
+        if (plugin->should_show_console_messages)
+                return;
+
         if (plugin->watermark_image != NULL) {
                 uint32_t *data;
 
                 data = ply_image_get_data (plugin->watermark_image);
                 ply_pixel_buffer_fill_with_argb32_data (pixel_buffer, &view->watermark_area, data);
+        }
+
+        if (plugin->secure_boot_warning_image != NULL) {
+                uint32_t *data;
+
+                data = ply_image_get_data (plugin->secure_boot_warning_image);
+                ply_pixel_buffer_fill_with_argb32_data (pixel_buffer, &view->secure_boot_area, data);
         }
 }
 
@@ -1503,8 +1664,9 @@ on_draw (view_t             *view,
 
         ply_pixel_buffer_get_size (pixel_buffer, &screen_area);
 
-        if (plugin->state == PLY_BOOT_SPLASH_DISPLAY_QUESTION_ENTRY ||
-            plugin->state == PLY_BOOT_SPLASH_DISPLAY_PASSWORD_ENTRY) {
+        if ((plugin->state == PLY_BOOT_SPLASH_DISPLAY_QUESTION_ENTRY ||
+             plugin->state == PLY_BOOT_SPLASH_DISPLAY_PASSWORD_ENTRY) &&
+            !plugin->should_show_console_messages) {
                 uint32_t *box_data, *lock_data;
 
                 if (plugin->box_image) {
@@ -1531,7 +1693,7 @@ on_draw (view_t             *view,
                 ply_pixel_buffer_fill_with_argb32_data (pixel_buffer,
                                                         &view->lock_area,
                                                         lock_data);
-        } else {
+        } else if (!plugin->should_show_console_messages) {
                 if (plugin->mode_settings[plugin->mode].use_progress_bar)
                         ply_progress_bar_draw_area (view->progress_bar, pixel_buffer,
                                                     x, y, width, height);
@@ -1589,9 +1751,13 @@ on_draw (view_t             *view,
                                      pixel_buffer,
                                      x, y, width, height);
         }
-        ply_label_draw_area (view->message_label,
-                             pixel_buffer,
-                             x, y, width, height);
+        if (!plugin->should_show_console_messages)
+                ply_label_draw_area (view->message_label,
+                                     pixel_buffer,
+                                     x, y, width, height);
+
+        if (!plugin->plugin_console_messages_updating && view->console_viewer)
+                ply_console_viewer_draw_area (view->console_viewer, pixel_buffer, x, y, width, height);
 }
 
 static void
@@ -1651,10 +1817,29 @@ show_splash_screen (ply_boot_splash_plugin_t *plugin,
                     ply_buffer_t             *boot_buffer,
                     ply_boot_splash_mode_t    mode)
 {
+        ply_list_node_t *node;
+
         assert (plugin != NULL);
 
         plugin->loop = loop;
         plugin->mode = mode;
+
+        if (boot_buffer && ply_console_viewer_preferred ()) {
+                plugin->boot_buffer = boot_buffer;
+
+                node = ply_list_get_first_node (plugin->views);
+                while (node != NULL) {
+                        view_t *view;
+                        ply_list_node_t *next_node;
+
+                        view = ply_list_node_get_data (node);
+                        next_node = ply_list_get_next_node (plugin->views, node);
+
+                        ply_console_viewer_convert_boot_buffer (view->console_viewer, plugin->boot_buffer);
+
+                        node = next_node;
+                }
+        }
 
         ply_trace ("loading lock image");
         if (!ply_image_load (plugin->lock_image))
@@ -1687,11 +1872,11 @@ show_splash_screen (ply_boot_splash_plugin_t *plugin,
                 }
         }
 
-        if (plugin->background_tile_image != NULL) {
-                ply_trace ("loading background tile image");
-                if (!ply_image_load (plugin->background_tile_image)) {
-                        ply_image_free (plugin->background_tile_image);
-                        plugin->background_tile_image = NULL;
+        if (plugin->background_image != NULL) {
+                ply_trace ("loading background image");
+                if (!ply_image_load (plugin->background_image)) {
+                        ply_image_free (plugin->background_image);
+                        plugin->background_image = NULL;
                 }
         }
 
@@ -1719,6 +1904,14 @@ show_splash_screen (ply_boot_splash_plugin_t *plugin,
                 if (!ply_image_load (plugin->watermark_image)) {
                         ply_image_free (plugin->watermark_image);
                         plugin->watermark_image = NULL;
+                }
+        }
+
+        if (plugin->secure_boot_warning_image != NULL) {
+                ply_trace ("loading secure boot warning image");
+                if (!ply_image_load (plugin->secure_boot_warning_image)) {
+                        ply_image_free (plugin->secure_boot_warning_image);
+                        plugin->secure_boot_warning_image = NULL;
                 }
         }
 
@@ -1775,7 +1968,7 @@ update_progress_animation (ply_boot_splash_plugin_t *plugin,
                 ply_progress_bar_set_fraction_done (view->progress_bar, fraction_done);
                 if (!ply_progress_bar_is_hidden (view->progress_bar) &&
                     plugin->mode_settings[plugin->mode].progress_bar_show_percent_complete) {
-                        snprintf (buf, sizeof(buf), _("%d%% complete"), (int)(fraction_done * 100));
+                        snprintf (buf, sizeof(buf), _ ("%d%% complete"), (int) (fraction_done * 100));
                         view_show_message (view, buf);
                 }
 
@@ -1790,7 +1983,8 @@ on_boot_progress (ply_boot_splash_plugin_t *plugin,
 {
         if (plugin->mode == PLY_BOOT_SPLASH_MODE_UPDATES ||
             plugin->mode == PLY_BOOT_SPLASH_MODE_SYSTEM_UPGRADE ||
-            plugin->mode == PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE)
+            plugin->mode == PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE ||
+            plugin->mode == PLY_BOOT_SPLASH_MODE_SYSTEM_RESET)
                 return;
 
         if (plugin->state != PLY_BOOT_SPLASH_DISPLAY_NORMAL)
@@ -1868,6 +2062,7 @@ show_prompt (ply_boot_splash_plugin_t *plugin,
         node = ply_list_get_first_node (plugin->views);
         while (node != NULL) {
                 view = ply_list_node_get_data (node);
+                view_show_prompt_on_console_viewer (view, prompt, entry_text, number_of_bullets);
                 view_show_prompt (view, prompt, entry_text, number_of_bullets);
                 node = ply_list_get_next_node (plugin->views, node);
         }
@@ -1923,7 +2118,7 @@ hide_prompt (ply_boot_splash_plugin_t *plugin)
 
 static void
 view_show_message (view_t     *view,
-                   const char  *message)
+                   const char *message)
 {
         ply_boot_splash_plugin_t *plugin = view->plugin;
         int x, y, width, height;
@@ -1945,6 +2140,8 @@ view_show_message (view_t     *view,
 
         ply_label_show (view->message_label, view->display, x, y);
         ply_pixel_display_draw_area (view->display, x, y, width, height);
+
+        ply_console_viewer_print (view->console_viewer, "\n%s\n", message);
 }
 
 static void
@@ -1973,7 +2170,8 @@ system_update (ply_boot_splash_plugin_t *plugin,
 {
         if (plugin->mode != PLY_BOOT_SPLASH_MODE_UPDATES &&
             plugin->mode != PLY_BOOT_SPLASH_MODE_SYSTEM_UPGRADE &&
-            plugin->mode != PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE)
+            plugin->mode != PLY_BOOT_SPLASH_MODE_FIRMWARE_UPGRADE &&
+            plugin->mode != PLY_BOOT_SPLASH_MODE_SYSTEM_RESET)
                 return;
 
         update_progress_animation (plugin, progress / 100.0);
@@ -1987,8 +2185,16 @@ display_normal (ply_boot_splash_plugin_t *plugin)
                 hide_prompt (plugin);
 
         plugin->state = PLY_BOOT_SPLASH_DISPLAY_NORMAL;
-        start_progress_animation (plugin);
+
+        if (!plugin->should_show_console_messages)
+                start_progress_animation (plugin);
+
         redraw_views (plugin);
+
+        if (plugin->should_show_console_messages)
+                display_console_messages (plugin);
+
+        process_needed_redraws (plugin);
         unpause_views (plugin);
 }
 
@@ -2004,6 +2210,11 @@ display_password (ply_boot_splash_plugin_t *plugin,
         plugin->state = PLY_BOOT_SPLASH_DISPLAY_PASSWORD_ENTRY;
         show_prompt (plugin, prompt, NULL, bullets);
         redraw_views (plugin);
+
+        if (plugin->should_show_console_messages)
+                display_console_messages (plugin);
+
+        process_needed_redraws (plugin);
         unpause_views (plugin);
 }
 
@@ -2019,6 +2230,11 @@ display_question (ply_boot_splash_plugin_t *plugin,
         plugin->state = PLY_BOOT_SPLASH_DISPLAY_QUESTION_ENTRY;
         show_prompt (plugin, prompt, entry_text, -1);
         redraw_views (plugin);
+
+        if (plugin->should_show_console_messages)
+                display_console_messages (plugin);
+
+        process_needed_redraws (plugin);
         unpause_views (plugin);
 }
 
@@ -2027,6 +2243,109 @@ display_message (ply_boot_splash_plugin_t *plugin,
                  const char               *message)
 {
         show_message (plugin, message);
+}
+
+static bool
+validate_input (ply_boot_splash_plugin_t *plugin,
+                const char               *entry_text,
+                const char               *add_text)
+{
+        if (!ply_console_viewer_preferred ())
+                return true;
+
+        if (strcmp (add_text, "\e") == 0) {
+                toggle_console_messages (plugin);
+                return false;
+        }
+
+        return true;
+}
+
+static void
+toggle_console_messages (ply_boot_splash_plugin_t *plugin)
+{
+        if (plugin->should_show_console_messages) {
+                plugin->should_show_console_messages = false;
+                hide_console_messages (plugin);
+        } else {
+                unhide_console_messages (plugin);
+        }
+}
+
+static void
+display_console_messages (ply_boot_splash_plugin_t *plugin)
+{
+        ply_list_node_t *node;
+        view_t *view;
+
+        pause_views (plugin);
+
+        if (plugin->should_show_console_messages)
+                stop_animation (plugin);
+
+        plugin->plugin_console_messages_updating = true;
+        node = ply_list_get_first_node (plugin->views);
+        while (node != NULL) {
+                view = ply_list_node_get_data (node);
+                ply_console_viewer_show (view->console_viewer, view->display);
+                node = ply_list_get_next_node (plugin->views, node);
+        }
+        plugin->plugin_console_messages_updating = false;
+
+        redraw_views (plugin);
+        process_needed_redraws (plugin);
+        unpause_views (plugin);
+}
+
+static void
+unhide_console_messages (ply_boot_splash_plugin_t *plugin)
+{
+        plugin->should_show_console_messages = true;
+        display_console_messages (plugin);
+}
+
+static void
+hide_console_messages (ply_boot_splash_plugin_t *plugin)
+{
+        ply_list_node_t *node;
+        view_t *view;
+
+        plugin->should_show_console_messages = false;
+
+        pause_views (plugin);
+        plugin->plugin_console_messages_updating = true;
+        node = ply_list_get_first_node (plugin->views);
+        while (node != NULL) {
+                view = ply_list_node_get_data (node);
+                ply_console_viewer_hide (view->console_viewer);
+                node = ply_list_get_next_node (plugin->views, node);
+        }
+        plugin->plugin_console_messages_updating = false;
+        if (plugin->state == PLY_BOOT_SPLASH_DISPLAY_NORMAL)
+                start_progress_animation (plugin);
+
+        redraw_views (plugin);
+        process_needed_redraws (plugin);
+        unpause_views (plugin);
+}
+
+static void
+on_boot_output (ply_boot_splash_plugin_t *plugin,
+                const char               *output,
+                size_t                    size)
+{
+        ply_list_node_t *node;
+        view_t *view;
+
+        if (!ply_console_viewer_preferred ())
+                return;
+
+        node = ply_list_get_first_node (plugin->views);
+        while (node != NULL) {
+                view = ply_list_node_get_data (node);
+                ply_console_viewer_write (view->console_viewer, output, size);
+                node = ply_list_get_next_node (plugin->views, node);
+        }
 }
 
 ply_boot_splash_plugin_interface_t *
@@ -2049,9 +2368,10 @@ ply_boot_splash_plugin_get_interface (void)
                 .display_question     = display_question,
                 .display_message      = display_message,
                 .system_update        = system_update,
+                .on_boot_output       = on_boot_output,
+                .validate_input       = validate_input,
         };
 
         return &plugin_interface;
 }
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

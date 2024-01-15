@@ -46,7 +46,7 @@ ply_pixel_display_t *ply_pixel_display_new (ply_renderer_t      *renderer,
 
 void ply_pixel_display_free (ply_pixel_display_t *display);
 
-ply_renderer_t      *ply_pixel_display_get_renderer (ply_pixel_display_t *display);
+ply_renderer_t *ply_pixel_display_get_renderer (ply_pixel_display_t *display);
 ply_renderer_head_t *ply_pixel_display_get_renderer_head (ply_pixel_display_t *display);
 
 unsigned long ply_pixel_display_get_width (ply_pixel_display_t *display);
@@ -70,4 +70,3 @@ void ply_pixel_display_unpause_updates (ply_pixel_display_t *display);
 
 #endif /* PLY_PIXEL_DISPLAY_H */
 
-/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */

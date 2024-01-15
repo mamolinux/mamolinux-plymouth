@@ -17,30 +17,21 @@ else
 	DEB_LDFLAGS_MAINT_APPEND += -Wl,-O1
 endif
 
-export systemdsystemunitdir=$(shell pkg-config --variable=systemdsystemunitdir systemd | sed s,^/,,)
+export systemdsystemunitdir=/usr/$(shell pkg-config --variable=systemdsystemunitdir systemd | sed s,^/,,)
 
 %:
 	dh ${@}
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
-		SYSTEMD_ASK_PASSWORD_AGENT=/bin/systemd-tty-ask-password-agent \
-		--disable-silent-rules \
 		--prefix=/usr \
 		--localstatedir=/var \
-		--with-runtimedir=/run \
-		--enable-pango \
-		--enable-freetype \
-		--enable-systemd-integration \
-		--enable-static \
-		--enable-tracing \
-		--with-background-color=0x2c001e \
-		--with-background-start-color-stop=0x2c001e \
-		--with-background-end-color-stop=0x2c001e \
-		--with-logo=/usr/share/plymouth/ubuntu-logo.png \
-		--with-release-file=/etc/os-release \
-		--without-system-root-install \
-		--without-rhgb-compat-link
+		-Ddefault_library=both \
+		-Dbackground-color=0x2c001e \
+		-Dbackground-start-color-stop=0x2c001e \
+		-Dbackground-end-color-stop=0x2c001e \
+		-Dlogo=/usr/share/plymouth/ubuntu-logo.png \
+		-Drelease-file=/etc/os-release
 
 override_dh_auto_install:
 	dh_auto_install
@@ -72,6 +63,7 @@ override_dh_install:
 	install -D -m 0644 debian/local/plymouth.lsb debian/plymouth/usr/lib/lsb/init-functions.d/99-plymouth
 	install -D -m 0644 debian/local/ubuntu-logo.png debian/plymouth/usr/share/plymouth/ubuntu-logo.png
 	install -D -m 0644 debian/local/ubuntu-logo.png debian/plymouth/usr/share/plymouth/themes/spinner/watermark.png
+	install -D -m 0644 debian/local/ubuntu-logo.png debian/plymouth-themes/usr/share/plymouth/themes/spinfinity/header-image.png
 
 	# Adding apport file (from Ubuntu)
 	mkdir -p debian/plymouth/usr/share/apport/package-hooks
