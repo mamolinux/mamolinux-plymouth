@@ -849,7 +849,7 @@ parse_vconsole_conf (ply_device_manager_t *manager)
 
         ply_trace ("KEYMAP: %s, XKBLAYOUT: %s, XKBMODEL %s, XKBVARIANT: %s, XKBOPTIONS: %s\n", keymap, xkb_layout, xkb_model, xkb_variant, xkb_options);
 
-        if (xkb_layout != NULL) {
+        if (xkb_layout != NULL && manager->xkb_context != NULL) {
                 struct xkb_rule_names xkb_keymap = {
                         .layout  = xkb_layout,
                         .model   = xkb_model,
@@ -879,6 +879,10 @@ ply_device_manager_new (const char                *default_tty,
         manager = calloc (1, sizeof(ply_device_manager_t));
         manager->loop = NULL;
         manager->xkb_context = xkb_context_new (XKB_CONTEXT_NO_FLAGS);
+
+        if (manager->xkb_context == NULL)
+                ply_trace ("Could not allocate xkb context: %m");
+
         parse_vconsole_conf (manager);
 
         manager->terminals = ply_hashtable_new (ply_hashtable_string_hash, ply_hashtable_string_compare);
