@@ -13,3 +13,4 @@ plymouth-switch-root-initramfs-Preload-text-renderin.patch
 ubuntu-text.patch
 spinfinity-no-meson-symlink.patch
 0015-ply-device-manager-Handle-XKB-failing-to-load-more-g.patch
+renderers-Do-not-assume-all-keyboards-have-LEDs.patch

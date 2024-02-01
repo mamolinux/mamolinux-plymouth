@@ -1,3 +1,11 @@
+plymouth (23.360.11-0ubuntu3) noble; urgency=medium
+
+  * Add renderers-Do-not-assume-all-keyboards-have-LEDs.patch to avoid
+    plymouthd from segfaulting on some systems, resulting in missing
+    splash screens. (LP: #2050743)
+
+ -- Daniel van Vugt <daniel.van.vugt@canonical.com>  Thu, 01 Feb 2024 11:18:08 +0800
+
 plymouth (23.360.11-0ubuntu2) noble; urgency=medium
 
   * Removed systemd workaround and fix the build with the newer revision
