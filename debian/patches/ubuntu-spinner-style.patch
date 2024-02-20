@@ -7,24 +7,15 @@ Subject: ubuntu-spinner-style
 # Description: Ubuntu style for the spinner/bgrt theme
 # use the Ubuntu font, display the password entry under the bios logo
 # Upstream: not-needed
-
-# Watermark placement moved from "almost matches login screen but
-# jumps ever so slightly on any real hardware with high dpi and/or
-# scaling" to "intetionally use ubuntu.com 2024 navigation bar
-# 'bookmark' like logo placement". This also means gnome-login screen
-# can switch to a logo fade-in like it is done upstream. And fixes my
-# anxiety seeing the logo jitter just a little bit. Plus this looks
-# really fresh. Also see https://github.com/ubuntu/yaru/issues/4019
-
 ---
  themes/bgrt/bgrt.plymouth.desktop | 8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
-Index: plymouth-24.004.60/themes/bgrt/bgrt.plymouth.desktop
-===================================================================
---- plymouth-24.004.60.orig/themes/bgrt/bgrt.plymouth.desktop
-+++ plymouth-24.004.60/themes/bgrt/bgrt.plymouth.desktop
-@@ -4,24 +4,24 @@ Description=Jimmac's spinner theme using
+diff --git a/themes/bgrt/bgrt.plymouth.desktop b/themes/bgrt/bgrt.plymouth.desktop
+index bfa79e7..51d8a6c 100644
+--- a/themes/bgrt/bgrt.plymouth.desktop
++++ b/themes/bgrt/bgrt.plymouth.desktop
+@@ -4,11 +4,11 @@ Description=Jimmac's spinner theme using the ACPI BGRT graphics as background
  ModuleName=two-step
  
  [two-step]
@@ -39,14 +30,7 @@ Index: plymouth-24.004.60/themes/bgrt/bgrt.plymouth.desktop
  TitleHorizontalAlignment=.5
  TitleVerticalAlignment=.382
  HorizontalAlignment=.5
- VerticalAlignment=.7
--WatermarkHorizontalAlignment=.5
--WatermarkVerticalAlignment=.96
-+WatermarkHorizontalAlignment=.09
-+WatermarkVerticalAlignment=0
- Transition=none
- TransitionDuration=0.0
- BackgroundStartColor=0x000000
+@@ -21,7 +21,7 @@ BackgroundStartColor=0x000000
  BackgroundEndColor=0x000000
  ProgressBarBackgroundColor=0x606060
  ProgressBarForegroundColor=0xffffff

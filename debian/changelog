@@ -1,3 +1,11 @@
+plymouth (24.004.60-1ubuntu3) noble; urgency=medium
+
+  * Revert previous upload - somehow flickerfull boot is prefered over the
+    new web-style tag which matches ubuntu.com new nav-bar and the new
+    brand guidelines.
+
+ -- Dimitri John Ledkov <dimitri.ledkov@canonical.com>  Tue, 20 Feb 2024 14:13:59 +0000
+
 plymouth (24.004.60-1ubuntu2) noble; urgency=medium
 
   * Move ubuntu theme watermark logo to a bookmark location.
