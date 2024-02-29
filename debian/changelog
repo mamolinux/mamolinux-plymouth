@@ -1,3 +1,9 @@
+plymouth (24.004.60-1ubuntu4) noble; urgency=medium
+
+  * No-change rebuild against libpng16-16t64
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Thu, 29 Feb 2024 07:50:42 +0000
+
 plymouth (24.004.60-1ubuntu3) noble; urgency=medium
 
   * Revert previous upload - somehow flickerfull boot is prefered over the
