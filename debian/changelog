@@ -1,3 +1,9 @@
+plymouth (24.004.60-1ubuntu5) noble; urgency=medium
+
+  * No-change rebuild against libgtk-3-0t64
+
+ -- Steve Langasek <steve.langasek@ubuntu.com>  Tue, 19 Mar 2024 06:14:11 +0000
+
 plymouth (24.004.60-1ubuntu4) noble; urgency=medium
 
   * No-change rebuild against libpng16-16t64
