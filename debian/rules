@@ -69,6 +69,7 @@ override_dh_installinitramfs:
 	# Adding initramfs-tools integration
 	install -D -m 0755 debian/local/plymouth.hook debian/plymouth/usr/share/initramfs-tools/hooks/plymouth
 	sed -i -e 's|@DEB_HOST_MULTIARCH@|$(DEB_HOST_MULTIARCH)|g' debian/plymouth/usr/share/initramfs-tools/hooks/plymouth
+	install -D -m 0644 debian/local/plymouth.conf debian/plymouth/usr/share/initramfs-tools/conf-hooks.d/plymouth
 	install -D -m 0755 debian/local/plymouth.init-premount debian/plymouth/usr/share/initramfs-tools/scripts/init-premount/plymouth
 	install -D -m 0755 debian/local/plymouth.init-bottom debian/plymouth/usr/share/initramfs-tools/scripts/init-bottom/plymouth
 	install -D -m 0755 debian/local/plymouth.panic debian/plymouth/usr/share/initramfs-tools/scripts/panic/plymouth
