@@ -1,3 +1,16 @@
+plymouth (24.004.60-1ubuntu6) noble; urgency=medium
+
+  * Cherry-pick upstream fixes for consistent default scale selection
+    that matches what Mutter chooses on the login screen (LP: #2054769)
+  * plymouth.hook: Stop automatically re-installing DRM kernel modules in
+    initrd. initramfs-tools already does this for us in hooks/framebuffer and
+    should be the authority for which drivers to include.
+  * Install a /usr/share/initramfs-tools/conf-hooks.d/plymouth with
+    FRAMEBUFFER=y to make it clear to initramfs-tools that we always want
+    framebuffer support when Plymouth is installed. (LP: #1970069)
+
+ -- Daniel van Vugt <daniel.van.vugt@canonical.com>  Thu, 21 Mar 2024 14:46:56 +0100
+
 plymouth (24.004.60-1ubuntu5) noble; urgency=medium
 
   * No-change rebuild against libgtk-3-0t64
@@ -3594,4 +3607,3 @@ plymouth (0.6.0-1) experimental; urgency=low
   * Initial release (Closes: #506899).
 
  -- Daniel Baumann <mail@daniel-baumann.ch>  Sat, 07 Feb 2009 19:02:00 +0100
-
