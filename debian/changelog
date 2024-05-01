@@ -1,3 +1,13 @@
+plymouth (24.004.60-1ubuntu7mamolinux1) noble; urgency=medium
+
+  * Add mamolinux plymouth themes
+    - Add mamolinux text theme
+    - Add build instructions in README
+    - Replace ubuntu logo with mamolinux
+      logo in spinner
+
+ -- Himadri Sekhar Basu <hsb10@iitbbs.ac.in>  Wed, 01 May 2024 23:23:28 +0530
+
 plymouth (24.004.60-1ubuntu7) noble; urgency=medium
 
   * No-change rebuild for CVE-2024-3094
