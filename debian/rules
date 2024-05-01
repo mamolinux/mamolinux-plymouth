@@ -27,7 +27,7 @@ override_dh_auto_configure:
 		-Dbackground-color=0x2c001e \
 		-Dbackground-start-color-stop=0x2c001e \
 		-Dbackground-end-color-stop=0x2c001e \
-		-Dlogo=/usr/share/plymouth/ubuntu-logo.png \
+		-Dlogo=/usr/share/plymouth/mamolinux-logo.png \
 		-Drelease-file=/etc/os-release
 
 override_dh_install:
@@ -59,9 +59,9 @@ override_dh_auto_install:
 
 	# Workaround a but in meson, it cannot create a symlink if the target doesn't exist
 	# https://github.com/mesonbuild/meson/issues/12253
-	install -D -m 0644 debian/local/ubuntu-logo.png debian/plymouth/usr/share/plymouth/ubuntu-logo.png
-	install -D -m 0644 debian/local/ubuntu-logo.png debian/plymouth/usr/share/plymouth/themes/spinner/watermark.png
-	install -D -m 0644 debian/local/ubuntu-logo.png debian/plymouth-themes/usr/share/plymouth/themes/spinfinity/header-image.png
+	install -D -m 0644 debian/local/mamolinux-logo.png debian/plymouth/usr/share/plymouth/mamolinux-logo.png
+	install -D -m 0644 debian/local/mamolinux-logo.png debian/plymouth/usr/share/plymouth/themes/spinner/watermark.png
+	install -D -m 0644 debian/local/mamolinux-logo.png debian/plymouth-themes/usr/share/plymouth/themes/spinfinity/header-image.png
 	dh_auto_install
 
 # Disable dh_installinitramfs as we are managing this ourself
