@@ -1,3 +1,11 @@
+plymouth (24.004.60-1ubuntu8) oracular; urgency=medium
+
+  * debian/source_plymouth.apport:
+    - don't try to collect /var/log/boot.log, the normal users don't have
+      read access and that log isn't really used nowadays (lp: #2041737)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 04 Jul 2024 14:41:03 +0200
+
 plymouth (24.004.60-1ubuntu7) noble; urgency=medium
 
   * No-change rebuild for CVE-2024-3094

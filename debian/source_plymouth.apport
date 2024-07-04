@@ -27,7 +27,6 @@ def add_info(report):
     attach_hardware(report)
     attach_file(report, '/proc/fb', 'ProcFB')
     attach_file(report, '/proc/cmdline', 'ProcCmdLine')
-    attach_file(report, '/var/log/boot.log', 'BootLog')
     debug_log = '/var/log/plymouth-debug.log'
     if os.path.exists(debug_log):
         attach_root_command_outputs(report,
