@@ -14,8 +14,8 @@ Build-Depends: debhelper-compat (= 13),
                libpng-dev,
                libudev-dev [linux-any],
                meson,
-               pkg-config,
-               systemd,
+               pkgconf,
+               systemd-dev,
                xsltproc
 Standards-Version: 4.6.1
 Rules-Requires-Root: no
