@@ -3,3 +3,4 @@
 0008-show-delay.patch
 drop-systemd-vconsole-setup-service.patch
 fallback-etc-default-keyboard.patch
+ply-boot-splash-Set-unbuffered-input-when-creating-a.patch

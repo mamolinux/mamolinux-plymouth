@@ -1,3 +1,14 @@
+plymouth (24.004.60-2) unstable; urgency=medium
+
+  * Team upload
+  * Replace systemd Build-Depends with systemd-dev for systemd.pc
+    (Closes: #1060564)
+  * Replace Build-Depends on obsolete pkg-config with pkgconf
+  * ply-boot-splash: Set unbuffered input when creating a text display.
+    Patch cherry-picked from upstream Git. (Closes: #1061592)
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 17 Jul 2024 18:39:45 +0200
+
 plymouth (24.004.60-1) unstable; urgency=medium
 
   * New upstream release (Closes: #1059364)
