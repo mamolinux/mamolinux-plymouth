@@ -1,3 +1,11 @@
+plymouth (24.004.60-1ubuntu10) oracular; urgency=medium
+
+  * debian/local/ubuntu-logo.png:
+    - new revision from design similar to the base-files one
+      (lp: #2079779)
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Fri, 06 Sep 2024 16:43:29 +0200
+
 plymouth (24.004.60-1ubuntu9) oracular; urgency=medium
 
   * debian/local/ubuntu-logo.png: update the ubuntu log for oracular
