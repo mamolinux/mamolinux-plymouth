@@ -1,3 +1,11 @@
+plymouth (24.004.60-1ubuntu11) plucky; urgency=medium
+
+  * debian/local/ubuntu-logo.png:
+    - Switch back to the normal Ubuntu logo instead of the special 20 years
+      anniversary variant we used for Oracular
+
+ -- Sebastien Bacher <seb128@ubuntu.com>  Thu, 07 Nov 2024 16:01:08 +0100
+
 plymouth (24.004.60-1ubuntu10) oracular; urgency=medium
 
   * debian/local/ubuntu-logo.png:
