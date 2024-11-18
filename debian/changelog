@@ -1,3 +1,13 @@
+plymouth (24.004.60-1ubuntu10mamolinux1) oracular; urgency=medium
+
+  * Add mamolinux plymouth themes
+    - Add mamolinux text theme
+    - Add build instructions in README
+    - Replace ubuntu logo with mamolinux
+      logo in spinner
+
+ -- Himadri Sekhar Basu <hsb10@iitbbs.ac.in>  Mon, 18 Nov 2024 21:40:06 +0530
+
 plymouth (24.004.60-1ubuntu10) oracular; urgency=medium
 
   * debian/local/ubuntu-logo.png:
