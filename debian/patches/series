@@ -16,3 +16,4 @@ spinfinity-no-meson-symlink.patch
 renderers-Do-not-assume-all-keyboards-have-LEDs.patch
 0016-ply-utils-Match-mutter-s-default-device-scale-choice.patch
 0017-ply-utils-Only-choose-scale-2-when-the-perfect-scale.patch
+remove-plymouth-set-default-theme-populate-initrd.patch

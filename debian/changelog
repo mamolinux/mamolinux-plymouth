@@ -1,3 +1,9 @@
+plymouth (24.004.60-2ubuntu2) plucky; urgency=medium
+
+  * Do not use plymouth-set-default-theme in plymouth-populate-initrd.
+
+ -- Simon Quigley <tsimonq2@ubuntu.com>  Thu, 21 Nov 2024 01:42:57 -0600
+
 plymouth (24.004.60-2ubuntu1) plucky; urgency=medium
 
   * Merge from Debian Unstable. Remaining changes:
