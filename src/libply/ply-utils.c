@@ -1057,7 +1057,7 @@ get_device_scale (uint32_t width,
         target_dpi = (diag_inches >= 20.f) ? 110 : 135;
 
         perfect_scale = physical_dpi / target_dpi;
-        device_scale = (perfect_scale > 1.5f) ? 2 : 1;
+        device_scale = (perfect_scale >= 1.75f) ? 2 : 1;
 
         return device_scale;
 }
