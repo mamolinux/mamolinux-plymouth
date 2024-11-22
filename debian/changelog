@@ -1,3 +1,10 @@
+plymouth (24.004.60-2ubuntu3) plucky; urgency=medium
+
+  * Ensure the initrd includes all necessary files for a graphical theme
+    (LP: #1596220).
+
+ -- Simon Quigley <tsimonq2@ubuntu.com>  Thu, 21 Nov 2024 22:13:38 -0600
+
 plymouth (24.004.60-2ubuntu2) plucky; urgency=medium
 
   * Do not use plymouth-set-default-theme in plymouth-populate-initrd.
