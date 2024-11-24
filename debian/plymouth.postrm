@@ -11,9 +11,7 @@ case "${1}" in
 		if [ -L '/sbin/plymouthd' ]; then
 			rm /sbin/plymouthd
 		fi
-		if which update-initramfs >/dev/null 2>&1 && [ -e /etc/initramfs-tools/initramfs.conf ]; then
-			update-initramfs -u -k all
-		fi
+		dpkg-trigger update-initramfs
 		;;
 	purge)
 		rm -f /var/lib/plymouth/boot-duration

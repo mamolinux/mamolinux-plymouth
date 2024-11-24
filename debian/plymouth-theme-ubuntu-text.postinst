@@ -34,10 +34,7 @@ case "$1" in
 		--install /usr/share/plymouth/themes/text.plymouth text.plymouth \
 		/usr/share/plymouth/themes/ubuntu-text/ubuntu-text.plymouth 50
 
-	if which update-initramfs >/dev/null 2>&1
-	then
-	    update-initramfs -u
-	fi
+	dpkg-trigger update-initramfs
 	;;
 
     abort-upgrade|abort-deconfigure|abort-remove)

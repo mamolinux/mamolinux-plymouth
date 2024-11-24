@@ -24,10 +24,7 @@ case "$1" in
 		--slave /usr/share/plymouth/themes/default.grub default.plymouth.grub \
 		/usr/share/plymouth/themes/ubuntu-logo/ubuntu-logo.grub
 
-	if which update-initramfs >/dev/null 2>&1
-	then
-	    update-initramfs -u
-	fi
+	dpkg-trigger update-initramfs
 	;;
 
     abort-upgrade|abort-deconfigure|abort-remove)
