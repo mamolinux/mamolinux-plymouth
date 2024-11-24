@@ -3,10 +3,7 @@
 set -e
 
 if [ "x$1" = xremove ]; then
-	if which update-initramfs >/dev/null 2>&1
-	then
-		update-initramfs -u
-	fi
+	dpkg-trigger update-initramfs
 
 	if [ -e /boot/grub/grub.cfg ] && which update-grub >/dev/null 2>&1; then
 		update-grub || true

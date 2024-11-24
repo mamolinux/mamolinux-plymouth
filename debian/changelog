@@ -1,3 +1,10 @@
+plymouth (24.004.60-2ubuntu4) plucky; urgency=medium
+
+  * In all postinst scripts calling update-initramfs, use the generic hook
+    instead, for Dracut support (Closes: #1088152).
+
+ -- Simon Quigley <tsimonq2@ubuntu.com>  Sun, 24 Nov 2024 02:11:06 -0600
+
 plymouth (24.004.60-2ubuntu3) plucky; urgency=medium
 
   * Ensure the initrd includes all necessary files for a graphical theme

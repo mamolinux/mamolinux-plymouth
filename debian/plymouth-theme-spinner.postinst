@@ -23,10 +23,7 @@ case "$1" in
 		--install /usr/share/plymouth/themes/default.plymouth default.plymouth \
 		/usr/share/plymouth/themes/bgrt/bgrt.plymouth 110
 
-	if which update-initramfs >/dev/null 2>&1
-	then
-	    update-initramfs -u
-	fi
+	dpkg-trigger update-initramfs
 
 	if [ -e /boot/grub/grub.cfg ] && which update-grub >/dev/null 2>&1; then
 		update-grub || true
