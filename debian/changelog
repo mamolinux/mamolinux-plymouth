@@ -1,3 +1,10 @@
+plymouth (24.004.60-2ubuntu5) plucky; urgency=medium
+
+  * Add label-freetype-fix-fallback-not-working-when-fc-matc.patch to
+    fix missing fonts resulting in missing text (LP: #2096806)
+
+ -- Daniel van Vugt <daniel.van.vugt@canonical.com>  Thu, 20 Feb 2025 10:35:28 +0100
+
 plymouth (24.004.60-2ubuntu4) plucky; urgency=medium
 
   * In all postinst scripts calling update-initramfs, use the generic hook
