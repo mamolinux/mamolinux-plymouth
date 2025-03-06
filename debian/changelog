@@ -1,3 +1,10 @@
+plymouth (24.004.60-1ubuntu10.1) oracular; urgency=medium
+
+  * Add label-freetype-fix-fallback-not-working-when-fc-matc.patch to
+    fix missing fonts resulting in missing text (LP: #2096806)
+
+ -- Daniel van Vugt <daniel.van.vugt@canonical.com>  Thu, 06 Mar 2025 13:48:48 +0800
+
 plymouth (24.004.60-1ubuntu10) oracular; urgency=medium
 
   * debian/local/ubuntu-logo.png:
