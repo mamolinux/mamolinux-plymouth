@@ -19,3 +19,5 @@ renderers-Do-not-assume-all-keyboards-have-LEDs.patch
 remove-plymouth-set-default-theme-populate-initrd.patch
 include-necessary-files.patch
 label-freetype-fix-fallback-not-working-when-fc-matc.patch
+ply-terminal-Fix-crash-on-vt-less-kernels-when-checking-t.patch
+renderers-Only-call-ply_terminal_set_unbuffered_input-whe.patch

@@ -1,0 +1,40 @@
+From: nerdopolis <bluescreen_avenger@verizon.net>
+Date: Thu, 4 Jan 2024 21:42:28 -0500
+Subject: renderers: Only call ply_terminal_set_unbuffered_input when there is
+ a terminal
+
+LP: #2103533
+Origin: upstream, https://gitlab.freedesktop.org/plymouth/plymouth/-/commit/5c10072a978dd7566559f44a54c3e031bb4cb216
+---
+ src/plugins/renderers/drm/plugin.c          | 3 ++-
+ src/plugins/renderers/frame-buffer/plugin.c | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/plugins/renderers/drm/plugin.c b/src/plugins/renderers/drm/plugin.c
+index 4959732..2fbb6b8 100644
+--- a/src/plugins/renderers/drm/plugin.c
++++ b/src/plugins/renderers/drm/plugin.c
+@@ -1941,7 +1941,8 @@ close_input_source (ply_renderer_backend_t      *backend,
+                                                                   (ply_input_device_leds_changed_handler_t) on_input_leds_changed,
+                                                                   &backend->input_source);
+                 }
+-                ply_terminal_set_unbuffered_input (backend->terminal);
++                if (backend->terminal != NULL)
++                        ply_terminal_set_unbuffered_input (backend->terminal);
+         }
+ 
+         if (input_source->terminal_input_watch != NULL) {
+diff --git a/src/plugins/renderers/frame-buffer/plugin.c b/src/plugins/renderers/frame-buffer/plugin.c
+index eec0396..7bbf71a 100644
+--- a/src/plugins/renderers/frame-buffer/plugin.c
++++ b/src/plugins/renderers/frame-buffer/plugin.c
+@@ -817,7 +817,8 @@ close_input_source (ply_renderer_backend_t      *backend,
+                                                                   (ply_input_device_leds_changed_handler_t) on_input_leds_changed,
+                                                                   &backend->input_source);
+                 }
+-                ply_terminal_set_unbuffered_input (backend->terminal);
++                if (backend->terminal != NULL)
++                        ply_terminal_set_unbuffered_input (backend->terminal);
+         }
+ 
+         if (input_source->terminal_input_watch != NULL) {
