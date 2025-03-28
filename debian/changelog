@@ -1,3 +1,11 @@
+plymouth (24.004.60-2ubuntu6) plucky; urgency=medium
+
+  * Add ply-terminal-Fix-crash-on-vt-less-kernels-when-checking-t.patch and
+    renderers-Only-call-ply_terminal_set_unbuffered_input-whe.patch to fix
+    crashes with SIGSEGV in ply_terminal_set_disabled_input() (LP: #2103533)
+
+ -- Benjamin Drung <bdrung@ubuntu.com>  Fri, 28 Mar 2025 10:44:59 +0100
+
 plymouth (24.004.60-2ubuntu5) plucky; urgency=medium
 
   * Add label-freetype-fix-fallback-not-working-when-fc-matc.patch to
