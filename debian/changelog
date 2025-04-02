@@ -1,3 +1,11 @@
+plymouth (24.004.60-2ubuntu7) plucky; urgency=medium
+
+  * Add ply-device-manager-Revert-Fall-back-to-text-plugin-if-no-.patch to fix
+    a race condition that makes the graphical splash screen never appear when
+    DRM drivers are installed in initrd (LP: #2105377).
+
+ -- Alessandro Astone <alessandro.astone@canonical.com>  Wed, 02 Apr 2025 12:52:11 +0200
+
 plymouth (24.004.60-2ubuntu6) plucky; urgency=medium
 
   * Add ply-terminal-Fix-crash-on-vt-less-kernels-when-checking-t.patch and
