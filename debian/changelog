@@ -1,3 +1,10 @@
+plymouth (24.004.60-2ubuntu8) questing; urgency=medium
+
+  * d/p/ubuntu-spinner-fsck.patch: listen to /run/systemd/fsck.progress
+    (LP: #2109800)
+
+ -- Nick Rosbrook <enr0n@ubuntu.com>  Fri, 30 May 2025 09:26:10 -0400
+
 plymouth (24.004.60-2ubuntu7) plucky; urgency=medium
 
   * Add ply-device-manager-Revert-Fall-back-to-text-plugin-if-no-.patch to fix
