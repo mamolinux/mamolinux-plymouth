@@ -4,3 +4,4 @@
 drop-systemd-vconsole-setup-service.patch
 fallback-etc-default-keyboard.patch
 ply-boot-splash-Set-unbuffered-input-when-creating-a.patch
+0007-label-freetype-fix-fallback-not-working-when-fc-matc.patch

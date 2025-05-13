@@ -1,3 +1,12 @@
+plymouth (24.004.60-3) unstable; urgency=medium
+
+  * d/p/0003-default-theme.patch: Use ceratopsian theme
+  * d/l/plymouth.hook: Install Cantarell variable font file if available
+  * Fix fallback not working when fc-match isn't available (Closes: #1093517)
+  * d/local/plymouth.hook: Install the default/fallback fonts
+
+ -- Laurent Bigonville <bigon@debian.org>  Tue, 13 May 2025 10:30:17 +0200
+
 plymouth (24.004.60-2) unstable; urgency=medium
 
   * Team upload

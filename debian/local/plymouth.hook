@@ -82,6 +82,7 @@ cp -dRp "${THEMES}/text" "${DESTDIR}/${THEMES}"
 
 if [ -f /etc/os-release ]
 then
+	mkdir -p "${DESTDIR}/etc"
 	cp /etc/os-release "${DESTDIR}/etc"
 fi
 
@@ -108,6 +109,15 @@ case "${THEME_NAME}" in
 			cp -dRp /usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf "${DESTDIR}/usr/share/fonts/truetype/dejavu"
 			cp -dRp /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf  "${DESTDIR}/usr/share/fonts/truetype/dejavu"
 		fi
+		# Fallback fonts
+		mkdir -p ${DESTDIR}/usr/share/fonts
+		DEFAULT_FONT=$(fc-match -f %{file} 2> /dev/null)
+		[ ! -z "$DEFAULT_FONT" ] && copy_file font "$DEFAULT_FONT"
+		DEFAULT_MONOSPACE_FONT=$(fc-match -f %{file} monospace 2> /dev/null)
+		[ ! -z "$DEFAULT_MONOSPACE_FONT" ] && copy_file font "$DEFAULT_MONOSPACE_FONT"
+
+		[ ! -z "$DEFAULT_FONT" ] && ln -s "$DEFAULT_FONT" ${DESTDIR}/usr/share/fonts/Plymouth.ttf
+		[ ! -z "$DEFAULT_MONOSPACE_FONT" ] && ln -s "$DEFAULT_MONOSPACE_FONT" ${DESTDIR}/usr/share/fonts/Plymouth-monospace.ttf
 		case "${THEME_NAME}" in
 			spinner|bgrt)
 				# ATM, this is needed by the spinner and bgrt themes
@@ -116,6 +126,11 @@ case "${THEME_NAME}" in
 					mkdir -p "${DESTDIR}/usr/share/fonts/opentype/cantarell"
 					cp -dRp /usr/share/fonts/opentype/cantarell/Cantarell-Regular.otf "${DESTDIR}/usr/share/fonts/opentype/cantarell"
 					cp -dRp /usr/share/fonts/opentype/cantarell/Cantarell-Light.otf "${DESTDIR}/usr/share/fonts/opentype/cantarell"
+				fi
+				if [ -e /usr/share/fonts/opentype/cantarell/Cantarell-VF.otf ]
+				then
+					mkdir -p "${DESTDIR}/usr/share/fonts/opentype/cantarell"
+					cp -dRp /usr/share/fonts/opentype/cantarell/Cantarell-VF.otf "${DESTDIR}/usr/share/fonts/opentype/cantarell"
 				fi
 				# We continue to the default case here
 				;;
