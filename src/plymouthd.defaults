@@ -1,6 +1,6 @@
 # Distribution defaults. Changes to this file will get overwritten during
 # upgrades.
 [Daemon]
-Theme=emerald
+Theme=ceratopsian
 ShowDelay=0
 DeviceTimeout=8
