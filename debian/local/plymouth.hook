@@ -102,13 +102,6 @@ case "${THEME_NAME}" in
 		# This is only needed because fc-cache bellow fails if the directory doesn't exist
 		mkdir -p "${DESTDIR}/usr/local/share/fonts"
 
-		# fonts-dejavu
-		if [ -e /usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf ]
-		then
-			mkdir -p "${DESTDIR}/usr/share/fonts/truetype/dejavu"
-			cp -dRp /usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf "${DESTDIR}/usr/share/fonts/truetype/dejavu"
-			cp -dRp /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf  "${DESTDIR}/usr/share/fonts/truetype/dejavu"
-		fi
 		# Fallback fonts
 		mkdir -p ${DESTDIR}/usr/share/fonts
 		DEFAULT_FONT=$(fc-match -f %{file} 2> /dev/null)
