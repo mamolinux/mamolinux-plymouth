@@ -1,3 +1,9 @@
+plymouth (24.004.60-1ubuntu10mamolinux2) oracular; urgency=medium
+
+  * No change release
+
+ -- Himadri Sekhar Basu <mamolinux@mamolinux.org>  Thu, 22 May 2025 09:03:10 +0530
+
 plymouth (24.004.60-1ubuntu10mamolinux1) oracular; urgency=medium
 
   * Add mamolinux plymouth themes
@@ -6,7 +12,7 @@ plymouth (24.004.60-1ubuntu10mamolinux1) oracular; urgency=medium
     - Replace ubuntu logo with mamolinux
       logo in spinner
 
- -- Himadri Sekhar Basu <hsb10@iitbbs.ac.in>  Mon, 18 Nov 2024 21:40:06 +0530
+ -- Himadri Sekhar Basu <mamolinux@mamolinux.org>  Thu, 22 May 2025 09:02:11 +0530
 
 plymouth (24.004.60-1ubuntu10) oracular; urgency=medium
 
