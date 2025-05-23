@@ -1,3 +1,13 @@
+plymouth (24.004.60-1ubuntu7.2mamolinux1) noble; urgency=medium
+
+  * Add mamolinux plymouth themes
+    - Add mamolinux text theme
+    - Add build instructions in README
+    - Replace ubuntu logo with mamolinux
+      logo in spinner
+
+ -- Himadri Sekhar Basu <mamolinux@mamolinux.org>  Fri, 23 May 2025 12:49:56 +0530
+
 plymouth (24.004.60-1ubuntu7.1) noble; urgency=medium
 
   * Add label-freetype-fix-fallback-not-working-when-fc-matc.patch to
