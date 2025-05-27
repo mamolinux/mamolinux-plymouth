@@ -1,3 +1,10 @@
+plymouth (24.004.60-5) unstable; urgency=medium
+
+  * d/l/plymouth.hook: Avoid installing a font already present in the initramfs
+    (Closes: #1106115)
+
+ -- Laurent Bigonville <bigon@debian.org>  Tue, 27 May 2025 10:45:42 +0200
+
 plymouth (24.004.60-4) unstable; urgency=medium
 
   * d/l/plymouth.hook: Do not explicitly install DejaVu fonts.
