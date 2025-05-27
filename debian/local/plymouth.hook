@@ -105,9 +105,9 @@ case "${THEME_NAME}" in
 		# Fallback fonts
 		mkdir -p ${DESTDIR}/usr/share/fonts
 		DEFAULT_FONT=$(fc-match -f %{file} 2> /dev/null)
-		[ ! -z "$DEFAULT_FONT" ] && copy_file font "$DEFAULT_FONT"
+		[ ! -z "$DEFAULT_FONT" -a ! -f "${DESTDIR}${DEFAULT_FONT}" ] && copy_file font "$DEFAULT_FONT"
 		DEFAULT_MONOSPACE_FONT=$(fc-match -f %{file} monospace 2> /dev/null)
-		[ ! -z "$DEFAULT_MONOSPACE_FONT" ] && copy_file font "$DEFAULT_MONOSPACE_FONT"
+		[ ! -z "$DEFAULT_MONOSPACE_FONT" -a ! -f "${DESTDIR}${DEFAULT_MONOSPACE_FONT}" ] && copy_file font "$DEFAULT_MONOSPACE_FONT"
 
 		[ ! -z "$DEFAULT_FONT" ] && ln -s "$DEFAULT_FONT" ${DESTDIR}/usr/share/fonts/Plymouth.ttf
 		[ ! -z "$DEFAULT_MONOSPACE_FONT" ] && ln -s "$DEFAULT_MONOSPACE_FONT" ${DESTDIR}/usr/share/fonts/Plymouth-monospace.ttf
