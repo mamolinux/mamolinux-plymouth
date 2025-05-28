@@ -175,6 +175,25 @@ Description: boot animation, logger and I/O multiplexer - themes
   * spinfinity: features a centered logo and animated spinner that spins in the
     shape of an infinity sign.
 
+Package: plymouth-theme-mamolinux-text
+Architecture: linux-any
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends},
+ plymouth (= ${binary:Version}),
+ lsb-release,
+Provides: plymouth-theme,
+Description: boot animation, logger and I/O multiplexer - mamolinux text theme
+ Plymouth provides a boot-time I/O multiplexing framework - the most obvious
+ use for which is to provide an attractive graphical animation in place of
+ the text messages that normally get shown during boot. (The messages are
+ instead redirected to a logfile for later viewing.) However, in event-driven
+ boot systems Plymouth can also usefully handle user interaction such as
+ password prompts for encrypted file systems.
+ .
+ This package contains the default mamolinux-text text theme used when no
+ support for a graphical theme is found on your system.
+
 Package: plymouth-theme-ubuntu-text
 Architecture: linux-any
 Depends:
