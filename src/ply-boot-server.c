@@ -23,6 +23,8 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,6 +35,7 @@
 
 #include "ply-buffer.h"
 #include "ply-event-loop.h"
+#include "ply-hashtable.h"
 #include "ply-list.h"
 #include "ply-logger.h"
 #include "ply-trigger.h"
@@ -58,6 +61,7 @@ struct _ply_boot_server
         ply_list_t                                   *connections;
         ply_list_t                                   *cached_passwords;
         int                                           socket_fd;
+        int                                           fsck_progress_fd;
 
         ply_boot_server_update_handler_t              update_handler;
         ply_boot_server_change_mode_handler_t         change_mode_handler;
@@ -83,6 +87,7 @@ struct _ply_boot_server
         void                                         *user_data;
 
         uint32_t                                      is_listening : 1;
+        ply_hashtable_t                               *fsck_progress_by_dev;
 };
 
 ply_boot_server_t *
@@ -138,11 +143,20 @@ ply_boot_server_new (ply_boot_server_update_handler_t              update_handle
         server->has_active_vt_handler = has_active_vt_handler;
         server->reload_handler = reload_handler;
         server->user_data = user_data;
+        server->fsck_progress_by_dev = ply_hashtable_new (ply_hashtable_string_hash,
+                                                          ply_hashtable_string_compare);
 
         return server;
 }
 
 static void ply_boot_connection_on_hangup (ply_boot_connection_t *connection);
+
+static void
+ply_boot_fsck_progress_by_dev_free_foreach (void *key, void *data, void *user_data)
+{
+        free (key);
+        free (data);
+}
 
 void
 ply_boot_server_free (ply_boot_server_t *server)
@@ -157,6 +171,10 @@ ply_boot_server_free (ply_boot_server_t *server)
         }
         ply_list_free (server->connections);
         ply_list_free (server->cached_passwords);
+        ply_hashtable_foreach (server->fsck_progress_by_dev,
+                               ply_boot_fsck_progress_by_dev_free_foreach,
+                               NULL);
+        ply_hashtable_free (server->fsck_progress_by_dev);
         free (server);
 }
 
@@ -214,7 +232,11 @@ ply_boot_server_listen (ply_boot_server_t *server)
                 ply_listen_to_unix_socket (PLY_BOOT_PROTOCOL_TRIMMED_ABSTRACT_SOCKET_PATH,
                                            PLY_UNIX_SOCKET_TYPE_TRIMMED_ABSTRACT);
 
-        if (server->socket_fd < 0)
+        server->fsck_progress_fd =
+                ply_listen_to_unix_socket ("/run/systemd/fsck.progress",
+                                           PLY_UNIX_SOCKET_TYPE_CONCRETE);
+
+        if (server->socket_fd < 0 || server->fsck_progress_fd < 0)
                 return false;
 
         return true;
@@ -752,6 +774,159 @@ ply_boot_connection_on_request (ply_boot_connection_t *connection)
         free (command);
 }
 
+static double
+compute_fsck_percent(int pass, size_t cur, size_t max)
+{
+        /* Values stolen from e2fsck */
+        static const double pass_table[6] = {
+                0, 70, 90, 92, 95, 100
+        };
+
+        if (pass <= 0)
+                return 0.0;
+
+        if (pass >= 6 /* length of pass_table */ || max == 0)
+                return 100.0;
+
+        return pass_table[pass-1] +
+                (pass_table[pass] - pass_table[pass-1]) *
+                (double) cur / max;
+}
+
+static void
+fsck_progress_by_dev_compare_foreach(void *key, void *data, void *user_data)
+{
+        double *current_percent = user_data, *dev_percent = data;
+
+        *current_percent = MIN(*dev_percent, *current_percent);
+}
+
+static void
+fsck_progress_by_dev_remove_complete_foreach(void *key, void *data, void *user_data)
+{
+        ply_boot_server_t *server = user_data;
+        char *dev = key;
+        double *percent = data;
+
+        if (*percent >= 100.0) {
+                ply_hashtable_remove (server->fsck_progress_by_dev, dev);
+                free(dev);
+                free(percent);
+        }
+}
+
+static void
+ply_boot_update_fsck_progress(ply_boot_server_t *server)
+{
+        char *argument = NULL;
+        double current_percent = 100;
+        int num_devices;
+
+        assert (server != NULL);
+
+        ply_hashtable_foreach (server->fsck_progress_by_dev,
+                               fsck_progress_by_dev_remove_complete_foreach,
+                               server);
+
+        ply_hashtable_foreach (server->fsck_progress_by_dev,
+                               fsck_progress_by_dev_compare_foreach,
+                               &current_percent);
+
+        num_devices = ply_hashtable_get_size (server->fsck_progress_by_dev);
+
+        if (asprintf (&argument, "fsckd:%d:%3.1f", num_devices, current_percent) < 0)
+                return;
+
+        server->update_handler (server->user_data, argument, server);
+
+        free(argument);
+}
+
+static void
+ply_boot_connection_on_fsck_progress (ply_boot_connection_t *connection)
+{
+        ply_boot_server_t *server;
+        int flags;
+        uint8_t buf[LINE_MAX] = {};
+        ssize_t n;
+
+        assert (connection != NULL);
+        assert (connection->fd >= 0);
+
+        server = connection->server;
+        assert (server != NULL);
+
+        if (!ply_get_credentials_from_fd (connection->fd, &connection->pid, &connection->uid, NULL)) {
+                ply_trace ("couldn't read credentials from connection: %m");
+                return;
+        }
+        connection->credentials_read = true;
+
+        if (!ply_boot_connection_is_from_root (connection)) {
+                ply_error ("request came from non-root user");
+                return;
+        }
+
+        if (server->update_handler == NULL)
+                return;
+
+        flags = fcntl (connection->fd, F_GETFL);
+        if (flags < 0) {
+                ply_error ("failed to read fd flags: %m");
+                return;
+        }
+
+        if (fcntl (connection->fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+                ply_error ("failed to set fd flags: %m");
+                return;
+        }
+
+        n = ply_read_some_bytes(connection->fd, buf, sizeof(buf) - sizeof(uint8_t));
+        if (n < 0) {
+                ply_trace("could not read bytes: %m");
+                return;
+        }
+        assert (n < LINE_MAX);
+
+        for (char *p = buf; p; p = strchr (p + 1, '\n')) {
+                char *dev = NULL;
+                size_t cur, max;
+                int pass, r;
+
+                r = sscanf (p, "%i %zu %zu %ms", &pass, &cur, &max, &dev);
+                if (r == 4) {
+                        double *percent = ply_hashtable_lookup (server->fsck_progress_by_dev, (void *) dev);
+
+                        if (percent)
+                                *percent = compute_fsck_percent (pass, cur, max);
+                        else {
+                                char *key = NULL;
+
+                                percent = calloc(1, sizeof(double));
+                                if (!percent) {
+                                        ply_trace("out of memory");
+                                        return;
+                                }
+
+                                key = strdup(dev);
+                                if (!key) {
+                                        ply_trace("out of memory");
+                                        return;
+                                }
+
+                                *percent = compute_fsck_percent (pass, cur, max);
+
+                                ply_hashtable_insert (server->fsck_progress_by_dev, key, percent);
+                        }
+                } else if (r != EOF)
+                        ply_trace ("sscanf failed to read fsck progress");
+
+                free (dev);
+        }
+
+        ply_boot_update_fsck_progress (server);
+}
+
 static void
 ply_boot_connection_on_hangup (ply_boot_connection_t *connection)
 {
@@ -801,6 +976,33 @@ ply_boot_server_on_new_connection (ply_boot_server_t *server)
 }
 
 static void
+ply_boot_server_on_new_fsck_progress_connection (ply_boot_server_t *server)
+{
+        ply_boot_connection_t *connection;
+        int fd;
+
+        assert (server != NULL);
+
+        fd = accept4 (server->fsck_progress_fd, NULL, NULL, SOCK_CLOEXEC);
+
+        if (fd < 0)
+                return;
+
+        connection = ply_boot_connection_new (server, fd);
+
+        connection->watch =
+                ply_event_loop_watch_fd (server->loop, fd,
+                                         PLY_EVENT_LOOP_FD_STATUS_HAS_DATA,
+                                         (ply_event_handler_t)
+                                         ply_boot_connection_on_fsck_progress,
+                                         (ply_event_handler_t)
+                                         ply_boot_connection_on_hangup,
+                                         connection);
+
+        ply_list_append_data (server->connections, connection);
+}
+
+static void
 ply_boot_server_on_hangup (ply_boot_server_t *server)
 {
         assert (server != NULL);
@@ -821,6 +1023,7 @@ ply_boot_server_attach_to_event_loop (ply_boot_server_t *server,
         assert (loop != NULL);
         assert (server->loop == NULL);
         assert (server->socket_fd >= 0);
+        assert (server->fsck_progress_fd >= 0);
 
         server->loop = loop;
 
@@ -828,6 +1031,13 @@ ply_boot_server_attach_to_event_loop (ply_boot_server_t *server,
                                  PLY_EVENT_LOOP_FD_STATUS_HAS_DATA,
                                  (ply_event_handler_t)
                                  ply_boot_server_on_new_connection,
+                                 (ply_event_handler_t)
+                                 ply_boot_server_on_hangup,
+                                 server);
+        ply_event_loop_watch_fd (loop, server->fsck_progress_fd,
+                                 PLY_EVENT_LOOP_FD_STATUS_HAS_DATA,
+                                 (ply_event_handler_t)
+                                 ply_boot_server_on_new_fsck_progress_connection,
                                  (ply_event_handler_t)
                                  ply_boot_server_on_hangup,
                                  server);
