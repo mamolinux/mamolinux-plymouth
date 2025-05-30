@@ -187,10 +187,10 @@ struct _ply_boot_splash_plugin
         ply_trigger_t                      *stop_trigger;
 
         char                               *main_message;
-        char                               *fsck_message;
         char                               *footer;
         char                               *fsck_device;
         int                                 fsck_percent;
+        int                                 fsck_num_devices;
 
         uint32_t                            root_is_mounted : 1;
         uint32_t                            needs_redraw : 1;
@@ -1474,7 +1474,6 @@ destroy_plugin (ply_boot_splash_plugin_t *plugin)
         free (plugin->monospace_font);
         free (plugin->animation_dir);
         free (plugin->main_message);
-        free (plugin->fsck_message);
         free (plugin->footer);
         free (plugin->fsck_device);
         free_views (plugin);
@@ -1964,8 +1963,8 @@ show_splash_screen (ply_boot_splash_plugin_t *plugin,
 static void
 update_fsck (ply_boot_splash_plugin_t *plugin,
              const char               *device_name,
-             float                     percent,
-             const char               *message)
+             int                       num_devices,
+             float                     percent)
 {
         if (!plugin->in_fsck) {
                 stop_animation (plugin);
@@ -1977,10 +1976,8 @@ update_fsck (ply_boot_splash_plugin_t *plugin,
         free (plugin->fsck_device);
         plugin->fsck_device = device_name ? strdup (device_name) : NULL;
 
-        free (plugin->fsck_message);
-        plugin->fsck_message = message ? strdup (message) : message;
-
         plugin->fsck_percent = percent;
+        plugin->fsck_num_devices = num_devices;
 
         update_message (plugin);
         update_progress_animation (plugin, percent / 100.);
@@ -2015,19 +2012,24 @@ update_status (ply_boot_splash_plugin_t *plugin,
                const char               *status)
 {
         char fsck_device[1024] = "";
-        char fsck_message[1024] = "";
         float fsck_percent = 0.f;
+        int fsck_num_devices = 0;
 
         assert (plugin != NULL);
 
         if (sscanf (status, "fsck:%1023[^:]:%f",
                     fsck_device, &fsck_percent) == 2) {
                 ply_trace ("fsck of `%s' at %.1f%%", fsck_device, fsck_percent);
-                update_fsck (plugin, fsck_device, fsck_percent, NULL);
-        } else if (sscanf (status, "fsckd:%*d:%f:%1023[^\x01]",
-                           &fsck_percent, fsck_message) == 2) {
-                ply_trace ("fsckd at %.1f%% [%s]", fsck_percent, fsck_message);
-                update_fsck (plugin, NULL, fsck_percent, fsck_message);
+                update_fsck (plugin, fsck_device, 0, fsck_percent);
+        } else if (sscanf (status, "fsckd:%d:%f",
+                           &fsck_num_devices, &fsck_percent) == 2) {
+
+                ply_trace ("fsck of %d device%s at %.1f%%",
+                           fsck_num_devices,
+                           fsck_num_devices > 1 ? "s" : "",
+                           fsck_percent);
+
+                update_fsck (plugin, NULL, fsck_num_devices, fsck_percent);
         }
 
         if (fsck_percent >= 100)
@@ -2271,19 +2273,25 @@ update_message (ply_boot_splash_plugin_t *plugin)
 
         if (plugin->in_fsck) {
                 const char *device = plugin->fsck_device;
+                int num_devices = plugin->fsck_num_devices;
 
-                if (!device || !device[0])
-                        device = _("disks");
+                if (num_devices > 0) {
+                        const char *disks = _(num_devices > 1 ? "disks" : "disk");
 
-                len += snprintf (message + len, sizeof(message) - 1 - len,
-                                 _("Checking %s: %d%% complete\n\n"),
-                                 device, plugin->fsck_percent);
+                        len += snprintf (message + len, sizeof(message) - 1 - len,
+                                         _("Checking %d %s: %d%% complete\n\n"),
+                                         num_devices, disks, plugin->fsck_percent);
+                } else {
+                        if (!device || !device[0])
+                                device = _("disks");
+
+                        len += snprintf (message + len, sizeof(message) - 1 - len,
+                                         _("Checking %s: %d%% complete\n\n"),
+                                         device, plugin->fsck_percent);
+                }
         }
 
-        if (plugin->in_fsck && plugin->fsck_message && len < sizeof(message))
-                len += snprintf (message + len, sizeof(message) - 1 - len,
-                                 "%s\n\n", plugin->fsck_message);
-        else if (plugin->main_message && len < sizeof(message))
+        if (plugin->main_message && len < sizeof(message))
                 len += snprintf (message + len, sizeof(message) - 1 - len,
                                  "%s\n\n", plugin->main_message);
 

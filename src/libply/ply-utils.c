@@ -322,7 +322,7 @@ ply_write_uint32 (int      fd,
         return ply_write (fd, buffer, 4 * sizeof(uint8_t));
 }
 
-static ssize_t
+ssize_t
 ply_read_some_bytes (int    fd,
                      void  *buffer,
                      size_t max_bytes)
@@ -331,6 +331,7 @@ ply_read_some_bytes (int    fd,
         size_t total_bytes_read = 0;
 
         assert (fd >= 0);
+        assert (buffer != NULL);
 
         bytes_left_to_read = max_bytes;
 
