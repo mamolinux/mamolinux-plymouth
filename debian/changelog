@@ -1,3 +1,9 @@
+plymouth (24.004.60-1ubuntu7.2.mamolinux2) noble; urgency=medium
+
+  * No change rebuild.
+
+ -- Himadri Sekhar Basu <mamolinux@mamolinux.org>  Fri, 06 Jun 2025 11:42:18 +0530
+
 plymouth (24.004.60-1ubuntu7.2mamolinux1) noble; urgency=medium
 
   * Add mamolinux plymouth themes
