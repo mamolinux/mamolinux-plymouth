@@ -52,7 +52,6 @@
 static void create_devices_from_udev (ply_device_manager_t *manager);
 #endif
 
-static void create_non_graphical_devices (ply_device_manager_t *manager);
 static bool create_devices_for_terminal_and_renderer_type (ply_device_manager_t *manager,
                                                            const char           *device_path,
                                                            ply_terminal_t       *terminal,
@@ -1102,13 +1101,6 @@ create_devices_for_terminal_and_renderer_type (ply_device_manager_t *manager,
                 renderer = ply_renderer_new (renderer_type, device_path, terminal);
 
                 if (renderer != NULL && !ply_renderer_open (renderer)) {
-                        if (errno == ENOENT) {
-                                ply_trace ("No renderer plugins installed, creating non-graphical devices");
-                                ply_renderer_free (renderer);
-                                create_non_graphical_devices (manager);
-                                manager->device_timeout_elapsed = true;
-                                return false;
-                        }
                         ply_trace ("could not open renderer for %s", device_path);
                         ply_renderer_free (renderer);
                         renderer = NULL;
