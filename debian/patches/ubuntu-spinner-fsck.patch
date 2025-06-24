@@ -363,11 +363,12 @@ Bug-Ubuntu: https://bugs.launchpad.net/bugs/1867130
          free (server);
  }
  
-@@ -214,7 +232,11 @@
+@@ -214,7 +232,12 @@
                  ply_listen_to_unix_socket (PLY_BOOT_PROTOCOL_TRIMMED_ABSTRACT_SOCKET_PATH,
                                             PLY_UNIX_SOCKET_TYPE_TRIMMED_ABSTRACT);
  
 -        if (server->socket_fd < 0)
++        unlink ("/run/systemd/fsck.progress");
 +        server->fsck_progress_fd =
 +                ply_listen_to_unix_socket ("/run/systemd/fsck.progress",
 +                                           PLY_UNIX_SOCKET_TYPE_CONCRETE);
@@ -376,7 +377,7 @@ Bug-Ubuntu: https://bugs.launchpad.net/bugs/1867130
                  return false;
  
          return true;
-@@ -752,6 +774,159 @@
+@@ -752,6 +775,159 @@
          free (command);
  }
  
@@ -536,7 +537,7 @@ Bug-Ubuntu: https://bugs.launchpad.net/bugs/1867130
  static void
  ply_boot_connection_on_hangup (ply_boot_connection_t *connection)
  {
-@@ -801,6 +976,33 @@
+@@ -801,6 +977,33 @@
  }
  
  static void
@@ -570,7 +571,7 @@ Bug-Ubuntu: https://bugs.launchpad.net/bugs/1867130
  ply_boot_server_on_hangup (ply_boot_server_t *server)
  {
          assert (server != NULL);
-@@ -821,6 +1023,7 @@
+@@ -821,6 +1024,7 @@
          assert (loop != NULL);
          assert (server->loop == NULL);
          assert (server->socket_fd >= 0);
@@ -578,7 +579,7 @@ Bug-Ubuntu: https://bugs.launchpad.net/bugs/1867130
  
          server->loop = loop;
  
-@@ -831,6 +1034,13 @@
+@@ -831,6 +1035,13 @@
                                   (ply_event_handler_t)
                                   ply_boot_server_on_hangup,
                                   server);
