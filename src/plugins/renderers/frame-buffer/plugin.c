@@ -817,7 +817,8 @@ close_input_source (ply_renderer_backend_t      *backend,
                                                                   (ply_input_device_leds_changed_handler_t) on_input_leds_changed,
                                                                   &backend->input_source);
                 }
-                ply_terminal_set_unbuffered_input (backend->terminal);
+                if (backend->terminal != NULL)
+                        ply_terminal_set_unbuffered_input (backend->terminal);
         }
 
         if (input_source->terminal_input_watch != NULL) {
