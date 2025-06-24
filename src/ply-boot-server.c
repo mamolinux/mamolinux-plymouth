@@ -232,6 +232,7 @@ ply_boot_server_listen (ply_boot_server_t *server)
                 ply_listen_to_unix_socket (PLY_BOOT_PROTOCOL_TRIMMED_ABSTRACT_SOCKET_PATH,
                                            PLY_UNIX_SOCKET_TYPE_TRIMMED_ABSTRACT);
 
+        unlink ("/run/systemd/fsck.progress");
         server->fsck_progress_fd =
                 ply_listen_to_unix_socket ("/run/systemd/fsck.progress",
                                            PLY_UNIX_SOCKET_TYPE_CONCRETE);
