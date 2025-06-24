@@ -1,3 +1,10 @@
+plymouth (24.004.60-2ubuntu9) questing; urgency=medium
+
+  * d/p/ubuntu-spinner-fsck.patch: unlink() fsck progress socket before bind()
+    (LP: #2115286)
+
+ -- Nick Rosbrook <enr0n@ubuntu.com>  Tue, 24 Jun 2025 16:33:28 -0400
+
 plymouth (24.004.60-2ubuntu8) questing; urgency=medium
 
   * d/p/ubuntu-spinner-fsck.patch: listen to /run/systemd/fsck.progress
