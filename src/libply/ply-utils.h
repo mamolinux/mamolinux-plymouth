@@ -100,6 +100,9 @@ bool ply_write_uint32 (int      fd,
 bool ply_read (int    fd,
                void  *buffer,
                size_t number_of_bytes);
+ssize_t ply_read_some_bytes (int    fd,
+                             void  *buffer,
+                             size_t max_bytes);
 bool ply_read_uint32 (int       fd,
                       uint32_t *value);
 
