@@ -18,6 +18,8 @@ Forwarded: not-needed
  themes/spinfinity/meson.build | 5 -----
  1 file changed, 5 deletions(-)
 
+diff --git a/themes/spinfinity/meson.build b/themes/spinfinity/meson.build
+index f48e8e5..5a2050c 100644
 --- a/themes/spinfinity/meson.build
 +++ b/themes/spinfinity/meson.build
 @@ -53,8 +53,3 @@ install_data(

@@ -11,9 +11,11 @@ Subject: ubuntu-spinner-style
  themes/bgrt/bgrt.plymouth.desktop | 8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
+diff --git a/themes/bgrt/bgrt.plymouth.desktop b/themes/bgrt/bgrt.plymouth.desktop
+index bfa79e7..51d8a6c 100644
 --- a/themes/bgrt/bgrt.plymouth.desktop
 +++ b/themes/bgrt/bgrt.plymouth.desktop
-@@ -4,11 +4,11 @@ Description=Jimmac's spinner theme using
+@@ -4,11 +4,11 @@ Description=Jimmac's spinner theme using the ACPI BGRT graphics as background
  ModuleName=two-step
  
  [two-step]
