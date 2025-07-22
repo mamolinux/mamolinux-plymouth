@@ -1,12 +1,20 @@
-Description: Do not use plymouth-set-default-theme in populate-initrd
- We do not ship plymouth-set-default-theme, instead opting for an
- alternatives-based approach. Ensure plymouth-populate-initrd works
-Author: Simon Quigley <tsimonq2@ubuntu.com>
+From: Simon Quigley <tsimonq2@ubuntu.com>
+Date: Tue, 8 Jul 2025 15:49:34 +0800
+Subject: Do not use plymouth-set-default-theme in populate-initrd
+
 Origin: vendor
 Forwarded: not-needed
 Last-Update: 2024-11-21
+
+We do not ship plymouth-set-default-theme, instead opting for an
+alternatives-based approach. Ensure plymouth-populate-initrd works
+Last-Update: 2024-11-21
 ---
-This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+ scripts/plymouth-populate-initrd.in | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/scripts/plymouth-populate-initrd.in b/scripts/plymouth-populate-initrd.in
+index 20614a2..a9bb070 100755
 --- a/scripts/plymouth-populate-initrd.in
 +++ b/scripts/plymouth-populate-initrd.in
 @@ -17,7 +17,8 @@

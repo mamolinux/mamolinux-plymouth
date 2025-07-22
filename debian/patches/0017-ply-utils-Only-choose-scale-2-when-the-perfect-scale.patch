@@ -17,9 +17,11 @@ Last-Update: 2024-03-08
  src/libply/ply-utils.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/src/libply/ply-utils.c b/src/libply/ply-utils.c
+index 10da095..0ab3e5d 100644
 --- a/src/libply/ply-utils.c
 +++ b/src/libply/ply-utils.c
-@@ -1057,7 +1057,7 @@ get_device_scale (uint32_t width,
+@@ -1058,7 +1058,7 @@ get_device_scale (uint32_t width,
          target_dpi = (diag_inches >= 20.f) ? 110 : 135;
  
          perfect_scale = physical_dpi / target_dpi;

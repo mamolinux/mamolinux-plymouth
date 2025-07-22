@@ -10,9 +10,11 @@ Last-Update: 2021-09-15
  systemd-units/plymouth-switch-root-initramfs.service.in | 5 +++++
  1 file changed, 5 insertions(+)
 
+diff --git a/systemd-units/plymouth-switch-root-initramfs.service.in b/systemd-units/plymouth-switch-root-initramfs.service.in
+index e7b5a5e..80bff6f 100644
 --- a/systemd-units/plymouth-switch-root-initramfs.service.in
 +++ b/systemd-units/plymouth-switch-root-initramfs.service.in
-@@ -11,6 +11,11 @@ ConditionPathExists=|/run/initramfs/shut
+@@ -11,6 +11,11 @@ ConditionPathExists=|/run/initramfs/shutdown
  [Service]
  Type=oneshot
  RemainAfterExit=yes

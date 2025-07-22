@@ -10,9 +10,11 @@ yet, as this breaks booting without an initramfs.
  src/main.c | 11 +----------
  1 file changed, 1 insertion(+), 10 deletions(-)
 
+diff --git a/src/main.c b/src/main.c
+index 8258e00..82319a8 100644
 --- a/src/main.c
 +++ b/src/main.c
-@@ -1902,6 +1902,7 @@ attach_to_running_session (state_t *stat
+@@ -1902,6 +1902,7 @@ attach_to_running_session (state_t *state)
                  session = ply_terminal_session_new (NULL);
  
                  ply_terminal_session_attach_to_event_loop (session, state->loop);
@@ -20,7 +22,7 @@ yet, as this breaks booting without an initramfs.
          } else {
                  session = state->session;
                  ply_trace ("session already created");
-@@ -1913,12 +1914,6 @@ attach_to_running_session (state_t *stat
+@@ -1913,12 +1914,6 @@ attach_to_running_session (state_t *state)
                                            (ply_terminal_session_hangup_handler_t)
                                            (should_be_redirected ? on_session_hangup : NULL),
                                            -1, state)) {
@@ -33,7 +35,7 @@ yet, as this breaks booting without an initramfs.
                  state->is_redirected = false;
                  state->is_attached = false;
                  return false;
-@@ -1942,7 +1937,6 @@ attach_to_running_session (state_t *stat
+@@ -1942,7 +1937,6 @@ attach_to_running_session (state_t *state)
  
          state->is_redirected = should_be_redirected;
          state->is_attached = true;

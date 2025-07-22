@@ -17,6 +17,8 @@ Last-Update: 2024-03-08
  src/libply/ply-utils.c | 40 ++++++++++++++++++++++------------------
  1 file changed, 22 insertions(+), 18 deletions(-)
 
+diff --git a/src/libply/ply-utils.c b/src/libply/ply-utils.c
+index a750a58..10da095 100644
 --- a/src/libply/ply-utils.c
 +++ b/src/libply/ply-utils.c
 @@ -29,6 +29,7 @@
@@ -27,7 +29,7 @@ Last-Update: 2024-03-08
  #include <poll.h>
  #include <stddef.h>
  #include <stdio.h>
-@@ -1001,8 +1002,6 @@ ply_set_device_scale (int device_scale)
+@@ -1002,8 +1003,6 @@ ply_set_device_scale (int device_scale)
          ply_trace ("Device scale is set to %d", device_scale);
  }
  
@@ -36,7 +38,7 @@ Last-Update: 2024-03-08
  #define HIDPI_MIN_HEIGHT 1200
  #define HIDPI_MIN_WIDTH 2560 /* For heuristic / guessed device-scale */
  
-@@ -1019,8 +1018,8 @@ get_device_scale (uint32_t width,
+@@ -1020,8 +1019,8 @@ get_device_scale (uint32_t width,
                    uint32_t height_mm,
                    bool     guess)
  {
@@ -47,7 +49,7 @@ Last-Update: 2024-03-08
          const char *force_device_scale;
  
          device_scale = 1;
-@@ -1031,11 +1030,10 @@ get_device_scale (uint32_t width,
+@@ -1032,11 +1031,10 @@ get_device_scale (uint32_t width,
          if (overridden_device_scale != 0)
                  return overridden_device_scale;
  
@@ -63,7 +65,7 @@ Last-Update: 2024-03-08
  
          /* Somebody encoded the aspect ratio (16/9 or 16/10)
           * instead of the physical size */
-@@ -1045,15 +1043,21 @@ get_device_scale (uint32_t width,
+@@ -1046,15 +1044,21 @@ get_device_scale (uint32_t width,
              (width_mm == 16 && height_mm == 10))
                  return 1;
  

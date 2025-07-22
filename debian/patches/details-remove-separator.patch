@@ -7,9 +7,11 @@ Removed the explicit printing of ':'. Expected to be a part of the prompt.
  src/plugins/splash/details/plugin.c | 6 ++----
  1 file changed, 2 insertions(+), 4 deletions(-)
 
+diff --git a/src/plugins/splash/details/plugin.c b/src/plugins/splash/details/plugin.c
+index 9e150b5..d1543ed 100644
 --- a/src/plugins/splash/details/plugin.c
 +++ b/src/plugins/splash/details/plugin.c
-@@ -399,10 +399,8 @@ display_password (ply_boot_splash_plugin
+@@ -399,10 +399,8 @@ display_password (ply_boot_splash_plugin_t *plugin,
                                  strlen (prompt));
          else
                  write_on_views (plugin,

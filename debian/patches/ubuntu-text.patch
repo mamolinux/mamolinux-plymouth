@@ -17,6 +17,8 @@ Last-Update: 2011-01-21
  create mode 100644 themes/ubuntu-text/meson.build
  create mode 100644 themes/ubuntu-text/ubuntu-text.plymouth.in
 
+diff --git a/src/plugins/splash/meson.build b/src/plugins/splash/meson.build
+index 65c7e21..6894a72 100644
 --- a/src/plugins/splash/meson.build
 +++ b/src/plugins/splash/meson.build
 @@ -5,3 +5,4 @@ subdir('space-flares')
@@ -24,6 +26,9 @@ Last-Update: 2011-01-21
  subdir('script')
  subdir('tribar')
 +subdir('ubuntu-text')
+diff --git a/src/plugins/splash/ubuntu-text/meson.build b/src/plugins/splash/ubuntu-text/meson.build
+new file mode 100644
+index 0000000..474a290
 --- /dev/null
 +++ b/src/plugins/splash/ubuntu-text/meson.build
 @@ -0,0 +1,11 @@
@@ -38,6 +43,9 @@ Last-Update: 2011-01-21
 +  install: true,
 +  install_dir: plymouth_plugin_path,
 +)
+diff --git a/src/plugins/splash/ubuntu-text/plugin.c b/src/plugins/splash/ubuntu-text/plugin.c
+new file mode 100644
+index 0000000..6f01e5f
 --- /dev/null
 +++ b/src/plugins/splash/ubuntu-text/plugin.c
 @@ -0,0 +1,805 @@
@@ -846,6 +854,8 @@ Last-Update: 2011-01-21
 +}
 +
 +/* vim: set ts=4 sw=4 expandtab autoindent cindent cino={.5s,(0: */
+diff --git a/themes/meson.build b/themes/meson.build
+index dc2ca6e..89ce431 100644
 --- a/themes/meson.build
 +++ b/themes/meson.build
 @@ -8,3 +8,4 @@ subdir('script')
@@ -853,6 +863,9 @@ Last-Update: 2011-01-21
  subdir('tribar')
  subdir('bgrt')
 +subdir('ubuntu-text')
+diff --git a/themes/ubuntu-text/meson.build b/themes/ubuntu-text/meson.build
+new file mode 100644
+index 0000000..df7163c
 --- /dev/null
 +++ b/themes/ubuntu-text/meson.build
 @@ -0,0 +1,4 @@
@@ -860,6 +873,9 @@ Last-Update: 2011-01-21
 +  'ubuntu-text.plymouth.in',
 +  install_dir: plymouth_theme_path / 'ubuntu-text',
 +)
+diff --git a/themes/ubuntu-text/ubuntu-text.plymouth.in b/themes/ubuntu-text/ubuntu-text.plymouth.in
+new file mode 100644
+index 0000000..62ed18b
 --- /dev/null
 +++ b/themes/ubuntu-text/ubuntu-text.plymouth.in
 @@ -0,0 +1,11 @@

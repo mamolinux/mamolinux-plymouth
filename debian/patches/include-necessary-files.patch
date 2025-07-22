@@ -1,13 +1,21 @@
-Description: Include all necessary files in the initrd for a graphical theme
-Author: Simon Quigley <tsimonq2@ubuntu.com>
+From: Simon Quigley <tsimonq2@ubuntu.com>
+Date: Tue, 8 Jul 2025 15:49:34 +0800
+Subject: Include all necessary files in the initrd for a graphical theme
+
 Origin: vendor
 Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/dracut/+bug/1596220
 Last-Update: 2024-11-21
+
+Last-Update: 2024-11-21
 ---
-This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+ scripts/plymouth-populate-initrd.in | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/scripts/plymouth-populate-initrd.in b/scripts/plymouth-populate-initrd.in
+index a9bb070..05d1ccf 100755
 --- a/scripts/plymouth-populate-initrd.in
 +++ b/scripts/plymouth-populate-initrd.in
-@@ -470,10 +470,15 @@ inst ${PLYMOUTH_DATADIR}/plymouth/themes
+@@ -470,10 +470,15 @@ inst ${PLYMOUTH_DATADIR}/plymouth/themes/text/text.plymouth $INITRDDIR
  inst ${PLYMOUTH_PLUGIN_PATH}/text.so $INITRDDIR
  inst ${PLYMOUTH_DATADIR}/plymouth/themes/details/details.plymouth $INITRDDIR
  inst ${PLYMOUTH_PLUGIN_PATH}/details.so $INITRDDIR
