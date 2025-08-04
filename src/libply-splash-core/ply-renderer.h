@@ -41,6 +41,7 @@ typedef enum
         PLY_RENDERER_TYPE_NONE = -1,
         PLY_RENDERER_TYPE_AUTO,
         PLY_RENDERER_TYPE_DRM,
+        PLY_RENDERER_TYPE_SIMPLEDRM,
         PLY_RENDERER_TYPE_FRAME_BUFFER,
         PLY_RENDERER_TYPE_X11
 } ply_renderer_type_t;
@@ -52,9 +53,11 @@ typedef void (*ply_renderer_input_source_handler_t) (void                       
 #ifndef PLY_HIDE_FUNCTION_DECLARATIONS
 ply_renderer_t *ply_renderer_new (ply_renderer_type_t renderer_type,
                                   const char         *device_name,
-                                  ply_terminal_t     *terminal);
+                                  ply_terminal_t     *terminal,
+                                  ply_terminal_t     *local_console_terminal);
 void ply_renderer_free (ply_renderer_t *renderer);
-bool ply_renderer_open (ply_renderer_t *renderer);
+bool ply_renderer_open (ply_renderer_t *renderer,
+                        bool            force);
 void ply_renderer_close (ply_renderer_t *renderer);
 /* Returns true when the heads have changed as a result of the change event */
 bool ply_renderer_handle_change_event (ply_renderer_t *renderer);
@@ -62,6 +65,7 @@ void ply_renderer_activate (ply_renderer_t *renderer);
 void ply_renderer_deactivate (ply_renderer_t *renderer);
 bool ply_renderer_is_active (ply_renderer_t *renderer);
 const char *ply_renderer_get_device_name (ply_renderer_t *renderer);
+ply_renderer_type_t ply_renderer_get_type (ply_renderer_t *renderer);
 ply_list_t *ply_renderer_get_heads (ply_renderer_t *renderer);
 ply_pixel_buffer_t *ply_renderer_get_buffer_for_head (ply_renderer_t      *renderer,
                                                       ply_renderer_head_t *head);

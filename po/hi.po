@@ -2,34 +2,37 @@
 # Copyright (C) 2022 plymouth's COPYRIGHT HOLDER
 # This file is distributed under the same license as the plymouth package.
 # Hemish <hemis04082005@gmail.com>, 2022.
-#
+# Scrambled 777 <weblate.scrambled777@simplelogin.com>, 2024.
 msgid ""
 msgstr ""
 "Project-Id-Version: plymouth main\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/plymouth/plymouth/"
 "issues\n"
 "POT-Creation-Date: 2020-07-08 14:59-0400\n"
-"PO-Revision-Date: 2020-07-08 14:59-0400\n"
-"Last-Translator: Hemish <hemish04082005@gmail.com>\n"
-"Language-Team: Hindi <indlinux-hindi@lists.sourceforge.net> https://indlinux.org/hindi\n"
+"PO-Revision-Date: 2024-05-10 17:36+0000\n"
+"Last-Translator: Scrambled 777 <weblate.scrambled777@simplelogin.com>\n"
+"Language-Team: Hindi <https://translate.fedoraproject.org/projects/plymouth/"
+"master/hi/>\n"
 "Language: hi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 5.5.2\n"
 
 #: src/plugins/splash/two-step/plugin.c:1727
 #, c-format
 msgid "%d%% complete"
-msgstr "%d%% पूरा हो चुका है"
+msgstr "%d%% पूर्ण"
 
 #: themes/bgrt/bgrt.plymouth.desktop:3
 msgid "BGRT"
-msgstr "BGRT (सिस्टम का लोगो)"
+msgstr "BGRT"
 
 #: themes/bgrt/bgrt.plymouth.desktop:44
 #: themes/spinner/spinner.plymouth.desktop:40
 msgid "Installing Updates..."
-msgstr "अपडेट स्थापित की जा रही हैं..."
+msgstr "अद्यतन स्थापित किये जा रहें हैं…"
 
 #: themes/bgrt/bgrt.plymouth.desktop:45 themes/bgrt/bgrt.plymouth.desktop:52
 #: themes/bgrt/bgrt.plymouth.desktop:59
@@ -37,17 +40,17 @@ msgstr "अपडेट स्थापित की जा रही हैं.
 #: themes/spinner/spinner.plymouth.desktop:48
 #: themes/spinner/spinner.plymouth.desktop:55
 msgid "Do not turn off your computer"
-msgstr "अपना कंप्यूटर बंद न करें"
+msgstr "अपना कम्प्यूटर बंद ना करें"
 
 #: themes/bgrt/bgrt.plymouth.desktop:51
 #: themes/spinner/spinner.plymouth.desktop:47
 msgid "Upgrading System..."
-msgstr "सिस्टम अपग्रेड किया जा रहा है..."
+msgstr "सिस्टम उन्नयन किया जा रहा है…"
 
 #: themes/bgrt/bgrt.plymouth.desktop:58
 #: themes/spinner/spinner.plymouth.desktop:54
 msgid "Upgrading Firmware..."
-msgstr "फ़र्मवेयर अपग्रेड किया जा रहा है..."
+msgstr "फर्मवेयर उन्नयन किया जा रहा है…"
 
 #: themes/spinner/spinner.plymouth.desktop:3
 msgid "Spinner"

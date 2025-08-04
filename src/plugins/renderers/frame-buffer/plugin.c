@@ -243,7 +243,8 @@ flush_area_to_xrgb32_device (ply_renderer_backend_t *backend,
 
 static ply_renderer_backend_t *
 create_backend (const char     *device_name,
-                ply_terminal_t *terminal)
+                ply_terminal_t *terminal,
+                ply_terminal_t *local_console_terminal)
 {
         ply_renderer_backend_t *backend;
 
@@ -420,7 +421,8 @@ static const char *get_visual_name (int visual)
 }
 
 static bool
-query_device (ply_renderer_backend_t *backend)
+query_device (ply_renderer_backend_t *backend,
+              bool                    force)
 {
         struct fb_var_screeninfo variable_screen_info;
         struct fb_fix_screeninfo fixed_screen_info;
@@ -742,7 +744,8 @@ watch_input_device (ply_renderer_backend_t *backend,
                                           (ply_input_device_leds_changed_handler_t) on_input_leds_changed,
                                           &backend->input_source);
 
-        ply_terminal_set_disabled_input (backend->terminal);
+        if (backend->terminal != NULL)
+                ply_terminal_set_disabled_input (backend->terminal);
 }
 
 static void
@@ -762,18 +765,16 @@ static bool
 open_input_source (ply_renderer_backend_t      *backend,
                    ply_renderer_input_source_t *input_source)
 {
-        int terminal_fd;
-
         assert (backend != NULL);
         assert (has_input_source (backend, input_source));
 
         if (!backend->input_source_is_open)
                 watch_input_devices (backend);
 
-        if (backend->terminal != NULL) {
-                terminal_fd = ply_terminal_get_fd (backend->terminal);
-
-                input_source->terminal_input_watch = ply_event_loop_watch_fd (backend->loop, terminal_fd, PLY_EVENT_LOOP_FD_STATUS_HAS_DATA,
+        if (backend->terminal != NULL && ply_terminal_get_fd (backend->terminal) >= 0) {
+                input_source->terminal_input_watch = ply_event_loop_watch_fd (backend->loop,
+                                                                              ply_terminal_get_fd (backend->terminal),
+                                                                              PLY_EVENT_LOOP_FD_STATUS_HAS_DATA,
                                                                               (ply_event_handler_t) on_terminal_key_event,
                                                                               (ply_event_handler_t)
                                                                               on_input_source_disconnected, input_source);
@@ -842,28 +843,11 @@ get_any_input_device (ply_renderer_backend_t *backend)
         return NULL;
 }
 
-static ply_input_device_t *
-get_any_input_device_with_leds (ply_renderer_backend_t *backend)
-{
-        ply_list_node_t *node;
-
-        ply_list_foreach (backend->input_source.input_devices, node) {
-                ply_input_device_t *input_device;
-
-                input_device = ply_list_node_get_data (node);
-
-                if (ply_input_device_is_keyboard_with_leds (input_device))
-                        return input_device;
-        }
-
-        return NULL;
-}
-
 static bool
 get_capslock_state (ply_renderer_backend_t *backend)
 {
         if (using_input_device (&backend->input_source)) {
-                ply_input_device_t *dev = get_any_input_device_with_leds (backend);
+                ply_input_device_t *dev = get_any_input_device (backend);
                 if (!dev)
                         return false;
 
@@ -902,7 +886,7 @@ sync_input_devices (ply_renderer_backend_t *backend)
         ply_xkb_keyboard_state_t *xkb_state;
         ply_input_device_t *source_input_device;
 
-        source_input_device = get_any_input_device_with_leds (backend);
+        source_input_device = get_any_input_device (backend);
 
         if (source_input_device == NULL)
                 return;

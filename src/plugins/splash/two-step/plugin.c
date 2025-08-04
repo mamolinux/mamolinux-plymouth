@@ -209,6 +209,7 @@ struct _ply_boot_splash_plugin
         uint32_t                            should_show_console_messages : 1;
         ply_buffer_t                       *boot_buffer;
         uint32_t                            console_text_color;
+        uint32_t                            console_background_color;
 };
 
 ply_boot_splash_plugin_interface_t *ply_boot_splash_plugin_get_interface (void);
@@ -1020,8 +1021,8 @@ view_show_prompt (view_t     *view,
         unsigned long screen_width, screen_height, entry_width, entry_height;
         unsigned long keyboard_indicator_width, keyboard_indicator_height;
         bool show_keyboard_indicators = false;
+        int x, y, prompt_len;
         long dialog_bottom;
-        int x, y;
 
         assert (view != NULL);
 
@@ -1075,13 +1076,26 @@ view_show_prompt (view_t     *view,
 
         dialog_bottom = view->dialog_area.y + view->dialog_area.height;
 
-        if (prompt != NULL) {
+        if (prompt != NULL && prompt[0]) {
+                char buf[128];
+
+                /* Strip ':' at end of prompt since we show it below the text-entry */
+                prompt_len = strlen (prompt);
+                if (prompt[prompt_len - 1] == ':' && prompt_len < sizeof(buf)) {
+                        strcpy (buf, prompt);
+                        buf[prompt_len - 1] = 0;
+                        prompt = buf;
+                }
+
                 ply_label_set_text (view->label, prompt);
 
                 /* We center the prompt in the middle and use 80% of the horizontal space */
                 int label_width = screen_width * 100 / 80;
                 ply_label_set_alignment (view->label, PLY_LABEL_ALIGN_CENTER);
                 ply_label_set_width (view->label, label_width);
+
+                /* Add 10 pixels padding between text-entry field and prompt */
+                dialog_bottom += 10;
 
                 x = (screen_width - label_width) / 2;
                 y = dialog_bottom;
@@ -1308,39 +1322,44 @@ create_plugin (ply_key_file_t *key_file)
 
 
         plugin->console_text_color =
-                ply_key_file_get_long (key_file, "two-step",
-                                       "ConsoleLogTextColor",
-                                       PLY_CONSOLE_VIEWER_LOG_TEXT_COLOR);
+                ply_key_file_get_ulong (key_file, "two-step",
+                                        "ConsoleLogTextColor",
+                                        PLY_CONSOLE_VIEWER_LOG_TEXT_COLOR);
+
+        plugin->console_background_color =
+                ply_key_file_get_ulong (key_file, "two-step",
+                                        "ConsoleLogBackgroundColor",
+                                        0x00000000);
 
         plugin->transition_duration =
                 ply_key_file_get_double (key_file, "two-step",
                                          "TransitionDuration", 0.0);
 
         plugin->background_start_color =
-                ply_key_file_get_long (key_file, "two-step",
-                                       "BackgroundStartColor",
-                                       PLYMOUTH_BACKGROUND_START_COLOR);
+                ply_key_file_get_ulong (key_file, "two-step",
+                                        "BackgroundStartColor",
+                                        PLYMOUTH_BACKGROUND_START_COLOR);
         plugin->background_end_color =
-                ply_key_file_get_long (key_file, "two-step",
-                                       "BackgroundEndColor",
-                                       PLYMOUTH_BACKGROUND_END_COLOR);
+                ply_key_file_get_ulong (key_file, "two-step",
+                                        "BackgroundEndColor",
+                                        PLYMOUTH_BACKGROUND_END_COLOR);
 
         plugin->progress_bar_bg_color =
-                ply_key_file_get_long (key_file, "two-step",
-                                       "ProgressBarBackgroundColor",
-                                       0xffffff /* white */);
+                ply_key_file_get_ulong (key_file, "two-step",
+                                        "ProgressBarBackgroundColor",
+                                        0xffffff /* white */);
         plugin->progress_bar_fg_color =
-                ply_key_file_get_long (key_file, "two-step",
-                                       "ProgressBarForegroundColor",
-                                       0x000000 /* black */);
+                ply_key_file_get_ulong (key_file, "two-step",
+                                        "ProgressBarForegroundColor",
+                                        0x000000 /* black */);
         plugin->progress_bar_width =
-                ply_key_file_get_long (key_file, "two-step",
-                                       "ProgressBarWidth",
-                                       PROGRESS_BAR_WIDTH);
+                ply_key_file_get_ulong (key_file, "two-step",
+                                        "ProgressBarWidth",
+                                        PROGRESS_BAR_WIDTH);
         plugin->progress_bar_height =
-                ply_key_file_get_long (key_file, "two-step",
-                                       "ProgressBarHeight",
-                                       PROGRESS_BAR_HEIGHT);
+                ply_key_file_get_ulong (key_file, "two-step",
+                                        "ProgressBarHeight",
+                                        PROGRESS_BAR_HEIGHT);
 
         load_mode_settings (plugin, key_file, "boot-up", PLY_BOOT_SPLASH_MODE_BOOT_UP);
         load_mode_settings (plugin, key_file, "shutdown", PLY_BOOT_SPLASH_MODE_SHUTDOWN);
@@ -1642,10 +1661,6 @@ draw_background (view_t             *view,
             using_fw_background && plugin->dialog_clears_firmware_background)
                 use_black_background = true;
 
-        if (plugin->should_show_console_messages) {
-                use_black_background = true;
-        }
-
         if (use_black_background)
                 ply_pixel_buffer_fill_with_hex_color (pixel_buffer, &area, 0);
         else if (view->background_buffer != NULL)
@@ -1658,8 +1673,10 @@ draw_background (view_t             *view,
                 ply_pixel_buffer_fill_with_hex_color (pixel_buffer, &area,
                                                       plugin->background_start_color);
 
-        if (plugin->should_show_console_messages)
+        if (plugin->should_show_console_messages && use_black_background == false) {
+                ply_pixel_buffer_fill_with_hex_color (pixel_buffer, &area, plugin->console_background_color);
                 return;
+        }
 
         if (plugin->watermark_image != NULL) {
                 uint32_t *data;

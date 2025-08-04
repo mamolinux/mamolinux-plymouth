@@ -11,10 +11,10 @@ yet, as this breaks booting without an initramfs.
  1 file changed, 1 insertion(+), 10 deletions(-)
 
 diff --git a/src/main.c b/src/main.c
-index 8258e00..82319a8 100644
+index 1386266..c4ce050 100644
 --- a/src/main.c
 +++ b/src/main.c
-@@ -1902,6 +1902,7 @@ attach_to_running_session (state_t *state)
+@@ -1942,6 +1942,7 @@ attach_to_running_session (state_t *state)
                  session = ply_terminal_session_new (NULL);
  
                  ply_terminal_session_attach_to_event_loop (session, state->loop);
@@ -22,7 +22,7 @@ index 8258e00..82319a8 100644
          } else {
                  session = state->session;
                  ply_trace ("session already created");
-@@ -1913,12 +1914,6 @@ attach_to_running_session (state_t *state)
+@@ -1953,12 +1954,6 @@ attach_to_running_session (state_t *state)
                                            (ply_terminal_session_hangup_handler_t)
                                            (should_be_redirected ? on_session_hangup : NULL),
                                            -1, state)) {
@@ -35,7 +35,7 @@ index 8258e00..82319a8 100644
                  state->is_redirected = false;
                  state->is_attached = false;
                  return false;
-@@ -1942,7 +1937,6 @@ attach_to_running_session (state_t *state)
+@@ -1982,7 +1977,6 @@ attach_to_running_session (state_t *state)
  
          state->is_redirected = should_be_redirected;
          state->is_attached = true;
@@ -43,7 +43,7 @@ index 8258e00..82319a8 100644
  
          return true;
  }
-@@ -2532,9 +2526,6 @@ main (int    argc,
+@@ -2572,9 +2566,6 @@ main (int    argc,
                  state.should_be_attached = attach_to_session;
                  if (!attach_to_running_session (&state)) {
                          ply_trace ("could not redirect console session: %m");

@@ -112,6 +112,8 @@ char **ply_copy_string_array (const char *const *array);
 void ply_free_string_array (char **array);
 bool ply_string_has_prefix (const char *str,
                             const char *prefix);
+bool ply_string_has_suffix (const char *str,
+                            const char *suffix);
 double ply_get_timestamp (void);
 
 void ply_save_errno (void);
@@ -167,7 +169,9 @@ int ply_get_device_scale (uint32_t width,
                           uint32_t height_mm);
 
 int ply_guess_device_scale (uint32_t width,
-                            uint32_t height);
+                            uint32_t height,
+                            uint32_t width_mm,
+                            uint32_t height_mm);
 
 void ply_get_kmsg_log_levels (int *current_log_level,
                               int *default_log_level);
@@ -176,6 +180,10 @@ const char *ply_kernel_command_line_get_string_after_prefix (const char *prefix)
 bool ply_kernel_command_line_has_argument (const char *argument);
 void ply_kernel_command_line_override (const char *command_line);
 char *ply_kernel_command_line_get_key_value (const char *key);
+unsigned long ply_kernel_command_line_get_ulong (const char   *key,
+                                                 unsigned long default_value);
+
+char *ply_get_primary_kernel_console_type (void);
 
 double ply_strtod (const char *str);
 

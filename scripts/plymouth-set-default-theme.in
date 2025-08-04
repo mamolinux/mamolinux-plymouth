@@ -42,25 +42,116 @@ function list_themes ()
         done
 }
 
-function read_theme_name_from_file ()
+function read_or_set_file_ini_value ()
 {
-        echo $(grep -v '^#' $1 2> /dev/null |
-               awk '
-                     BEGIN {
-                        RS="[[][[:blank:]]*[^[:space:]]+[:blank:]*[]\n]";
-                        FS="[=[:space:]]+";
-                        OFS="";
-                        ORS=""
-                     }
-                     $1 ~/Theme/ { print $2 }
-               ')
+        CONFIG_FILE_PATH="$1"
+        CONFIG_FILE_INI_SEGMENT="$2"
+        CONFIG_FILE_VALUE_NAME="$3"
+        CONFIG_FILE_VALUE_NEW_VALUE="$4"
+
+        unset CONFIG_FILE_LINES_ARRAY
+
+        if [[ ! -e "$CONFIG_FILE_PATH" && ! -z $CONFIG_FILE_VALUE_NEW_VALUE ]]; then
+                echo > "$CONFIG_FILE_PATH"
+        else
+                if [[ ! -e "$CONFIG_FILE_PATH" ]]; then
+                        return
+                fi
+        fi
+
+        #read the config file
+        CONFIG_FILE_ARRAY=$(<"$CONFIG_FILE_PATH")
+
+        #Convert the file data to an array
+        readarray -t CONFIG_FILE_ARRAY <<< "$CONFIG_FILE_ARRAY"
+
+        #Build the initial array for the NeedsFile list
+        CONFIG_FILE_LINES_ARRAY=()
+
+        #Handle all the valid lines in the file
+        PARSE_INI_SEGMENT=0
+
+        INI_SEGMENT_LINE_NUMBER=0
+        CONFIG_VALUE_LINE_NUMBER=0
+
+        CONFIG_FILE_LINE_COUNT=${#CONFIG_FILE_ARRAY[@]}
+
+        for (( CONFIG_FILE_LINE_NUMBER=0 ; CONFIG_FILE_LINE_NUMBER < $CONFIG_FILE_LINE_COUNT ; CONFIG_FILE_LINE_NUMBER++ )); do
+                CONFIG_FILE_LINE=${CONFIG_FILE_ARRAY[$CONFIG_FILE_LINE_NUMBER]}
+
+                #Remove whitespace
+                CONFIG_FILE_LINE="${CONFIG_FILE_LINE##*( )}"
+                CONFIG_FILE_LINE="${CONFIG_FILE_LINE%%*( )}"
+
+                #Remove comments
+                CONFIG_FILE_LINE=${CONFIG_FILE_LINE%%#*}
+
+                if [[ $PARSE_INI_SEGMENT == 1 && $CONFIG_FILE_LINE =~ ^[[:space:]]*"[" ]]; then
+                        PARSE_INI_SEGMENT=0
+                fi
+
+                if [[ $CONFIG_FILE_LINE == "[$CONFIG_FILE_INI_SEGMENT]" ]]; then
+                        if [[ $INI_SEGMENT_LINE_NUMBER == 0 ]]; then
+                                INI_SEGMENT_LINE_NUMBER=$(( CONFIG_FILE_LINE_NUMBER + 1 ))
+                        fi
+                        PARSE_INI_SEGMENT=1
+                        continue
+                fi
+                if [[ $PARSE_INI_SEGMENT == 0 ]]; then
+                        continue
+                fi
+
+                KEY_NAME=""
+                KEY_VALUE=""
+
+                CONFIG_FILE_LINE_LAST_CHAR=${CONFIG_FILE_LINE:$((${#CONFIG_FILE_LINE} -1 )):1}
+                IFS="="
+                CONFIG_FILE_LINE=($CONFIG_FILE_LINE)
+                unset IFS
+
+                KEY_NAME=${CONFIG_FILE_LINE[0]}
+                KEY_NAME="${KEY_NAME##*( )}"
+                KEY_NAME="${KEY_NAME%%*( )}"
+
+                KEY_VALUE=${CONFIG_FILE_LINE[1]}
+                KEY_VALUE="${KEY_VALUE##*( )}"
+                KEY_VALUE="${KEY_VALUE%%*( )}"
+
+                if [[ "$KEY_NAME" == "$CONFIG_FILE_VALUE_NAME" ]]; then
+                        if [[ $CONFIG_VALUE_LINE_NUMBER == 0 ]]; then
+                                CONFIG_VALUE_LINE_NUMBER=$(( CONFIG_FILE_LINE_NUMBER + 1 ))
+                        fi
+
+                        if [[ -z "$CONFIG_FILE_VALUE_NEW_VALUE" ]]; then
+                                echo "$KEY_VALUE"
+                                break
+                        fi
+                fi
+
+        done
+
+        if [[ ! -z $CONFIG_FILE_VALUE_NEW_VALUE ]]; then
+                if [[ $INI_SEGMENT_LINE_NUMBER == 0 ]]; then
+                        INI_SEGMENT_LINE_NUMBER=1
+                        sed -i "$INI_SEGMENT_LINE_NUMBER i [$CONFIG_FILE_INI_SEGMENT]" "$CONFIG_FILE_PATH"
+                fi
+
+                if [[ $CONFIG_VALUE_LINE_NUMBER == 0 ]]; then
+                        CONFIG_FILE_LINE_COUNT=$(( $INI_SEGMENT_LINE_NUMBER + 1 ))
+                        sed -i "$CONFIG_FILE_LINE_COUNT i $CONFIG_FILE_VALUE_NAME=$CONFIG_FILE_VALUE_NEW_VALUE" "$CONFIG_FILE_PATH"
+                else
+                        sed -ie "${CONFIG_VALUE_LINE_NUMBER}s/.*/$CONFIG_FILE_VALUE_NAME=$CONFIG_FILE_VALUE_NEW_VALUE/" "$CONFIG_FILE_PATH"
+                fi
+        fi
+
+        unset CONFIG_FILE_ARRAY
 }
 
 function get_default_theme ()
 {
-        THEME_NAME=$(read_theme_name_from_file ${PLYMOUTH_CONFDIR}/plymouthd.conf)
+        THEME_NAME=$(read_or_set_file_ini_value ${PLYMOUTH_CONFDIR}/plymouthd.conf Daemon Theme)
         if [ -z "$THEME_NAME" -o ! -r "${PLYMOUTH_DATADIR}/plymouth/themes/$THEME_NAME/$THEME_NAME.plymouth" ]; then
-                THEME_NAME=$(read_theme_name_from_file ${PLYMOUTH_POLICYDIR}/plymouthd.defaults)
+                THEME_NAME=$(read_or_set_file_ini_value ${PLYMOUTH_POLICYDIR}/plymouthd.defaults Daemon Theme)
         fi
 
         if [ -z "$THEME_NAME" -o ! -r "${PLYMOUTH_DATADIR}/plymouth/themes/$THEME_NAME/$THEME_NAME.plymouth" \
@@ -215,9 +306,7 @@ fi
 [ -L ${PLYMOUTH_DATADIR}/plymouth/themes/default.plymouth ] && rm -f ${PLYMOUTH_DATADIR}/plymouth/themes/default.plymouth
 
 [ -d ${PLYMOUTH_CONFDIR} ] || mkdir -p ${PLYMOUTH_CONFDIR}
-grep -q '^[[]Daemon[]]' ${PLYMOUTH_CONFDIR}/plymouthd.conf 2> /dev/null || echo '[Daemon]' >> ${PLYMOUTH_CONFDIR}/plymouthd.conf
-sed -i -e '/^Theme[[:blank:]]*=.*/d' ${PLYMOUTH_CONFDIR}/plymouthd.conf
-sed -i -e "s/^\([[]Daemon[]]\)\n*/\1\nTheme=${THEME_NAME}/" ${PLYMOUTH_CONFDIR}/plymouthd.conf
+read_or_set_file_ini_value ${PLYMOUTH_CONFDIR}/plymouthd.conf Daemon Theme ${THEME_NAME}
 
 [ $DO_INITRD_REBUILD -ne 0 ] && (${PLYMOUTH_LIBEXECDIR}/plymouth/plymouth-update-initrd)
 exit 0

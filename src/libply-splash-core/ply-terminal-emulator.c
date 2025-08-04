@@ -822,13 +822,11 @@ on_control_sequence_set_attributes (ply_terminal_emulator_t *terminal_emulator,
                 case PLY_TERMINAL_ATTRIBUTE_BOLD:
                         terminal_emulator->current_style.bold_enabled = true;
                         break;
-                case PLY_TERMINAL_ATTRIBUTE_NO_BOLD:
-                        terminal_emulator->current_style.bold_enabled = false;
-                        break;
                 case PLY_TERMINAL_ATTRIBUTE_DIM:
                         terminal_emulator->current_style.dim_enabled = true;
                         break;
-                case PLY_TERMINAL_ATTRIBUTE_NO_DIM:
+                case PLY_TERMINAL_ATTRIBUTE_NO_BOLD_OR_DIM:
+                        terminal_emulator->current_style.bold_enabled = false;
                         terminal_emulator->current_style.dim_enabled = false;
                         break;
                 case PLY_TERMINAL_ATTRIBUTE_ITALIC:

@@ -61,7 +61,7 @@ ply_keymap_normalize_keymap (const char *keymap_with_variant)
         int i, length;
 
         /* Special case for dvorak layouts */
-        if (strstr (keymap_with_variant, "dvorak"))
+        if (strcasestr (keymap_with_variant, "dvorak"))
                 return strdup ("dvorak");
 
         /* Check for and skip sun / mac prefixes */
@@ -114,8 +114,10 @@ ply_keymap_icon_fill_keymap_info (ply_keymap_icon_t *keymap_icon)
                 }
         }
 
-        if (keymap_icon->keymap_offset == -1)
+        if (keymap_icon->keymap_offset == -1) {
                 ply_trace ("Warning: no pre-rendered text for '%s' keymap", keymap_without_variant);
+                keymap_icon->keymap_name = strdup (keymap_without_variant);
+        }
 
         free (keymap_without_variant);
 }

@@ -21,6 +21,7 @@
  * Written by: Charlie Brej <cbrej@cs.man.ac.uk>
  *             Ray Strode <rstrode@redhat.com>
  */
+#include "config.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -68,27 +69,41 @@
 #define FRAMES_PER_SECOND 50
 #endif
 
+typedef enum
+{
+        PLY_BOOT_SPLASH_DISPLAY_NORMAL,
+        PLY_BOOT_SPLASH_DISPLAY_QUESTION_ENTRY,
+        PLY_BOOT_SPLASH_DISPLAY_PASSWORD_ENTRY
+} ply_boot_splash_display_type_t;
+
 struct _ply_boot_splash_plugin
 {
-        ply_event_loop_t           *loop;
-        ply_boot_splash_mode_t      mode;
-        ply_list_t                 *displays;
-        ply_keyboard_t             *keyboard;
+        ply_event_loop_t              *loop;
+        ply_boot_splash_mode_t         mode;
+        ply_list_t                    *displays;
+        ply_keyboard_t                *keyboard;
 
-        char                       *script_filename;
-        char                       *image_dir;
+        ply_boot_splash_display_type_t state;
+        char                          *script_filename;
+        char                          *image_dir;
 
-        ply_list_t                 *script_env_vars;
-        script_op_t                *script_main_op;
+        ply_list_t                    *script_env_vars;
+        script_op_t                   *script_main_op;
 
-        script_state_t             *script_state;
-        script_lib_sprite_data_t   *script_sprite_lib;
-        script_lib_image_data_t    *script_image_lib;
-        script_lib_plymouth_data_t *script_plymouth_lib;
-        script_lib_math_data_t     *script_math_lib;
-        script_lib_string_data_t   *script_string_lib;
+        script_state_t                *script_state;
+        script_lib_sprite_data_t      *script_sprite_lib;
+        script_lib_image_data_t       *script_image_lib;
+        script_lib_plymouth_data_t    *script_plymouth_lib;
+        script_lib_math_data_t        *script_math_lib;
+        script_lib_string_data_t      *script_string_lib;
 
-        uint32_t                    is_animating : 1;
+        uint32_t                       is_animating : 1;
+
+        char                          *monospace_font;
+        uint32_t                       should_show_console_messages : 1;
+        ply_buffer_t                  *boot_buffer;
+        uint32_t                       console_text_color;
+        uint32_t                       console_background_color;
 };
 
 typedef struct
@@ -103,6 +118,37 @@ ply_boot_splash_plugin_interface_t *ply_boot_splash_plugin_get_interface (void);
 static void on_keyboard_input (ply_boot_splash_plugin_t *plugin,
                                const char               *keyboard_input,
                                size_t                    character_size);
+static void on_boot_output (ply_boot_splash_plugin_t *plugin,
+                            const char               *output,
+                            size_t                    size);
+static void toggle_console_messages (ply_boot_splash_plugin_t *plugin);
+static void display_console_messages (ply_boot_splash_plugin_t *plugin);
+static void hide_console_messages (ply_boot_splash_plugin_t *plugin);
+static void unhide_console_messages (ply_boot_splash_plugin_t *plugin);
+
+static void
+show_prompt_on_console_viewer (ply_boot_splash_plugin_t *plugin,
+                               const char               *prompt,
+                               const char               *entry_text,
+                               int                       number_of_bullets)
+{
+        if (plugin->state == PLY_BOOT_SPLASH_DISPLAY_NORMAL)
+                script_lib_sprite_console_viewer_print (plugin->script_sprite_lib, "\n");
+
+        script_lib_sprite_console_viewer_clear_line (plugin->script_sprite_lib);
+
+        script_lib_sprite_console_viewer_print (plugin->script_sprite_lib, prompt);
+
+        script_lib_sprite_console_viewer_print (plugin->script_sprite_lib, ": ");
+        if (entry_text)
+                script_lib_sprite_console_viewer_print (plugin->script_sprite_lib, "%s", entry_text);
+
+        for (int i = 0; i < number_of_bullets; i++) {
+                script_lib_sprite_console_viewer_print (plugin->script_sprite_lib, " ");
+        }
+
+        script_lib_sprite_console_viewer_print (plugin->script_sprite_lib, "_");
+}
 
 static void
 pause_displays (ply_boot_splash_plugin_t *plugin)
@@ -175,10 +221,29 @@ create_plugin (ply_key_file_t *key_file)
                                                           "script",
                                                           "ScriptFile");
 
+        plugin->state = PLY_BOOT_SPLASH_DISPLAY_NORMAL;
+
         plugin->script_env_vars = ply_list_new ();
         ply_key_file_foreach_entry (key_file, add_script_env_var, plugin->script_env_vars);
 
+        /* Likely only able to set the font if the font is in the initrd */
+        plugin->monospace_font = ply_key_file_get_value (key_file, "script", "MonospaceFont");
+
+        if (plugin->monospace_font == NULL)
+                plugin->monospace_font = strdup ("monospace 10");
+
+        plugin->console_text_color =
+                ply_key_file_get_ulong (key_file, "script",
+                                        "ConsoleLogTextColor",
+                                        PLY_CONSOLE_VIEWER_LOG_TEXT_COLOR);
+
+        plugin->console_background_color =
+                ply_key_file_get_ulong (key_file, "script",
+                                        "ConsoleLogBackgroundColor",
+                                        0x00000000);
+
         plugin->displays = ply_list_new ();
+
         return plugin;
 }
 
@@ -193,6 +258,7 @@ destroy_plugin (ply_boot_splash_plugin_t *plugin)
 
         if (plugin->loop != NULL) {
                 stop_animation (plugin);
+
                 ply_event_loop_stop_watching_for_exit (plugin->loop,
                                                        (ply_event_loop_exit_handler_t)
                                                        detach_from_event_loop,
@@ -211,6 +277,7 @@ destroy_plugin (ply_boot_splash_plugin_t *plugin)
         ply_list_free (plugin->script_env_vars);
         free (plugin->script_filename);
         free (plugin->image_dir);
+        free (plugin->monospace_font);
         free (plugin);
 }
 
@@ -229,6 +296,7 @@ on_timeout (ply_boot_splash_plugin_t *plugin)
                                         plugin->script_plymouth_lib);
 
         pause_displays (plugin);
+        script_lib_sprite_set_needs_redraw (plugin->script_sprite_lib);
         script_lib_sprite_refresh (plugin->script_sprite_lib);
         unpause_displays (plugin);
 }
@@ -269,7 +337,11 @@ start_script_animation (ply_boot_splash_plugin_t *plugin)
         plugin->script_image_lib = script_lib_image_setup (plugin->script_state,
                                                            plugin->image_dir);
         plugin->script_sprite_lib = script_lib_sprite_setup (plugin->script_state,
-                                                             plugin->displays);
+                                                             plugin->displays,
+                                                             plugin->boot_buffer,
+                                                             plugin->monospace_font,
+                                                             plugin->console_text_color,
+                                                             plugin->console_background_color);
         plugin->script_plymouth_lib = script_lib_plymouth_setup (plugin->script_state,
                                                                  plugin->mode,
                                                                  FRAMES_PER_SECOND,
@@ -427,9 +499,14 @@ show_splash_screen (ply_boot_splash_plugin_t *plugin,
         plugin->loop = loop;
         plugin->mode = mode;
 
+        if (boot_buffer && ply_console_viewer_preferred ())
+                plugin->boot_buffer = boot_buffer;
+
         ply_event_loop_watch_for_exit (loop, (ply_event_loop_exit_handler_t)
                                        detach_from_event_loop,
                                        plugin);
+
+        plugin->should_show_console_messages = false;
 
         ply_trace ("starting boot animation");
         return start_animation (plugin);
@@ -488,8 +565,20 @@ static void
 display_normal (ply_boot_splash_plugin_t *plugin)
 {
         pause_displays (plugin);
+
+        if (plugin->state != PLY_BOOT_SPLASH_DISPLAY_NORMAL) {
+                if (plugin->state == PLY_BOOT_SPLASH_DISPLAY_PASSWORD_ENTRY)
+                        script_lib_sprite_console_viewer_clear_line (plugin->script_sprite_lib);
+
+                script_lib_sprite_console_viewer_print (plugin->script_sprite_lib, "\n");
+        }
+
         script_lib_plymouth_on_display_normal (plugin->script_state,
                                                plugin->script_plymouth_lib);
+
+        script_lib_update_displays (plugin->script_sprite_lib);
+        script_lib_sprite_refresh (plugin->script_sprite_lib);
+        plugin->state = PLY_BOOT_SPLASH_DISPLAY_NORMAL;
         unpause_displays (plugin);
 }
 
@@ -498,11 +587,15 @@ display_password (ply_boot_splash_plugin_t *plugin,
                   const char               *prompt,
                   int                       bullets)
 {
+        plugin->state = PLY_BOOT_SPLASH_DISPLAY_PASSWORD_ENTRY;
         pause_displays (plugin);
+        show_prompt_on_console_viewer (plugin, prompt, NULL, bullets);
         script_lib_plymouth_on_display_password (plugin->script_state,
                                                  plugin->script_plymouth_lib,
                                                  prompt,
                                                  bullets);
+        script_lib_update_displays (plugin->script_sprite_lib);
+        script_lib_sprite_refresh (plugin->script_sprite_lib);
         unpause_displays (plugin);
 }
 
@@ -511,11 +604,15 @@ display_question (ply_boot_splash_plugin_t *plugin,
                   const char               *prompt,
                   const char               *entry_text)
 {
+        plugin->state = PLY_BOOT_SPLASH_DISPLAY_QUESTION_ENTRY;
         pause_displays (plugin);
+        show_prompt_on_console_viewer (plugin, prompt, entry_text, -1);
         script_lib_plymouth_on_display_question (plugin->script_state,
                                                  plugin->script_plymouth_lib,
                                                  prompt,
                                                  entry_text);
+        script_lib_update_displays (plugin->script_sprite_lib);
+        script_lib_sprite_refresh (plugin->script_sprite_lib);
         unpause_displays (plugin);
 }
 
@@ -524,10 +621,19 @@ validate_input (ply_boot_splash_plugin_t *plugin,
                 const char               *entry_text,
                 const char               *add_text)
 {
-        return script_lib_plymouth_on_validate_input (plugin->script_state,
-                                                      plugin->script_plymouth_lib,
-                                                      entry_text,
-                                                      add_text);
+        bool ret = script_lib_plymouth_on_validate_input (plugin->script_state,
+                                                          plugin->script_plymouth_lib,
+                                                          entry_text,
+                                                          add_text);
+        if (!ply_console_viewer_preferred ())
+                return true;
+
+        if (strcmp (add_text, "\e") == 0) {
+                toggle_console_messages (plugin);
+                return false;
+        }
+
+        return ret;
 }
 
 static void
@@ -542,6 +648,8 @@ display_prompt (ply_boot_splash_plugin_t *plugin,
                                                prompt,
                                                entry_text,
                                                is_secret);
+        script_lib_update_displays (plugin->script_sprite_lib);
+        script_lib_sprite_refresh (plugin->script_sprite_lib);
         unpause_displays (plugin);
 }
 
@@ -553,6 +661,10 @@ display_message (ply_boot_splash_plugin_t *plugin,
         script_lib_plymouth_on_display_message (plugin->script_state,
                                                 plugin->script_plymouth_lib,
                                                 message);
+        script_lib_sprite_console_viewer_print (plugin->script_sprite_lib,
+                                                message);
+        script_lib_update_displays (plugin->script_sprite_lib);
+        script_lib_sprite_refresh (plugin->script_sprite_lib);
         unpause_displays (plugin);
 }
 
@@ -564,7 +676,69 @@ hide_message (ply_boot_splash_plugin_t *plugin,
         script_lib_plymouth_on_hide_message (plugin->script_state,
                                              plugin->script_plymouth_lib,
                                              message);
+        script_lib_update_displays (plugin->script_sprite_lib);
+        script_lib_sprite_refresh (plugin->script_sprite_lib);
         unpause_displays (plugin);
+}
+
+static void
+toggle_console_messages (ply_boot_splash_plugin_t *plugin)
+{
+        if (plugin->should_show_console_messages) {
+                plugin->should_show_console_messages = false;
+                hide_console_messages (plugin);
+        } else {
+                unhide_console_messages (plugin);
+        }
+}
+
+static void
+display_console_messages (ply_boot_splash_plugin_t *plugin)
+{
+        pause_displays (plugin);
+        script_lib_sprite_console_viewer_show (plugin->script_sprite_lib);
+        unpause_displays (plugin);
+}
+
+static void
+unhide_console_messages (ply_boot_splash_plugin_t *plugin)
+{
+        plugin->should_show_console_messages = true;
+        display_console_messages (plugin);
+}
+
+static void
+hide_console_messages (ply_boot_splash_plugin_t *plugin)
+{
+        plugin->should_show_console_messages = false;
+        script_lib_sprite_console_viewer_hide (plugin->script_sprite_lib);
+}
+
+static void
+on_boot_output (ply_boot_splash_plugin_t *plugin,
+                const char               *output,
+                size_t                    size)
+{
+        ply_list_t *displays;
+        ply_list_node_t *node;
+
+        if (!ply_console_viewer_preferred ())
+                return;
+
+        displays = script_lib_get_displays (plugin->script_sprite_lib);
+        node = ply_list_get_first_node (displays);
+        while (node != NULL) {
+                script_lib_display_t *display;
+                ply_list_node_t *next_node;
+
+                display = ply_list_node_get_data (node);
+                next_node = ply_list_get_next_node (displays, node);
+
+                if (display->console_viewer != NULL)
+                        ply_console_viewer_write (display->console_viewer, output, size);
+
+                node = next_node;
+        }
 }
 
 ply_boot_splash_plugin_interface_t *
@@ -591,6 +765,7 @@ ply_boot_splash_plugin_get_interface (void)
                 .display_prompt       = display_prompt,
                 .display_message      = display_message,
                 .hide_message         = hide_message,
+                .on_boot_output       = on_boot_output,
                 .validate_input       = validate_input,
         };
 

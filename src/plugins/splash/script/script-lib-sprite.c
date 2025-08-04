@@ -19,12 +19,14 @@
  *
  * Written by: Charlie Brej <cbrej@cs.man.ac.uk>
  */
+#include "config.h"
 #include "ply-image.h"
 #include "ply-utils.h"
 #include "ply-logger.h"
 #include "ply-key-file.h"
 #include "ply-pixel-buffer.h"
 #include "ply-pixel-display.h"
+#include "ply-console-viewer.h"
 #include "script.h"
 #include "script-parse.h"
 #include "script-execute.h"
@@ -448,6 +450,10 @@ static void script_lib_draw_brackground (ply_pixel_buffer_t       *pixel_buffer,
                                                      data->background_color_start,
                                                      data->background_color_end);
         }
+
+        if (data->should_show_console_messages)
+                ply_pixel_buffer_fill_with_hex_color (pixel_buffer, clip_area, data->console_background_color);
+
 }
 
 static void script_lib_sprite_draw_area (script_lib_display_t *display,
@@ -467,6 +473,11 @@ static void script_lib_sprite_draw_area (script_lib_display_t *display,
         clip_area.width = width;
         clip_area.height = height;
 
+        if (data->plugin_console_messages_updating == false && display->console_viewer != NULL && data->should_show_console_messages == true) {
+                script_lib_draw_brackground (pixel_buffer, &clip_area, data);
+                ply_console_viewer_draw_area (display->console_viewer, pixel_buffer, x, y, width, height);
+                return;
+        }
 
         node = ply_list_get_first_node (data->sprite_list);
         if (node == NULL)
@@ -509,6 +520,7 @@ static void script_lib_sprite_draw_area (script_lib_display_t *display,
 
                 if ((position_x + (int) ply_pixel_buffer_get_width (sprite->image)) <= x) continue;
                 if ((position_y + (int) ply_pixel_buffer_get_height (sprite->image)) <= y) continue;
+
                 ply_pixel_buffer_fill_with_buffer_at_opacity_with_clip (pixel_buffer,
                                                                         sprite->image,
                                                                         position_x,
@@ -579,11 +591,27 @@ add_display (script_lib_sprite_data_t *data,
                                             (ply_pixel_display_draw_handler_t)
                                             script_lib_sprite_draw_area, script_display);
 
+        if (ply_console_viewer_preferred ()) {
+                script_display->console_viewer = ply_console_viewer_new (script_display->pixel_display, data->monospace_font);
+                ply_console_viewer_set_text_color (script_display->console_viewer, data->console_text_color);
+
+                if (data->boot_buffer)
+                        ply_console_viewer_convert_boot_buffer (script_display->console_viewer, data->boot_buffer);
+        } else {
+                script_display->console_viewer = NULL;
+        }
+
         ply_list_append_data (data->displays, script_display);
+        data->full_refresh = true;
+        update_displays (data);
 }
 
 script_lib_sprite_data_t *script_lib_sprite_setup (script_state_t *state,
-                                                   ply_list_t     *pixel_displays)
+                                                   ply_list_t     *pixel_displays,
+                                                   ply_buffer_t   *boot_buffer,
+                                                   char           *monospace_font,
+                                                   uint32_t        console_text_color,
+                                                   uint32_t        console_background_color)
 {
         ply_list_node_t *node;
         script_lib_sprite_data_t *data = malloc (sizeof(script_lib_sprite_data_t));
@@ -591,6 +619,11 @@ script_lib_sprite_data_t *script_lib_sprite_setup (script_state_t *state,
         data->class = script_obj_native_class_new (sprite_free, "sprite", data);
         data->sprite_list = ply_list_new ();
         data->displays = ply_list_new ();
+
+        data->boot_buffer = boot_buffer;
+        data->monospace_font = monospace_font;
+        data->console_text_color = console_text_color;
+        data->console_background_color = console_background_color;
 
         for (node = ply_list_get_first_node (pixel_displays);
              node;
@@ -733,7 +766,12 @@ script_lib_sprite_data_t *script_lib_sprite_setup (script_state_t *state,
         data->background_color_start = 0x000000;
         data->background_color_end = 0x000000;
         data->full_refresh = true;
+        data->needs_redraw = true;
         script_return_t ret = script_execute (state, data->script_main_op);
+
+        data->should_show_console_messages = false;
+        data->plugin_console_messages_updating = false;
+        data->console_viewer_needs_redraw = false;
 
         script_obj_unref (ret.object);
         return data;
@@ -800,6 +838,12 @@ void script_lib_sprite_pixel_display_removed (script_lib_sprite_data_t *data,
 }
 
 void
+script_lib_sprite_set_needs_redraw (script_lib_sprite_data_t *data)
+{
+        data->needs_redraw = true;
+}
+
+void
 script_lib_sprite_refresh (script_lib_sprite_data_t *data)
 {
         ply_list_node_t *node;
@@ -809,11 +853,15 @@ script_lib_sprite_refresh (script_lib_sprite_data_t *data)
         if (!data)
                 return;
 
+        if (!data->needs_redraw)
+                return;
+
         region = ply_region_new ();
 
         ply_list_sort_stable (data->sprite_list, &sprite_compare_z);
 
         if (data->full_refresh) {
+                data->console_viewer_needs_redraw = true;
                 for (node = ply_list_get_first_node (data->displays);
                      node;
                      node = ply_list_get_next_node (data->displays, node)) {
@@ -851,6 +899,9 @@ script_lib_sprite_refresh (script_lib_sprite_data_t *data)
         for (node = ply_list_get_first_node (data->sprite_list);
              node;
              node = ply_list_get_next_node (data->sprite_list, node)) {
+                if (data->should_show_console_messages)
+                        break;
+
                 sprite_t *sprite = ply_list_node_get_data (node);
                 if (!sprite->image) continue;
                 if ((sprite->x != sprite->old_x)
@@ -894,6 +945,21 @@ script_lib_sprite_refresh (script_lib_sprite_data_t *data)
                            rectangle->height);
         }
 
+        if (data->console_viewer_needs_redraw == true) {
+                for (node = ply_list_get_first_node (data->displays);
+                     node;
+                     node = ply_list_get_next_node (data->displays, node)) {
+                        script_lib_display_t *display = ply_list_node_get_data (node);
+                        if (data->should_show_console_messages == true) {
+                                ply_console_viewer_show (display->console_viewer, display->pixel_display);
+                        } else {
+                                ply_console_viewer_hide (display->console_viewer);
+                        }
+                }
+                data->console_viewer_needs_redraw = false;
+        }
+
+        data->needs_redraw = false;
         ply_region_free (region);
 }
 
@@ -905,6 +971,10 @@ void script_lib_sprite_destroy (script_lib_sprite_data_t *data)
              node;
              node = ply_list_get_next_node (data->displays, node)) {
                 script_lib_display_t *display = ply_list_node_get_data (node);
+
+                if (display->console_viewer)
+                        ply_console_viewer_free (display->console_viewer);
+
                 ply_pixel_display_set_draw_handler (display->pixel_display, NULL, NULL);
         }
 
@@ -925,4 +995,102 @@ void script_lib_sprite_destroy (script_lib_sprite_data_t *data)
         script_obj_native_class_destroy (data->class);
         free (data);
         data = NULL;
+}
+
+void
+script_lib_update_displays (script_lib_sprite_data_t *data)
+{
+        update_displays (data);
+}
+
+ply_list_t *
+script_lib_get_displays (script_lib_sprite_data_t *data)
+{
+        return data->displays;
+}
+
+void
+script_lib_sprite_console_viewer_print (script_lib_sprite_data_t *data,
+                                        const char               *format,
+                                        ...)
+{
+        va_list arguments;
+        char *buffer = NULL;
+        int length;
+        ply_list_node_t *node;
+
+        if (format == NULL)
+                return;
+
+        va_start (arguments, format);
+        length = vsnprintf (NULL, 0, format, arguments);
+        if (length > 0)
+                buffer = calloc (1, length + 1);
+        va_end (arguments);
+
+        if (buffer == NULL)
+                return;
+
+        va_start (arguments, format);
+        vsnprintf (buffer, length + 1, format, arguments);
+
+        node = ply_list_get_first_node (data->displays);
+        while (node != NULL) {
+                script_lib_display_t *display;
+                ply_list_node_t *next_node;
+
+                display = ply_list_node_get_data (node);
+                next_node = ply_list_get_next_node (data->displays, node);
+
+                if (display->console_viewer != NULL)
+                        ply_console_viewer_print (display->console_viewer, buffer);
+
+                node = next_node;
+        }
+
+        va_end (arguments);
+        free (buffer);
+}
+
+void
+script_lib_sprite_console_viewer_clear_line (script_lib_sprite_data_t *data)
+{
+        ply_list_node_t *node;
+
+        node = ply_list_get_first_node (data->displays);
+        while (node != NULL) {
+                script_lib_display_t *display;
+                ply_list_node_t *next_node;
+
+                display = ply_list_node_get_data (node);
+                next_node = ply_list_get_next_node (data->displays, node);
+
+                if (display->console_viewer != NULL)
+                        ply_console_viewer_clear_line (display->console_viewer);
+
+                node = next_node;
+        }
+}
+
+void
+script_lib_sprite_console_viewer_show (script_lib_sprite_data_t *data)
+{
+        data->should_show_console_messages = true;
+
+        data->full_refresh = true;
+
+
+        script_lib_sprite_set_needs_redraw (data);
+        script_lib_sprite_refresh (data);
+}
+
+void
+script_lib_sprite_console_viewer_hide (script_lib_sprite_data_t *data)
+{
+        data->should_show_console_messages = false;
+
+        data->full_refresh = true;
+
+        script_lib_sprite_set_needs_redraw (data);
+        script_lib_sprite_refresh (data);
 }

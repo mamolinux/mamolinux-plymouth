@@ -76,7 +76,7 @@ handle_kmsg_message (ply_kmsg_reader_t *kmsg_reader,
 
         bytes_read = read (fd, read_buffer, sizeof(read_buffer) - 1);
         if (bytes_read > 0) {
-                ply_terminal_style_attributes_t bold_enabled = PLY_TERMINAL_ATTRIBUTE_NO_BOLD;
+                bool bold_enabled = false;
                 ply_terminal_color_t color = PLY_TERMINAL_ATTRIBUTE_FOREGROUND_COLOR_OFFSET + PLY_TERMINAL_COLOR_DEFAULT;
                 char *fields, *field_prefix, *field_sequence, *field_timestamp, *message, *message_substr, *msgptr, *saveptr, *format_begin, *new_message;
                 int prefix, priority, facility;
@@ -86,10 +86,13 @@ handle_kmsg_message (ply_kmsg_reader_t *kmsg_reader,
 
                 fields = strtok_r (read_buffer, ";", &message);
 
-                /* Messages end in \n, any following lines are machine readable. Actual multiline messages are expanded with unhexmangle_to_buffer */
+                /* While most messages end with \n, we may receive multipart messages (e.g. when pr_cont() is used in kernel code). Actual multiline messages are expanded with unhexmangle_to_buffer */
                 msgptr = strchr (message, '\n');
-                if (*msgptr && *msgptr != '\n')
+                if (msgptr == NULL) {
+                        msgptr = read_buffer + bytes_read - 1;
+                } else if (*msgptr && *msgptr != '\n') {
                         msgptr--;
+                }
 
                 unhexmangle_to_buffer (message, (char *) message, msgptr - message + 1);
 
@@ -113,7 +116,7 @@ handle_kmsg_message (ply_kmsg_reader_t *kmsg_reader,
                         return 0;
 
                 if (priority < LOG_ALERT)
-                        bold_enabled = PLY_TERMINAL_ATTRIBUTE_BOLD;
+                        bold_enabled = true;
 
                 switch (priority) {
                 case LOG_EMERG:
@@ -129,7 +132,7 @@ handle_kmsg_message (ply_kmsg_reader_t *kmsg_reader,
                         color = PLY_TERMINAL_ATTRIBUTE_FOREGROUND_COLOR_OFFSET + PLY_TERMINAL_COLOR_GREEN;
                         break;
                 }
-                asprintf (&format_begin, "\033[0;%i;%im", bold_enabled, color);
+                asprintf (&format_begin, bold_enabled ? "\033[0;1;%im" : "\033[0;%im", color);
 
                 message_substr = strtok_r (message, "\n", &saveptr);
                 while (message_substr != NULL) {
@@ -203,6 +206,8 @@ ply_kmsg_reader_start (ply_kmsg_reader_t *kmsg_reader)
         kmsg_reader->kmsg_fd = open ("/dev/kmsg", O_RDWR | O_NONBLOCK);
         if (kmsg_reader->kmsg_fd < 0)
                 return;
+
+        lseek (kmsg_reader->kmsg_fd, 0, SEEK_END);
 
         kmsg_reader->fd_watch = ply_event_loop_watch_fd (ply_event_loop_get_default (), kmsg_reader->kmsg_fd, PLY_EVENT_LOOP_FD_STATUS_HAS_DATA,
                                                          (ply_event_handler_t) handle_kmsg_message,

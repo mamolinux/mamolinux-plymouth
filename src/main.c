@@ -101,6 +101,8 @@ typedef struct
         double                  start_time;
         double                  splash_delay;
         double                  device_timeout;
+        int                     device_scale;
+        int                     use_simpledrm;
 
         uint32_t                no_boot_log : 1;
         uint32_t                showing_details : 1;
@@ -328,7 +330,6 @@ load_settings (state_t    *state,
 {
         ply_key_file_t *key_file = NULL;
         bool settings_loaded = false;
-        char *scale_string = NULL;
         char *splash_string = NULL;
 
         ply_trace ("Trying to load %s", path);
@@ -357,11 +358,33 @@ load_settings (state_t    *state,
                 ply_trace ("Device timeout is set to %lf", state->device_timeout);
         }
 
-        scale_string = ply_key_file_get_value (key_file, "Daemon", "DeviceScale");
+        if (state->device_scale == -1)
+                state->device_scale = ply_key_file_get_ulong (key_file, "Daemon", "DeviceScale", -1);
 
-        if (scale_string != NULL) {
-                ply_set_device_scale (strtoul (scale_string, NULL, 0));
-                free (scale_string);
+        if (state->use_simpledrm == -1)
+                state->use_simpledrm = ply_key_file_get_ulong (key_file, "Daemon", "UseSimpledrm", -1);
+
+        /*
+         * Check the special UseSimpledrmNoLuks config file keyword this enables
+         * simpledrm use except when using LUKS. Showing the LUKS unlock screen
+         * using simpledrm has 2 problems:
+         * 1. If the GPU drivers are built into the initrd then typically the
+         *    unlock screen will briefly show and then the screen goes black
+         *    while the native GPU driver loads leading to a jarring experience.
+         * 2. The i915 driver uses the firmware framebuffer as fallback when
+         *    userspace has not installed a fb to scan out from. This happens
+         *    e.g. on logout between the user-session and the display-manager.
+         *    Drawing the unlock screen on the simpledrm fb results in it briefly
+         *    showing when logging out, which looks quite ugly. Also see:
+         *    https://bugzilla.redhat.com/show_bug.cgi?id=2359283
+         */
+        if (state->use_simpledrm == -1) {
+                state->use_simpledrm = ply_key_file_get_ulong (key_file, "Daemon", "UseSimpledrmNoLuks", -1);
+                if (state->use_simpledrm != -1 &&
+                    ply_kernel_command_line_get_string_after_prefix ("rd.luks.uuid=")) {
+                        ply_trace ("Ignoring UseSimpledrmNoLuks because of LUKS use");
+                        state->use_simpledrm = -1;
+                }
         }
 
         settings_loaded = true;
@@ -422,17 +445,19 @@ find_override_splash (state_t *state)
                 if (delay_string != NULL)
                         state->splash_delay = ply_strtod (delay_string);
         }
-}
 
-static void
-find_force_scale (state_t *state)
-{
-        const char *scale_string;
+        if (state->device_scale == -1)
+                state->device_scale = ply_kernel_command_line_get_ulong ("plymouth.force-scale=", -1);
 
-        scale_string = ply_kernel_command_line_get_string_after_prefix ("plymouth.force-scale=");
+        if (state->use_simpledrm == -1)
+                state->use_simpledrm = ply_kernel_command_line_get_ulong ("plymouth.use-simpledrm=", -1);
 
-        if (scale_string != NULL)
-                ply_set_device_scale (strtoul (scale_string, NULL, 0));
+        if (state->use_simpledrm == -1) {
+                if (ply_kernel_command_line_has_argument ("plymouth.use-simpledrm"))
+                        state->use_simpledrm = 1;
+                else if (ply_kernel_command_line_has_argument ("nomodeset"))
+                        state->use_simpledrm = 2;
+        }
 }
 
 static void
@@ -908,6 +933,19 @@ sh_is_init (state_t *state)
 }
 
 static bool
+kernel_console_is_ttynull (void)
+{
+        char *kernel_console = ply_get_primary_kernel_console_type ();
+
+        /* If the primary console is ttynull, the kernel console is virtual.
+         */
+        if (strcmp (kernel_console, "ttynull") == 0)
+                return true;
+
+        return false;
+}
+
+static bool
 plymouth_should_show_default_splash (state_t *state)
 {
         ply_trace ("checking if plymouth should show default splash");
@@ -948,7 +986,7 @@ plymouth_should_show_default_splash (state_t *state)
         }
 
         if (state->should_force_default_splash) {
-                ply_trace ("using default splash because kernel command line has option \"plymouth.graphical\"");
+                ply_trace ("using default splash because forced by \"plymouth.graphical\" or no active kernel console");
                 return true;
         }
 
@@ -1246,10 +1284,8 @@ hide_splash (state_t *state)
 
         cancel_pending_delayed_show (state);
 
-        if (state->boot_splash == NULL)
-                return;
-
-        ply_boot_splash_hide (state->boot_splash);
+        if (state->boot_splash != NULL)
+                ply_boot_splash_hide (state->boot_splash);
 
         if (state->local_console_terminal != NULL) {
                 ply_terminal_set_mode (state->local_console_terminal, PLY_TERMINAL_MODE_TEXT);
@@ -1482,6 +1518,10 @@ on_quit (state_t       *state,
                         state->splash_is_becoming_idle = true;
                 }
         } else {
+                if (!state->should_retain_splash) {
+                        hide_splash (state);
+                }
+                quit_splash (state);
                 quit_program (state);
         }
 }
@@ -2475,7 +2515,7 @@ main (int    argc,
         signal (SIGSEGV, on_crash);
         signal (SIGFPE, on_crash);
 
-        if (graphical_boot || ply_kernel_command_line_has_argument ("plymouth.graphical")) {
+        if (graphical_boot || ply_kernel_command_line_has_argument ("plymouth.graphical") || kernel_console_is_ttynull ()) {
                 state.should_force_default_splash = true;
                 ignore_serial_consoles = true;
         }
@@ -2532,6 +2572,8 @@ main (int    argc,
         state.progress = ply_progress_new ();
         state.splash_delay = NAN;
         state.device_timeout = NAN;
+        state.device_scale = -1;
+        state.use_simpledrm = -1;
 
         ply_progress_load_cache (state.progress,
                                  get_cache_file_for_mode (state.mode));
@@ -2576,7 +2618,14 @@ main (int    argc,
                 state.splash_delay = NAN;
         }
 
-        find_force_scale (&state);
+        if (state.device_scale != -1)
+                ply_set_device_scale (state.device_scale);
+
+        if (state.use_simpledrm >= 1)
+                device_manager_flags |= PLY_DEVICE_MANAGER_FLAGS_USE_SIMPLEDRM;
+
+        if (state.use_simpledrm >= 2)
+                device_manager_flags |= PLY_DEVICE_MANAGER_FLAGS_FORCE_OPEN;
 
         load_devices (&state, device_manager_flags);
 

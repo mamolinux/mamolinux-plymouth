@@ -190,6 +190,7 @@ libply-splash-core.so.5 libplymouth5 #MINVER#
  ply_renderer_get_input_source@Base 0.9.2
  ply_renderer_get_keymap@Base 0.9.4git20200109
  ply_renderer_get_panel_properties@Base 0.9.4git20190712
+ ply_renderer_get_type@Base 24.004.60+git20250714
  ply_renderer_handle_change_event@Base 0.9.4git20190712
  ply_renderer_is_active@Base 0.9.3
  ply_renderer_new@Base 0.9.2
@@ -482,6 +483,7 @@ libply.so.5 libplymouth5 #MINVER#
  ply_get_credentials_from_fd@Base 0.9.2
  ply_get_device_scale@Base 0.9.3
  ply_get_kmsg_log_levels@Base 23.360.11
+ ply_get_primary_kernel_console_type@Base 24.004.60+git20250714
  ply_get_process_command_line@Base 0.9.2
  ply_get_process_parent_pid@Base 0.9.2
  ply_get_random_number@Base 23.360.11
@@ -503,13 +505,14 @@ libply.so.5 libplymouth5 #MINVER#
  ply_is_secure_boot_enabled@Base 23.360.11
  ply_kernel_command_line_get_key_value@Base 0.9.4git20200109
  ply_kernel_command_line_get_string_after_prefix@Base 0.9.4
+ ply_kernel_command_line_get_ulong@Base 24.004.60+git20250714
  ply_kernel_command_line_has_argument@Base 0.9.4
  ply_kernel_command_line_override@Base 0.9.4
  ply_key_file_foreach_entry@Base 0.9.2
  ply_key_file_free@Base 0.9.2
  ply_key_file_get_bool@Base 0.9.4git20190712
  ply_key_file_get_double@Base 0.9.4git20200109
- ply_key_file_get_long@Base 0.9.4git20200109
+ ply_key_file_get_ulong@Base 24.004.60+git20250714
  ply_key_file_get_value@Base 0.9.2
  ply_key_file_has_key@Base 0.9.2
  ply_key_file_load@Base 0.9.2
@@ -567,6 +570,7 @@ libply.so.5 libplymouth5 #MINVER#
  ply_progress_status_update@Base 0.9.2
  ply_progress_unpause@Base 0.9.2
  ply_read@Base 0.9.2
+ ply_read_some_bytes@Base 24.004.60-2ubuntu8~
  ply_read_uint32@Base 0.9.2
  ply_rectangle_contains_point@Base 0.9.2
  ply_rectangle_find_overlap@Base 0.9.2
@@ -584,6 +588,7 @@ libply.so.5 libplymouth5 #MINVER#
  ply_set_fd_as_blocking@Base 0.9.3
  ply_show_new_kernel_messages@Base 0.9.2
  ply_string_has_prefix@Base 23.360.11
+ ply_string_has_suffix@Base 24.004.60+git20250714
  ply_strtod@Base 0.9.4git20190712
  ply_terminal_session_attach@Base 0.9.2
  ply_terminal_session_attach_to_event_loop@Base 0.9.2

@@ -40,12 +40,11 @@ typedef enum
         PLY_TERMINAL_ATTRIBUTE_DIM,
         PLY_TERMINAL_ATTRIBUTE_ITALIC,
         PLY_TERMINAL_ATTRIBUTE_UNDERLINE,
-        PLY_TERMINAL_ATTRIBUTE_REVERSE    = 7,
-        PLY_TERMINAL_ATTRIBUTE_NO_BOLD    = 21,
-        PLY_TERMINAL_ATTRIBUTE_NO_DIM,
+        PLY_TERMINAL_ATTRIBUTE_REVERSE        = 7,
+        PLY_TERMINAL_ATTRIBUTE_NO_BOLD_OR_DIM = 22,
         PLY_TERMINAL_ATTRIBUTE_NO_ITALIC,
         PLY_TERMINAL_ATTRIBUTE_NO_UNDERLINE,
-        PLY_TERMINAL_ATTRIBUTE_NO_REVERSE = 27
+        PLY_TERMINAL_ATTRIBUTE_NO_REVERSE     = 27
 } ply_terminal_style_attributes_t;
 
 typedef void (*ply_terminal_emulator_output_handler_t) (void       *user_data,

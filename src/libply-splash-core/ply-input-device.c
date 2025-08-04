@@ -119,6 +119,9 @@ apply_key_to_input_buffer (ply_input_device_t *input_device,
                            int                 keycode,
                            ply_buffer_t       *input_buffer)
 {
+        xkb_mod_index_t control_mask = (UINT32_C (1) << xkb_keymap_mod_get_index (input_device->keymap, XKB_MOD_NAME_CTRL));
+        xkb_mod_index_t alt_mask = (UINT32_C (1) << xkb_keymap_mod_get_index (input_device->keymap, XKB_MOD_NAME_ALT));
+
         ssize_t character_size;
         bool was_compose_sequence;
 
@@ -141,6 +144,13 @@ apply_key_to_input_buffer (ply_input_device_t *input_device,
         case XKB_KEY_NoSymbol:
                 break;
         default:
+                if (symbol == XKB_KEY_Delete) {
+                        xkb_mod_mask_t mods_depressed = xkb_state_serialize_mods (input_device->keyboard_state, XKB_STATE_DEPRESSED);
+                        if (mods_depressed == (control_mask | alt_mask)) {
+                                kill (1, SIGINT);
+                        }
+                }
+
                 character_size = xkb_state_key_get_utf8 (input_device->keyboard_state, keycode, NULL, 0);
 
                 if (character_size > 0) {
@@ -240,6 +250,8 @@ on_input (ply_input_device_t *input_device)
                         key_state = PLY_KEY_HELD;
                         xkb_key_direction = XKB_KEY_UP;
                         break;
+                default:
+                        continue;
                 }
 
                 /* According to
