@@ -51,6 +51,7 @@ struct _ply_renderer
         ply_renderer_type_t                    type;
         char                                  *device_name;
         ply_terminal_t                        *terminal;
+        ply_terminal_t                        *local_console_terminal;
 
         uint32_t                               input_source_is_open : 1;
         uint32_t                               is_mapped : 1;
@@ -65,7 +66,8 @@ static void ply_renderer_unload_plugin (ply_renderer_t *renderer);
 ply_renderer_t *
 ply_renderer_new (ply_renderer_type_t renderer_type,
                   const char         *device_name,
-                  ply_terminal_t     *terminal)
+                  ply_terminal_t     *terminal,
+                  ply_terminal_t     *local_console_terminal)
 {
         ply_renderer_t *renderer;
 
@@ -77,6 +79,7 @@ ply_renderer_new (ply_renderer_type_t renderer_type,
                 renderer->device_name = strdup (device_name);
 
         renderer->terminal = terminal;
+        renderer->local_console_terminal = local_console_terminal;
 
         return renderer;
 }
@@ -100,6 +103,12 @@ const char *
 ply_renderer_get_device_name (ply_renderer_t *renderer)
 {
         return renderer->device_name;
+}
+
+ply_renderer_type_t
+ply_renderer_get_type (ply_renderer_t *renderer)
+{
+        return renderer->type;
 }
 
 static bool
@@ -142,7 +151,8 @@ ply_renderer_load_plugin (ply_renderer_t *renderer,
         }
 
         renderer->backend = renderer->plugin_interface->create_backend (renderer->device_name,
-                                                                        renderer->terminal);
+                                                                        renderer->terminal,
+                                                                        renderer->local_console_terminal);
 
         if (renderer->backend == NULL) {
                 ply_save_errno ();
@@ -193,12 +203,13 @@ ply_renderer_close_device (ply_renderer_t *renderer)
 }
 
 static bool
-ply_renderer_query_device (ply_renderer_t *renderer)
+ply_renderer_query_device (ply_renderer_t *renderer,
+                           bool            force)
 {
         assert (renderer != NULL);
         assert (renderer->plugin_interface != NULL);
 
-        return renderer->plugin_interface->query_device (renderer->backend);
+        return renderer->plugin_interface->query_device (renderer->backend, force);
 }
 
 static bool
@@ -230,7 +241,8 @@ ply_renderer_unmap_from_device (ply_renderer_t *renderer)
 
 static bool
 ply_renderer_open_plugin (ply_renderer_t *renderer,
-                          const char     *plugin_path)
+                          const char     *plugin_path,
+                          bool            force)
 {
         ply_trace ("trying to open renderer plugin %s", plugin_path);
 
@@ -244,7 +256,7 @@ ply_renderer_open_plugin (ply_renderer_t *renderer,
                 return false;
         }
 
-        if (!ply_renderer_query_device (renderer)) {
+        if (!ply_renderer_query_device (renderer, force)) {
                 ply_trace ("could not query rendering device for plugin %s",
                            plugin_path);
                 ply_renderer_close_device (renderer);
@@ -257,7 +269,8 @@ ply_renderer_open_plugin (ply_renderer_t *renderer,
 }
 
 bool
-ply_renderer_open (ply_renderer_t *renderer)
+ply_renderer_open (ply_renderer_t *renderer,
+                   bool            force)
 {
         int i;
 
@@ -269,6 +282,7 @@ ply_renderer_open (ply_renderer_t *renderer)
         {
                 { PLY_RENDERER_TYPE_X11,          PLYMOUTH_PLUGIN_PATH "renderers/x11.so"          },
                 { PLY_RENDERER_TYPE_DRM,          PLYMOUTH_PLUGIN_PATH "renderers/drm.so"          },
+                { PLY_RENDERER_TYPE_SIMPLEDRM,    PLYMOUTH_PLUGIN_PATH "renderers/drm.so"          },
                 { PLY_RENDERER_TYPE_FRAME_BUFFER, PLYMOUTH_PLUGIN_PATH "renderers/frame-buffer.so" },
                 { PLY_RENDERER_TYPE_NONE,         NULL                                             }
         };
@@ -277,7 +291,7 @@ ply_renderer_open (ply_renderer_t *renderer)
         for (i = 0; known_plugins[i].type != PLY_RENDERER_TYPE_NONE; i++) {
                 if (renderer->type == known_plugins[i].type ||
                     renderer->type == PLY_RENDERER_TYPE_AUTO) {
-                        if (ply_renderer_open_plugin (renderer, known_plugins[i].path)) {
+                        if (ply_renderer_open_plugin (renderer, known_plugins[i].path, force)) {
                                 renderer->is_active = true;
                                 goto out;
                         }

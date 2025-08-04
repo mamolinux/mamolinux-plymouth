@@ -1,5 +1,5 @@
 project('plymouth', 'c',
-  meson_version: '>= 0.61',
+  meson_version: '>= 0.62',
   version: run_command(['scripts/generate-version.sh'], check: true).stdout().strip(),
 )
 

@@ -11,7 +11,7 @@ Bug-Ubuntu: https://launchpad.net/bugs/2114116
  1 file changed, 7 insertions(+)
 
 diff --git a/src/libply/ply-utils.c b/src/libply/ply-utils.c
-index 0ab3e5d..79b15f3 100644
+index a80a146..7524b3c 100644
 --- a/src/libply/ply-utils.c
 +++ b/src/libply/ply-utils.c
 @@ -27,6 +27,7 @@
@@ -22,7 +22,7 @@ index 0ab3e5d..79b15f3 100644
  #include <limits.h>
  #include <locale.h>
  #include <math.h>
-@@ -219,6 +220,12 @@ ply_listen_to_unix_socket (const char            *path,
+@@ -223,6 +224,12 @@ ply_listen_to_unix_socket (const char            *path,
  
          address = create_unix_address_from_path (path, type, &address_size);
  

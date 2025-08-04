@@ -5,6 +5,7 @@ ModuleName=two-step
 
 [two-step]
 ScaleBackgroundImage=false
+ConsoleLogBackgroundColor=0x00000000
 ImageDir=@PLYMOUTH_THEME_PATH@/spinfinity
 BackgroundStartColor=0x0073b3
 BackgroundEndColor=0x00457e

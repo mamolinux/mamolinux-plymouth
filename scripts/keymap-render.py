@@ -26,7 +26,7 @@ def get_keymaps():
                 # on machines returning "us" for both is not useful.
                 # Presumably users using dvorak now which variant they use
                 # so we just describe all dvorak layouts as "dvorak".
-                if "dvorak" in keymap:
+                if "dvorak" in keymap.lower():
                         return "dvorak"
 
                 # mac / sun keymaps are prefixes with mac / sun / sun[4-6]t

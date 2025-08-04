@@ -211,6 +211,7 @@ struct _ply_boot_splash_plugin
         uint32_t                       should_show_console_messages : 1;
         ply_buffer_t                  *boot_buffer;
         uint32_t                       console_text_color;
+        uint32_t                       console_background_color;
 };
 
 ply_boot_splash_plugin_interface_t *ply_boot_splash_plugin_get_interface (void);
@@ -627,15 +628,20 @@ create_plugin (ply_key_file_t *key_file)
         plugin->should_show_console_messages = false;
 
         /* Likely only able to set the font if the font is in the initrd */
-        plugin->monospace_font = ply_key_file_get_value (key_file, "two-step", "MonospaceFont");
+        plugin->monospace_font = ply_key_file_get_value (key_file, "space-flares", "MonospaceFont");
 
         if (plugin->monospace_font == NULL)
                 plugin->monospace_font = strdup ("monospace 10");
 
         plugin->console_text_color =
-                ply_key_file_get_long (key_file, "two-step",
-                                       "ConsoleLogTextColor",
-                                       PLY_CONSOLE_VIEWER_LOG_TEXT_COLOR);
+                ply_key_file_get_ulong (key_file, "space-flares",
+                                        "ConsoleLogTextColor",
+                                        PLY_CONSOLE_VIEWER_LOG_TEXT_COLOR);
+
+        plugin->console_background_color =
+                ply_key_file_get_ulong (key_file, "space-flares",
+                                        "ConsoleLogBackgroundColor",
+                                        0x00000000);
 
         plugin->state = PLY_BOOT_SPLASH_DISPLAY_NORMAL;
         plugin->progress = 0;
@@ -1478,14 +1484,17 @@ draw_background (view_t             *view,
         image_area.width = ply_image_get_width (view->scaled_background_image);
         image_area.height = ply_image_get_height (view->scaled_background_image);
 
-        if (plugin->should_show_console_messages) {
-                ply_pixel_buffer_fill_with_hex_color (pixel_buffer, &area, 0);
-                return;
-        }
-
         ply_pixel_buffer_fill_with_argb32_data_with_clip (pixel_buffer,
                                                           &image_area, &area,
                                                           ply_image_get_data (view->scaled_background_image));
+
+        if (plugin->should_show_console_messages) {
+                ply_pixel_buffer_fill_with_hex_color (pixel_buffer, &area, plugin->console_background_color);
+                return;
+        }
+
+        if (plugin->should_show_console_messages)
+                return;
 
         image_area.x = image_area.width - ply_image_get_width (plugin->star_image);
         image_area.y = image_area.height - ply_image_get_height (plugin->star_image);

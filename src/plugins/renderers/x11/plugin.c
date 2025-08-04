@@ -115,7 +115,8 @@ static gboolean on_key_event (GtkWidget   *widget,
 
 static ply_renderer_backend_t *
 create_backend (const char     *device_name,
-                ply_terminal_t *terminal)
+                ply_terminal_t *terminal,
+                ply_terminal_t *local_console_terminal)
 {
         ply_renderer_backend_t *backend;
 
@@ -284,7 +285,8 @@ create_fullscreen_single_head_setup (ply_renderer_backend_t *backend)
 }
 
 static bool
-query_device (ply_renderer_backend_t *backend)
+query_device (ply_renderer_backend_t *backend,
+              bool                    force)
 {
         assert (backend != NULL);
 

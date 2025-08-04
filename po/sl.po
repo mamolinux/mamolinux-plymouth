@@ -1,25 +1,29 @@
-# hsu zangmen <chzang55@gmail.com>, 2025.
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Plymouth contributors
+# This file is distributed under the same license as the plymouth package.
+# Martin Srebotnjak <miles@filmsi.net>, 2024.
 msgid ""
 msgstr ""
 "Project-Id-Version: plymouth 0.9.5\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/plymouth/plymouth/"
 "issues\n"
 "POT-Creation-Date: 2020-07-08 14:59-0400\n"
-"PO-Revision-Date: 2025-06-01 02:58+0000\n"
-"Last-Translator: hsu zangmen <chzang55@gmail.com>\n"
-"Language-Team: Chinese (Traditional) <https://translate.fedoraproject.org/"
-"projects/plymouth/master/zh_TW/>\n"
-"Language: zh_TW\n"
+"PO-Revision-Date: 2024-04-29 05:40+0000\n"
+"Last-Translator: Martin Srebotnjak <miles@filmsi.net>\n"
+"Language-Team: Slovenian <https://translate.fedoraproject.org/projects/"
+"plymouth/master/sl/>\n"
+"Language: sl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.11.4\n"
+"Plural-Forms: nplurals=4; plural=n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || "
+"n%100==4 ? 2 : 3;\n"
+"X-Generator: Weblate 5.5.2\n"
 
 #: src/plugins/splash/two-step/plugin.c:1727
 #, c-format
 msgid "%d%% complete"
-msgstr "目前的進度 %d%%"
+msgstr "%d%% dokončano"
 
 #: themes/bgrt/bgrt.plymouth.desktop:3
 msgid "BGRT"
@@ -28,7 +32,7 @@ msgstr "BGRT"
 #: themes/bgrt/bgrt.plymouth.desktop:44
 #: themes/spinner/spinner.plymouth.desktop:40
 msgid "Installing Updates..."
-msgstr "正在安裝更新……"
+msgstr "Nameščanje posodobitev ..."
 
 #: themes/bgrt/bgrt.plymouth.desktop:45 themes/bgrt/bgrt.plymouth.desktop:52
 #: themes/bgrt/bgrt.plymouth.desktop:59
@@ -36,18 +40,18 @@ msgstr "正在安裝更新……"
 #: themes/spinner/spinner.plymouth.desktop:48
 #: themes/spinner/spinner.plymouth.desktop:55
 msgid "Do not turn off your computer"
-msgstr "請不要關機"
+msgstr "Ne izključite računalnika"
 
 #: themes/bgrt/bgrt.plymouth.desktop:51
 #: themes/spinner/spinner.plymouth.desktop:47
 msgid "Upgrading System..."
-msgstr "正在升級系統……"
+msgstr "Nadgradnja sistema ..."
 
 #: themes/bgrt/bgrt.plymouth.desktop:58
 #: themes/spinner/spinner.plymouth.desktop:54
 msgid "Upgrading Firmware..."
-msgstr "正在升級韌體..."
+msgstr "Nadgradnja strojno programske opreme ..."
 
 #: themes/spinner/spinner.plymouth.desktop:3
 msgid "Spinner"
-msgstr "輪轉選單"
+msgstr "Vrtavka"

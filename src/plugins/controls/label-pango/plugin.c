@@ -551,10 +551,6 @@ set_rich_text_for_control (ply_label_plugin_control_t *label,
                         }
                 }
 
-                /* Default to a black background when none is set so bright text is readable on bright backgrounds */
-                if (background_color == PLY_TERMINAL_COLOR_DEFAULT)
-                        background_color = PLY_TERMINAL_COLOR_BLACK;
-
                 look_up_rgb_color_from_terminal_color (foreground_color,
                                                        &foreground_red,
                                                        &foreground_green,

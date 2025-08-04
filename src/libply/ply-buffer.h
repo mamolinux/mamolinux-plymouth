@@ -57,10 +57,14 @@ size_t ply_buffer_get_capacity (ply_buffer_t *buffer);
 char *ply_buffer_steal_bytes (ply_buffer_t *buffer);
 #define ply_buffer_borrow_bytes(buffer, bytes, size, capacity)                 \
         for (bool _ran = false;                                                \
-             !_ran && (*bytes = (char *) ply_buffer_get_bytes (buffer),        \
-                       *size = ply_buffer_get_size (buffer),                   \
-                       *capacity = ply_buffer_get_capacity (buffer)),          \
-             !_ran;                                                            \
+             ({                                                                \
+                      if (!_ran) {                                             \
+                              *bytes = (char *) ply_buffer_get_bytes (buffer); \
+                              *size = ply_buffer_get_size (buffer);            \
+                              *capacity = ply_buffer_get_capacity (buffer);    \
+                      }                                                        \
+                      !_ran;                                                   \
+             });                                                               \
              ply_buffer_set_bytes (buffer, *bytes, *size, *capacity),          \
              _ran = true,                                                      \
              *bytes = NULL,                                                    \

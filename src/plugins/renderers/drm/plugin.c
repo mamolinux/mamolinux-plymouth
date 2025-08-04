@@ -138,6 +138,7 @@ struct _ply_renderer_backend
 {
         ply_event_loop_t           *loop;
         ply_terminal_t             *terminal;
+        ply_terminal_t             *local_console_terminal;
 
         int                         device_fd;
         bool                        simpledrm;
@@ -880,7 +881,8 @@ free_heads (ply_renderer_backend_t *backend)
 
 static ply_renderer_backend_t *
 create_backend (const char     *device_name,
-                ply_terminal_t *terminal)
+                ply_terminal_t *terminal,
+                ply_terminal_t *local_console_terminal)
 {
         ply_renderer_backend_t *backend;
 
@@ -900,6 +902,7 @@ create_backend (const char     *device_name,
         backend->input_source.key_buffer = ply_buffer_new ();
         backend->input_source.input_devices = ply_list_new ();
         backend->terminal = terminal;
+        backend->local_console_terminal = local_console_terminal;
         backend->requires_explicit_flushing = true;
         backend->output_buffers = ply_hashtable_new (ply_hashtable_direct_hash,
                                                      ply_hashtable_direct_compare);
@@ -1231,7 +1234,9 @@ get_output_info (ply_renderer_backend_t *backend,
         output->mode = *mode;
 
         if (backend->simpledrm)
-                output->device_scale = ply_guess_device_scale (mode->hdisplay, mode->vdisplay);
+                output->device_scale = ply_guess_device_scale (mode->hdisplay, mode->vdisplay,
+                                                               connector->mmWidth,
+                                                               connector->mmHeight);
         else
                 output->device_scale = ply_get_device_scale (mode->hdisplay, mode->vdisplay,
                                                              (!has_90_rotation) ? connector->mmWidth : connector->mmHeight,
@@ -1391,12 +1396,37 @@ check_if_output_has_changed (ply_renderer_backend_t *backend,
         return true;
 }
 
+/* Sometimes the EFI firmware sets up the framebuffer at 800x600 or 1024x768
+ * instead of the native panel resolution. In this case it is better to wait
+ * for the native driver to load, so we return false from query_device ().
+ */
+static bool
+check_simpledrm_resolution (ply_renderer_backend_t *backend,
+                            ply_output_t           *output)
+{
+        if (!backend->simpledrm)
+                return true;
+
+        if (!output->connected)
+                return true;
+
+        if ((output->mode.hdisplay == 800 && output->mode.vdisplay == 600) ||
+            (output->mode.hdisplay == 1024 && output->mode.vdisplay == 768)) {
+                ply_trace ("Skipping simpledrm device with mode %dx%d",
+                           output->mode.hdisplay, output->mode.vdisplay);
+                return false;
+        }
+
+        return true;
+}
+
 /* Update our outputs array to match the hardware state and
  * create and/or remove heads as necessary.
  * Returns true if any heads were modified.
  */
 static bool
 create_heads_for_active_connectors (ply_renderer_backend_t *backend,
+                                    bool                    force,
                                     bool                    change)
 {
         int i, j, number_of_setup_outputs, outputs_len;
@@ -1419,6 +1449,11 @@ create_heads_for_active_connectors (ply_renderer_backend_t *backend,
         backend->connected_count = 0;
         for (i = 0; i < outputs_len; i++) {
                 get_output_info (backend, backend->resources->connectors[i], &outputs[i]);
+
+                if (!force && !check_simpledrm_resolution (backend, &outputs[i])) {
+                        free (outputs);
+                        return false;
+                }
 
                 if (check_if_output_has_changed (backend, &outputs[i]))
                         changed = true;
@@ -1563,7 +1598,8 @@ has_32bpp_support (ply_renderer_backend_t *backend)
 }
 
 static bool
-query_device (ply_renderer_backend_t *backend)
+query_device (ply_renderer_backend_t *backend,
+              bool                    force)
 {
         bool ret = true;
 
@@ -1577,7 +1613,7 @@ query_device (ply_renderer_backend_t *backend)
                 return false;
         }
 
-        if (!create_heads_for_active_connectors (backend, false)) {
+        if (!create_heads_for_active_connectors (backend, force, false)) {
                 ply_trace ("Could not initialize heads");
                 ret = false;
         } else if (!has_32bpp_support (backend)) {
@@ -1602,7 +1638,7 @@ handle_change_event (ply_renderer_backend_t *backend)
                 return false;
         }
 
-        ret = create_heads_for_active_connectors (backend, true);
+        ret = create_heads_for_active_connectors (backend, true, true);
 
         drmModeFreeResources (backend->resources);
         backend->resources = NULL;
@@ -1866,7 +1902,8 @@ watch_input_device (ply_renderer_backend_t *backend,
                                           (ply_input_device_leds_changed_handler_t) on_input_leds_changed,
                                           &backend->input_source);
 
-        ply_terminal_set_disabled_input (backend->terminal);
+        if (backend->terminal != NULL)
+                ply_terminal_set_disabled_input (backend->terminal);
 }
 
 static void
@@ -1886,18 +1923,16 @@ static bool
 open_input_source (ply_renderer_backend_t      *backend,
                    ply_renderer_input_source_t *input_source)
 {
-        int terminal_fd;
-
         assert (backend != NULL);
         assert (has_input_source (backend, input_source));
 
         if (!backend->input_source_is_open)
                 watch_input_devices (backend);
 
-        if (backend->terminal != NULL) {
-                terminal_fd = ply_terminal_get_fd (backend->terminal);
-
-                input_source->terminal_input_watch = ply_event_loop_watch_fd (backend->loop, terminal_fd, PLY_EVENT_LOOP_FD_STATUS_HAS_DATA,
+        if (backend->terminal != NULL && ply_terminal_get_fd (backend->terminal) >= 0) {
+                input_source->terminal_input_watch = ply_event_loop_watch_fd (backend->loop,
+                                                                              ply_terminal_get_fd (backend->terminal),
+                                                                              PLY_EVENT_LOOP_FD_STATUS_HAS_DATA,
                                                                               (ply_event_handler_t) on_terminal_key_event,
                                                                               (ply_event_handler_t)
                                                                               on_input_source_disconnected, input_source);
@@ -1941,7 +1976,8 @@ close_input_source (ply_renderer_backend_t      *backend,
                                                                   (ply_input_device_leds_changed_handler_t) on_input_leds_changed,
                                                                   &backend->input_source);
                 }
-                ply_terminal_set_unbuffered_input (backend->terminal);
+                if (backend->terminal != NULL)
+                        ply_terminal_set_unbuffered_input (backend->terminal);
         }
 
         if (input_source->terminal_input_watch != NULL) {
@@ -1972,18 +2008,12 @@ get_panel_properties (ply_renderer_backend_t      *backend,
 }
 
 static ply_input_device_t *
-get_any_input_device_with_leds (ply_renderer_backend_t *backend)
+get_any_input_device (ply_renderer_backend_t *backend)
 {
-        ply_list_node_t *node;
+        ply_list_node_t *node = ply_list_get_first_node (backend->input_source.input_devices);
 
-        ply_list_foreach (backend->input_source.input_devices, node) {
-                ply_input_device_t *input_device;
-
-                input_device = ply_list_node_get_data (node);
-
-                if (ply_input_device_is_keyboard_with_leds (input_device))
-                        return input_device;
-        }
+        if (node != NULL)
+                return ply_list_node_get_data (node);
 
         return NULL;
 }
@@ -1992,29 +2022,36 @@ static bool
 get_capslock_state (ply_renderer_backend_t *backend)
 {
         if (using_input_device (&backend->input_source)) {
-                ply_input_device_t *dev = get_any_input_device_with_leds (backend);
+                ply_input_device_t *dev = get_any_input_device (backend);
+                if (!dev)
+                        return false;
+
                 return ply_input_device_get_capslock_state (dev);
         }
-        if (!backend->terminal)
+        if (!backend->local_console_terminal)
                 return false;
 
-        return ply_terminal_get_capslock_state (backend->terminal);
+        return ply_terminal_get_capslock_state (backend->local_console_terminal);
 }
 
 static const char *
 get_keymap (ply_renderer_backend_t *backend)
 {
         if (using_input_device (&backend->input_source)) {
-                ply_input_device_t *dev = get_any_input_device_with_leds (backend);
-                const char *keymap = ply_input_device_get_keymap (dev);
+                const char *keymap;
+                ply_input_device_t *dev = get_any_input_device (backend);
+                if (!dev)
+                        return NULL;
+
+                keymap = ply_input_device_get_keymap (dev);
                 if (keymap != NULL) {
                         return keymap;
                 }
         }
-        if (!backend->terminal)
+        if (!backend->local_console_terminal)
                 return NULL;
 
-        return ply_terminal_get_keymap (backend->terminal);
+        return ply_terminal_get_keymap (backend->local_console_terminal);
 }
 
 static void
@@ -2024,7 +2061,7 @@ sync_input_devices (ply_renderer_backend_t *backend)
         ply_xkb_keyboard_state_t *xkb_state;
         ply_input_device_t *source_input_device;
 
-        source_input_device = get_any_input_device_with_leds (backend);
+        source_input_device = get_any_input_device (backend);
 
         if (source_input_device == NULL)
                 return;

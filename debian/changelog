@@ -1,3 +1,11 @@
+plymouth (24.004.60+git20250714.287ae4de-0ubuntu1) questing; urgency=medium
+
+  * New git snapshot
+  * d/p: Refresh patches
+  * d/p: Drop patches applied upstream
+
+ -- Alessandro Astone <alessandro.astone@canonical.com>  Mon, 04 Aug 2025 09:55:03 +0200
+
 plymouth (24.004.60-2ubuntu10) questing; urgency=medium
 
   [ Daniel van Vugt ]

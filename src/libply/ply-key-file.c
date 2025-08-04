@@ -406,18 +406,27 @@ ply_key_file_get_double (ply_key_file_t *key_file,
         return ply_strtod (raw_value);
 }
 
-double
-ply_key_file_get_long (ply_key_file_t *key_file,
-                       const char     *group,
-                       const char     *key,
-                       long            default_value)
+unsigned long
+ply_key_file_get_ulong (ply_key_file_t *key_file,
+                        const char     *group,
+                        const char     *key,
+                        unsigned long   default_value)
 {
         char *raw_value = ply_key_file_get_raw_value (key_file, group, key);
+        char *endptr = NULL;
+        unsigned long u;
 
         if (!raw_value)
                 return default_value;
 
-        return strtol (raw_value, NULL, 0);
+        u = strtoul (raw_value, &endptr, 0);
+        if (*endptr != '\0') {
+                ply_trace ("group '%s' key '%s' val '%s' is not a valid unsigned number",
+                           group, key, raw_value);
+                return default_value;
+        }
+
+        return u;
 }
 
 static void

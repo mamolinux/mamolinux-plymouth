@@ -115,10 +115,10 @@ index 5fff2e4..8b71a97 100644
  unsigned long ply_pixel_display_get_height (ply_pixel_display_t *display);
  int ply_pixel_display_get_device_scale (ply_pixel_display_t *display);
 diff --git a/src/libply-splash-core/ply-renderer-plugin.h b/src/libply-splash-core/ply-renderer-plugin.h
-index 483ad27..7cde954 100644
+index 7d18f11..31ec8f3 100644
 --- a/src/libply-splash-core/ply-renderer-plugin.h
 +++ b/src/libply-splash-core/ply-renderer-plugin.h
-@@ -56,7 +56,8 @@ typedef struct
+@@ -58,7 +58,8 @@ typedef struct
  
          ply_pixel_buffer_t * (*get_buffer_for_head)(ply_renderer_backend_t *backend,
                                                      ply_renderer_head_t    *head);
@@ -129,10 +129,10 @@ index 483ad27..7cde954 100644
          bool (*open_input_source)(ply_renderer_backend_t      *backend,
                                    ply_renderer_input_source_t *input_source);
 diff --git a/src/libply-splash-core/ply-renderer.c b/src/libply-splash-core/ply-renderer.c
-index 40a2c81..169e2e3 100644
+index 21df22f..a6678c2 100644
 --- a/src/libply-splash-core/ply-renderer.c
 +++ b/src/libply-splash-core/ply-renderer.c
-@@ -353,6 +353,21 @@ ply_renderer_get_buffer_for_head (ply_renderer_t      *renderer,
+@@ -367,6 +367,21 @@ ply_renderer_get_buffer_for_head (ply_renderer_t      *renderer,
                                                                  head);
  }
  
@@ -155,10 +155,10 @@ index 40a2c81..169e2e3 100644
  ply_renderer_flush_head (ply_renderer_t      *renderer,
                           ply_renderer_head_t *head)
 diff --git a/src/libply-splash-core/ply-renderer.h b/src/libply-splash-core/ply-renderer.h
-index 5fbf819..b6cf95a 100644
+index 7c3406e..603e6c1 100644
 --- a/src/libply-splash-core/ply-renderer.h
 +++ b/src/libply-splash-core/ply-renderer.h
-@@ -65,6 +65,8 @@ const char *ply_renderer_get_device_name (ply_renderer_t *renderer);
+@@ -69,6 +69,8 @@ ply_renderer_type_t ply_renderer_get_type (ply_renderer_t *renderer);
  ply_list_t *ply_renderer_get_heads (ply_renderer_t *renderer);
  ply_pixel_buffer_t *ply_renderer_get_buffer_for_head (ply_renderer_t      *renderer,
                                                        ply_renderer_head_t *head);
@@ -168,10 +168,10 @@ index 5fbf819..b6cf95a 100644
  void ply_renderer_flush_head (ply_renderer_t      *renderer,
                                ply_renderer_head_t *head);
 diff --git a/src/main.c b/src/main.c
-index 33fe51e..8258e00 100644
+index 320fa96..1386266 100644
 --- a/src/main.c
 +++ b/src/main.c
-@@ -121,6 +121,7 @@ typedef struct
+@@ -123,6 +123,7 @@ typedef struct
          const char             *default_tty;
  
          int                     number_of_errors;
@@ -179,7 +179,7 @@ index 33fe51e..8258e00 100644
  } state_t;
  
  static void show_splash (state_t *state);
-@@ -190,8 +191,9 @@ on_update (state_t    *state,
+@@ -192,8 +193,9 @@ on_update (state_t    *state,
             const char *status)
  {
          ply_trace ("updating status to '%s'", status);
@@ -191,7 +191,7 @@ index 33fe51e..8258e00 100644
          if (state->boot_splash != NULL)
                  ply_boot_splash_update_status (state->boot_splash,
                                                 status);
-@@ -250,6 +252,25 @@ on_system_update (state_t *state,
+@@ -252,6 +254,25 @@ on_system_update (state_t *state,
          }
  }
  
@@ -217,7 +217,7 @@ index 33fe51e..8258e00 100644
  static void
  show_messages (state_t *state)
  {
-@@ -479,7 +500,7 @@ show_default_splash (state_t *state)
+@@ -504,7 +525,7 @@ show_default_splash (state_t *state)
          if (state->boot_splash == NULL) {
                  ply_trace ("Could not start default splash screen,"
                             "showing text splash screen");
@@ -226,7 +226,7 @@ index 33fe51e..8258e00 100644
          }
  
          if (state->boot_splash == NULL) {
-@@ -489,7 +510,8 @@ show_default_splash (state_t *state)
+@@ -514,7 +535,8 @@ show_default_splash (state_t *state)
          }
  
          if (state->boot_splash == NULL) {
@@ -236,7 +236,7 @@ index 33fe51e..8258e00 100644
                  return;
          }
  
-@@ -576,8 +598,8 @@ on_display_message (state_t    *state,
+@@ -601,8 +623,8 @@ on_display_message (state_t    *state,
                  ply_boot_splash_display_message (state->boot_splash, message);
          } else {
                  ply_trace ("not displaying message %s as no splash", message);
@@ -246,7 +246,7 @@ index 33fe51e..8258e00 100644
  }
  
  static void
-@@ -823,6 +845,7 @@ prepare_logging (state_t *state)
+@@ -848,6 +870,7 @@ prepare_logging (state_t *state)
                  if (state->number_of_errors > 0)
                          spool_error (state);
          }
@@ -254,7 +254,7 @@ index 33fe51e..8258e00 100644
  }
  
  static void
-@@ -2116,6 +2139,7 @@ initialize_environment (state_t *state)
+@@ -2156,6 +2179,7 @@ initialize_environment (state_t *state)
          state->keystroke_triggers = ply_list_new ();
          state->entry_triggers = ply_list_new ();
          state->entry_buffer = ply_buffer_new ();
@@ -263,10 +263,10 @@ index 33fe51e..8258e00 100644
  
          if (!ply_is_tracing_to_terminal ())
 diff --git a/src/plugins/renderers/frame-buffer/plugin.c b/src/plugins/renderers/frame-buffer/plugin.c
-index 3ce9b3d..37f46f8 100644
+index 2e44812..af5aa34 100644
 --- a/src/plugins/renderers/frame-buffer/plugin.c
 +++ b/src/plugins/renderers/frame-buffer/plugin.c
-@@ -647,6 +647,16 @@ get_buffer_for_head (ply_renderer_backend_t *backend,
+@@ -649,6 +649,16 @@ get_buffer_for_head (ply_renderer_backend_t *backend,
          return backend->head.pixel_buffer;
  }
  
@@ -283,7 +283,7 @@ index 3ce9b3d..37f46f8 100644
  static bool
  has_input_source (ply_renderer_backend_t      *backend,
                    ply_renderer_input_source_t *input_source)
-@@ -928,6 +938,7 @@ ply_renderer_backend_get_interface (void)
+@@ -931,6 +941,7 @@ ply_renderer_backend_get_interface (void)
                  .flush_head                   = flush_head,
                  .get_heads                    = get_heads,
                  .get_buffer_for_head          = get_buffer_for_head,
@@ -305,10 +305,10 @@ index f83ab5e..aacbe41 100644
          else
                  alpha = 1;
 diff --git a/src/plugins/splash/script/script-lib-sprite.c b/src/plugins/splash/script/script-lib-sprite.c
-index b9d7165..0806f7f 100644
+index 2c97f4a..0b04110 100644
 --- a/src/plugins/splash/script/script-lib-sprite.c
 +++ b/src/plugins/splash/script/script-lib-sprite.c
-@@ -366,6 +366,45 @@ static script_return_t sprite_window_set_y (script_state_t *state,
+@@ -368,6 +368,45 @@ static script_return_t sprite_window_set_y (script_state_t *state,
          return script_return_obj_null ();
  }
  
@@ -354,7 +354,7 @@ index b9d7165..0806f7f 100644
  static uint32_t extract_rgb_color (script_state_t *state)
  {
          uint8_t red = CLAMP (255 * script_obj_hash_get_number (state->local, "red"), 0, 255);
-@@ -666,6 +705,12 @@ script_lib_sprite_data_t *script_lib_sprite_setup (script_state_t *state,
+@@ -699,6 +738,12 @@ script_lib_sprite_data_t *script_lib_sprite_setup (script_state_t *state,
                                      "window",
                                      "value",
                                      NULL);

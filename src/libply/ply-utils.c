@@ -29,6 +29,7 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <locale.h>
+#include <math.h>
 #include <poll.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -87,6 +88,10 @@ static int overridden_device_scale = 0;
 
 static char kernel_command_line[PLY_MAX_COMMAND_LINE_SIZE];
 static bool kernel_command_line_is_set;
+
+static int cached_current_log_level = 0;
+static int cached_default_log_level = 0;
+static double log_level_update_time = 0.0;
 
 bool
 ply_open_unidirectional_pipe (int *sender_fd,
@@ -472,6 +477,24 @@ ply_string_has_prefix (const char *str,
         return strncmp (str, prefix, strlen (prefix)) == 0;
 }
 
+bool
+ply_string_has_suffix (const char *str,
+                       const char *suffix)
+{
+        size_t str_len, suffix_len;
+
+        if (str == NULL || suffix == NULL)
+                return false;
+
+        str_len = strlen (str);
+        suffix_len = strlen (suffix);
+
+        if (suffix_len > str_len)
+                return false;
+
+        return strcmp (str + (str_len - suffix_len), suffix) == 0;
+}
+
 double
 ply_get_timestamp (void)
 {
@@ -652,20 +675,6 @@ ply_create_file_link (const char *source,
                 return false;
 
         return true;
-}
-
-void
-ply_show_new_kernel_messages (bool should_show)
-{
-        int type;
-
-        if (should_show)
-                type = PLY_ENABLE_CONSOLE_PRINTK;
-        else
-                type = PLY_DISABLE_CONSOLE_PRINTK;
-
-        if (klogctl (type, NULL, 0) < 0)
-                ply_trace ("could not toggle printk visibility: %m");
 }
 
 ply_daemon_handle_t *
@@ -1001,16 +1010,37 @@ ply_set_device_scale (int device_scale)
         ply_trace ("Device scale is set to %d", device_scale);
 }
 
-/* The minimum resolution at which we turn on a device-scale of 2 */
-#define HIDPI_LIMIT 192
-#define HIDPI_MIN_HEIGHT 1200
-#define HIDPI_MIN_WIDTH 2560 /* For heuristic / guessed device-scale */
-
 /*
  * If we have guessed the scale once, keep guessing to avoid
  * changing the scale on simpledrm -> native driver switch.
  */
 static bool guess_device_scale;
+
+static int
+get_device_scale_guess (uint32_t width,
+                        uint32_t height)
+{
+        double aspect;
+
+        /* Swap width <-> height for portrait screens */
+        if (height > width) {
+                uint32_t tmp = width;
+                width = height;
+                height = tmp;
+        }
+
+        /*
+         * Special case for 3:2 screens which are only used in mobile form
+         * factors, with a lower threshold to enable 2x hiDPI scaling.
+         */
+        aspect = (double) width / height;
+        if (aspect == 1.5)
+                return (width >= 1800 &&
+                        height >= 1200) ? 2 : 1;
+
+        return (width >= 2880 &&
+                height >= 1620) ? 2 : 1;
+}
 
 static int
 get_device_scale (uint32_t width,
@@ -1019,8 +1049,8 @@ get_device_scale (uint32_t width,
                   uint32_t height_mm,
                   bool     guess)
 {
-        int device_scale;
-        double dpi_x, dpi_y;
+        int device_scale, target_dpi;
+        float diag_inches, diag_pixels, physical_dpi, perfect_scale;
         const char *force_device_scale;
 
         device_scale = 1;
@@ -1031,11 +1061,8 @@ get_device_scale (uint32_t width,
         if (overridden_device_scale != 0)
                 return overridden_device_scale;
 
-        if (height < HIDPI_MIN_HEIGHT)
-                return 1;
-
         if (guess)
-                return (width >= HIDPI_MIN_WIDTH) ? 2 : 1;
+                return get_device_scale_guess (width, height);
 
         /* Somebody encoded the aspect ratio (16/9 or 16/10)
          * instead of the physical size */
@@ -1045,15 +1072,21 @@ get_device_scale (uint32_t width,
             (width_mm == 16 && height_mm == 10))
                 return 1;
 
-        if (width_mm > 0 && height_mm > 0) {
-                dpi_x = (double) width / (width_mm / 25.4);
-                dpi_y = (double) height / (height_mm / 25.4);
-                /* We don't completely trust these values so both
-                 * must be high, and never pick higher ratio than
-                 * 2 automatically */
-                if (dpi_x > HIDPI_LIMIT && dpi_y > HIDPI_LIMIT)
-                        device_scale = 2;
-        }
+        if (width_mm == 0 || height_mm == 0)
+                return 1;
+
+        diag_inches = sqrtf (width_mm * width_mm + height_mm * height_mm) /
+                      25.4f;
+        diag_pixels = sqrtf (width * width + height * height);
+        physical_dpi = diag_pixels / diag_inches;
+
+        /* These constants are copied from Mutter's meta-monitor.c in order
+         * to match the default scale choice of the login screen.
+         */
+        target_dpi = (diag_inches >= 20.f) ? 110 : 135;
+
+        perfect_scale = physical_dpi / target_dpi;
+        device_scale = (perfect_scale > 1.625f) ? 2 : 1;
 
         return device_scale;
 }
@@ -1069,31 +1102,37 @@ ply_get_device_scale (uint32_t width,
 }
 
 int ply_guess_device_scale (uint32_t width,
-                            uint32_t height)
+                            uint32_t height,
+                            uint32_t width_mm,
+                            uint32_t height_mm)
 {
+        /* Simpledrm might know the actual physical dimensions of the its
+         * display. If it has no information it assumes 96 DPI. Calculate the
+         * pixel density to test if its larger than 96 DPI.
+         * Since DRM_MODE_RES_MM() truncates the the result add 1 to to width
+         * and height. This ensures that the calculated pixel density is only
+         * above 96 DPI if simpledrm has physical information.
+         */
+        uint32_t h_dpi = (width * 254) / ((width_mm + 1) * 10);
+        uint32_t v_dpi = (height * 254) / ((height_mm + 1) * 10);
+        if (h_dpi > 96 && v_dpi > 96) {
+                ply_trace ("simpledrm with valid dimensions (%u x %u mm)",
+                           width_mm, height_mm);
+                return get_device_scale (width, height, width_mm, height_mm,
+                                         false);
+        }
+
         guess_device_scale = true;
         return get_device_scale (width, height, 0, 0, true);
 }
 
-void
-ply_get_kmsg_log_levels (int *current_log_level,
-                         int *default_log_level)
+static void
+ply_get_kmsg_log_levels_uncached (int *current_log_level,
+                                  int *default_log_level)
 {
-        static double last_update_time = 0;
-        static int cached_current_log_level = 0;
-        static int cached_default_log_level = 0;
         char log_levels[4096] = "";
-        double current_time;
         char *field, *fields;
         int fd;
-
-        current_time = ply_get_timestamp ();
-
-        if ((current_time - last_update_time) < 1.0) {
-                *current_log_level = cached_current_log_level;
-                *default_log_level = cached_default_log_level;
-                return;
-        }
 
         ply_trace ("opening /proc/sys/kernel/printk");
         fd = open ("/proc/sys/kernel/printk", O_RDONLY);
@@ -1128,11 +1167,48 @@ ply_get_kmsg_log_levels (int *current_log_level,
         }
 
         *default_log_level = atoi (field);
+}
 
-        cached_current_log_level = *current_log_level;
-        cached_default_log_level = *default_log_level;
+void
+ply_get_kmsg_log_levels (int *current_log_level,
+                         int *default_log_level)
+{
+        double current_time;
+        bool no_cache;
+        bool cache_expired;
 
-        last_update_time = current_time;
+        no_cache = cached_current_log_level == 0 || cached_default_log_level == 0;
+        current_time = ply_get_timestamp ();
+        cache_expired = log_level_update_time > 0.0 && (current_time - log_level_update_time) >= 1.0;
+
+        if (no_cache || cache_expired) {
+                ply_get_kmsg_log_levels_uncached (&cached_current_log_level, &cached_default_log_level);
+                log_level_update_time = current_time;
+        }
+
+        *current_log_level = cached_current_log_level;
+        *default_log_level = cached_default_log_level;
+}
+
+void
+ply_show_new_kernel_messages (bool should_show)
+{
+        int type;
+
+        if (should_show) {
+                type = PLY_ENABLE_CONSOLE_PRINTK;
+
+                cached_current_log_level = cached_default_log_level = 0;
+                log_level_update_time = 0.0;
+        } else {
+                type = PLY_DISABLE_CONSOLE_PRINTK;
+
+                ply_get_kmsg_log_levels_uncached (&cached_current_log_level, &cached_default_log_level);
+                log_level_update_time = -1.0; /* Disable expiration */
+        }
+
+        if (klogctl (type, NULL, 0) < 0)
+                ply_trace ("could not toggle printk visibility: %m");
 }
 
 static const char *
@@ -1229,12 +1305,62 @@ ply_kernel_command_line_get_key_value (const char *key)
         return strndup (value, strcspn (value, " \n"));
 }
 
+unsigned long
+ply_kernel_command_line_get_ulong (const char   *key,
+                                   unsigned long default_value)
+{
+        const char *raw_value;
+        char *endptr = NULL;
+        unsigned long u;
+
+        raw_value = ply_kernel_command_line_get_string_after_prefix (key);
+        if (raw_value == NULL || raw_value[0] == '\0')
+                return default_value;
+
+        u = strtoul (raw_value, &endptr, 0);
+        if (!isspace ((int) *endptr) && *endptr != '\0') {
+                ply_trace ("'%s' argument '%s' is not a valid unsigned number",
+                           key, raw_value);
+                return default_value;
+        }
+
+        return u;
+}
+
 void
 ply_kernel_command_line_override (const char *command_line)
 {
         strncpy (kernel_command_line, command_line, sizeof(kernel_command_line));
         kernel_command_line[sizeof(kernel_command_line) - 1] = '\0';
         kernel_command_line_is_set = true;
+}
+
+char *
+ply_get_primary_kernel_console_type (void)
+{
+        int fd;
+        int len;
+        char proc_consoles[4096] = "";
+        size_t return_length;
+
+        if (ply_file_exists ("/proc/consoles")) {
+                ply_trace ("opening /proc/consoles");
+
+                fd = open ("/proc/consoles", O_RDONLY);
+                len = read (fd, proc_consoles, sizeof(proc_consoles));
+                close (fd);
+
+                /* The device type for /dev/ttyS0 is "ttyS".
+                 * for /dev/ttynull it is "ttynull", which appears as "ttynull0" in /proc/consoles. Exclude any numbers at the end.
+                 */
+                for (return_length = 0; return_length < len; return_length++) {
+                        /* Read until the next digit or space, the digit should be first */
+                        if (isdigit (proc_consoles[return_length]) || isspace (proc_consoles[return_length]))
+                                return strndup (proc_consoles, return_length);
+                }
+        }
+
+        return NULL;
 }
 
 double ply_strtod (const char *str)
@@ -1304,7 +1430,7 @@ ply_get_random_number (long lower_bound,
                 seed_initialized = true;
         }
 
-        offset = mrand48 ();
+        offset = (mrand48 () << 32) | (mrand48 () & 0xffffffff);
 
         offset = labs (offset) % range;
 

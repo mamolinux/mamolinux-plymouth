@@ -16,10 +16,10 @@ Last-Update: 2020-04-01
  1 file changed, 4 insertions(+)
 
 diff --git a/src/main.c b/src/main.c
-index 82319a8..572968f 100644
+index c4ce050..81df925 100644
 --- a/src/main.c
 +++ b/src/main.c
-@@ -2549,6 +2549,10 @@ main (int    argc,
+@@ -2591,6 +2591,10 @@ main (int    argc,
          find_system_default_splash (&state);
          find_distribution_default_splash (&state);
  

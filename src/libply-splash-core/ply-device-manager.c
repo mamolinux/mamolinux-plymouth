@@ -52,7 +52,6 @@
 static void create_devices_from_udev (ply_device_manager_t *manager);
 #endif
 
-static void create_non_graphical_devices (ply_device_manager_t *manager);
 static bool create_devices_for_terminal_and_renderer_type (ply_device_manager_t *manager,
                                                            const char           *device_path,
                                                            ply_terminal_t       *terminal,
@@ -341,44 +340,27 @@ remove_input_device_from_renderers (ply_device_manager_t *manager,
 }
 
 static bool
-verify_drm_device (struct udev_device *device)
+syspath_is_simpledrm (const char *syspath)
 {
-        const char *id_path;
+        return ply_string_has_suffix (syspath, "simple-framebuffer.0/drm/card0");
+}
 
-        /*
-         * Simple-framebuffer devices driven by simpledrm lack information
-         * like panel-rotation info and physical size, causing the splash
-         * to briefly render on its side / without HiDPI scaling, switching
-         * to the correct rendering when the native driver loads.
-         * To avoid this treat simpledrm devices as fbdev devices and only
-         * use them after the timeout.
-         */
-        id_path = udev_device_get_property_value (device, "ID_PATH");
-        if (!ply_string_has_prefix (id_path, "platform-simple-framebuffer"))
+/* Only use SimpleDRM devices if requested to do so */
+static bool
+verify_drm_device (ply_device_manager_t *manager,
+                   struct udev_device   *device)
+{
+        if (!syspath_is_simpledrm (udev_device_get_syspath (device)))
                 return true; /* Not a SimpleDRM device */
 
-        /*
-         * With nomodeset, no native drivers will load, so SimpleDRM devices
-         * should be used immediately.
-         */
-        if (ply_kernel_command_line_has_argument ("nomodeset"))
-                return true;
-
-        /*
-         * Some firmwares leave the panel black at boot. Allow enabling SimpleDRM
-         * use from the cmdline to show something to the user ASAP.
-         */
-        if (ply_kernel_command_line_has_argument ("plymouth.use-simpledrm"))
-                return true;
-
-        return false;
+        return manager->flags & PLY_DEVICE_MANAGER_FLAGS_USE_SIMPLEDRM;
 }
 
 static bool
 create_devices_for_udev_device (ply_device_manager_t *manager,
                                 struct udev_device   *device)
 {
-        const char *device_path, *device_sysname;
+        const char *device_path, *device_sysname, *device_syspath;
         bool created = false;
         bool force_fb = false;
 
@@ -387,6 +369,7 @@ create_devices_for_udev_device (ply_device_manager_t *manager,
 
         device_path = udev_device_get_devnode (device);
         device_sysname = udev_device_get_sysname (device);
+        device_syspath = udev_device_get_syspath (device);
 
         if (device_path != NULL) {
                 const char *subsystem;
@@ -396,12 +379,20 @@ create_devices_for_udev_device (ply_device_manager_t *manager,
                 ply_trace ("device subsystem is %s", subsystem);
 
                 if (strcmp (subsystem, SUBSYSTEM_DRM) == 0) {
-                        if (!manager->device_timeout_elapsed && !verify_drm_device (device)) {
+                        if (!manager->device_timeout_elapsed &&
+                            !verify_drm_device (manager, device)) {
                                 ply_trace ("ignoring since we only handle SimpleDRM devices after timeout");
                                 return false;
                         }
+                        if (ply_string_has_prefix (device_path, "/dev/dri/render")) {
+                                ply_trace ("ignoring since it is a render node");
+                                return false;
+                        }
                         ply_trace ("found DRM device %s", device_path);
-                        renderer_type = PLY_RENDERER_TYPE_DRM;
+                        if (syspath_is_simpledrm (device_syspath))
+                                renderer_type = PLY_RENDERER_TYPE_SIMPLEDRM;
+                        else
+                                renderer_type = PLY_RENDERER_TYPE_DRM;
                 } else if (strcmp (subsystem, SUBSYSTEM_FRAME_BUFFER) == 0) {
                         ply_trace ("found frame buffer device %s", device_path);
                         if (!fb_device_has_drm_device (manager, device))
@@ -431,20 +422,13 @@ create_devices_for_udev_device (ply_device_manager_t *manager,
                 }
 
                 if (renderer_type != PLY_RENDERER_TYPE_NONE) {
-                        ply_terminal_t *terminal = NULL;
-
-                        if (!manager->local_console_managed &&
-                            manager->local_console_terminal != NULL &&
-                            ply_terminal_is_vt (manager->local_console_terminal)) {
-                                terminal = manager->local_console_terminal;
-                        }
-
                         created = create_devices_for_terminal_and_renderer_type (manager,
                                                                                  device_path,
-                                                                                 terminal,
+                                                                                 NULL,
                                                                                  renderer_type);
                         if (created) {
-                                if (renderer_type == PLY_RENDERER_TYPE_DRM)
+                                if (renderer_type == PLY_RENDERER_TYPE_DRM ||
+                                    renderer_type == PLY_RENDERER_TYPE_SIMPLEDRM)
                                         manager->found_drm_device = 1;
                                 if (renderer_type == PLY_RENDERER_TYPE_FRAME_BUFFER)
                                         manager->found_fb_device = 1;
@@ -455,23 +439,22 @@ create_devices_for_udev_device (ply_device_manager_t *manager,
         return created;
 }
 
-static bool
+static void
 create_devices_for_subsystem (ply_device_manager_t *manager,
                               const char           *subsystem)
 {
         struct udev_enumerate *matches;
         struct udev_list_entry *entry;
-        bool found_device = false;
 
         if (strcmp (subsystem, SUBSYSTEM_INPUT) == 0) {
                 if (ply_kernel_command_line_has_argument ("plymouth.use-legacy-input")) {
                         ply_trace ("Not creating devices for subsystem " SUBSYSTEM_INPUT " because plymouth.use-legacy-input on command line");
-                        return false;
+                        return;
                 }
 
                 if (manager->xkb_keymap == NULL) {
                         ply_trace ("Not creating devices for subsystem " SUBSYSTEM_INPUT " because there is no configure XKB layout");
-                        return false;
+                        return;
                 }
         }
 
@@ -487,6 +470,7 @@ create_devices_for_subsystem (ply_device_manager_t *manager,
         udev_list_entry_foreach (entry, udev_enumerate_get_list_entry (matches)){
                 struct udev_device *device = NULL;
                 const char *path, *node;
+                int initialized;
 
                 path = udev_list_entry_get_name (entry);
 
@@ -499,15 +483,16 @@ create_devices_for_subsystem (ply_device_manager_t *manager,
 
                 device = udev_device_new_from_syspath (manager->udev_context, path);
 
-                /* if device isn't fully initialized, we'll get an add event later
-                 */
-                if (udev_device_get_is_initialized (device)) {
-                        ply_trace ("device is initialized");
+                /* If device isn't fully initialized, we'll get an add event later */
+                initialized = udev_device_get_is_initialized (device);
+                /* Simpledrm can be handled uninitialized and this shows the splash sooner */
+                if (initialized || syspath_is_simpledrm (path)) {
+                        ply_trace ("device is initialized %d", initialized);
 
                         node = udev_device_get_devnode (device);
                         if (node != NULL) {
                                 ply_trace ("found node %s", node);
-                                found_device = create_devices_for_udev_device (manager, device);
+                                create_devices_for_udev_device (manager, device);
                         }
                 } else {
                         ply_trace ("it's not initialized");
@@ -517,8 +502,6 @@ create_devices_for_subsystem (ply_device_manager_t *manager,
         }
 
         udev_enumerate_unref (matches);
-
-        return found_device;
 }
 
 static void
@@ -972,7 +955,9 @@ add_consoles_from_file (ply_device_manager_t *manager,
         contents_length = read (fd, contents, sizeof(contents) - 1);
 
         if (contents_length <= 0) {
-                ply_trace ("couldn't read it: %m");
+                if (contents_length < 0)
+                        ply_trace ("couldn't read it: %m");
+
                 close (fd);
                 return false;
         }
@@ -1077,6 +1062,18 @@ create_text_displays_for_terminal (ply_device_manager_t *manager,
                 manager->text_display_added_handler (manager->event_handler_data, display);
 }
 
+static void
+free_simpledrm_renderer (char                 *device_path,
+                         ply_renderer_t       *renderer,
+                         ply_device_manager_t *manager)
+{
+        if (ply_renderer_get_type (renderer) != PLY_RENDERER_TYPE_SIMPLEDRM)
+                return;
+
+        ply_trace ("removing simpledrm renderer %s", device_path);
+        free_devices_from_device_path (manager, device_path, true);
+}
+
 static bool
 create_devices_for_terminal_and_renderer_type (ply_device_manager_t *manager,
                                                const char           *device_path,
@@ -1094,21 +1091,35 @@ create_devices_for_terminal_and_renderer_type (ply_device_manager_t *manager,
                 return true;
         }
 
+        /*
+         * simpledrm udev remove events may arrive after normal drm device add
+         * events, leaving the local_console unmanaged breaking legacy input.
+         * Remove simpledrm renderers before adding drm renderers to avoid this.
+         */
+        if (renderer_type == PLY_RENDERER_TYPE_DRM) {
+                ply_hashtable_foreach (manager->renderers,
+                                       (ply_hashtable_foreach_func_t *)
+                                       free_simpledrm_renderer,
+                                       manager);
+        }
+
+        if (!terminal && !manager->local_console_managed &&
+            manager->local_console_terminal != NULL &&
+            ply_terminal_is_vt (manager->local_console_terminal))
+                terminal = manager->local_console_terminal;
+
         ply_trace ("creating devices for %s (renderer type: %u) (terminal: %s)",
                    device_path ? : "", renderer_type, terminal ? ply_terminal_get_name (terminal) : "none");
 
         if (renderer_type != PLY_RENDERER_TYPE_NONE) {
                 ply_renderer_t *old_renderer = NULL;
-                renderer = ply_renderer_new (renderer_type, device_path, terminal);
+                bool force = manager->device_timeout_elapsed ||
+                             (manager->flags & PLY_DEVICE_MANAGER_FLAGS_FORCE_OPEN);
 
-                if (renderer != NULL && !ply_renderer_open (renderer)) {
-                        if (errno == ENOENT) {
-                                ply_trace ("No renderer plugins installed, creating non-graphical devices");
-                                ply_renderer_free (renderer);
-                                create_non_graphical_devices (manager);
-                                manager->device_timeout_elapsed = true;
-                                return false;
-                        }
+                renderer = ply_renderer_new (renderer_type, device_path,
+                                             terminal, manager->local_console_terminal);
+
+                if (renderer != NULL && !ply_renderer_open (renderer, force)) {
                         ply_trace ("could not open renderer for %s", device_path);
                         ply_renderer_free (renderer);
                         renderer = NULL;

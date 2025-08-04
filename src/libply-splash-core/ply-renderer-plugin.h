@@ -39,11 +39,13 @@ typedef struct _ply_renderer_backend ply_renderer_backend_t;
 typedef struct
 {
         ply_renderer_backend_t * (*create_backend)(const char     *device_name,
-                                                   ply_terminal_t *terminal);
+                                                   ply_terminal_t *terminal,
+                                                   ply_terminal_t *local_console_terminal);
         void (*destroy_backend)(ply_renderer_backend_t *backend);
         bool (*open_device)(ply_renderer_backend_t *backend);
         void (*close_device)(ply_renderer_backend_t *backend);
-        bool (*query_device)(ply_renderer_backend_t *backend);
+        bool (*query_device)(ply_renderer_backend_t *backend,
+                             bool                    force);
         bool (*handle_change_event)(ply_renderer_backend_t *backend);
         bool (*map_to_device)(ply_renderer_backend_t *backend);
         void (*unmap_from_device)(ply_renderer_backend_t *backend);
