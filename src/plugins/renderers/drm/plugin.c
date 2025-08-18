@@ -1410,7 +1410,8 @@ check_simpledrm_resolution (ply_renderer_backend_t *backend,
         if (!output->connected)
                 return true;
 
-        if ((output->mode.hdisplay == 800 && output->mode.vdisplay == 600) ||
+        if ((output->mode.hdisplay == 640 && output->mode.vdisplay == 480) ||
+            (output->mode.hdisplay == 800 && output->mode.vdisplay == 600) ||
             (output->mode.hdisplay == 1024 && output->mode.vdisplay == 768)) {
                 ply_trace ("Skipping simpledrm device with mode %dx%d",
                            output->mode.hdisplay, output->mode.vdisplay);
