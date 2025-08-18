@@ -27,6 +27,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <libgen.h>
 #include <limits.h>
 #include <locale.h>
 #include <math.h>
@@ -222,6 +223,12 @@ ply_listen_to_unix_socket (const char            *path,
                 return -1;
 
         address = create_unix_address_from_path (path, type, &address_size);
+
+        if (type == PLY_UNIX_SOCKET_TYPE_CONCRETE) {
+                char *writable_path = strdup (path);
+                ply_create_directory (dirname (writable_path));
+                free (writable_path);
+        }
 
         if (bind (fd, address, address_size) < 0) {
                 ply_save_errno ();
