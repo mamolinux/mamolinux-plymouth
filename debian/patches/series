@@ -7,7 +7,6 @@ details-remove-separator.patch
 details-update-status.patch
 initramfsless-boot.patch
 ubuntu-add-splash-option.patch
-ubuntu-default-devicetimeout.patch
 ubuntu-spinner-style.patch
 ubuntu-spinner-fsck.patch
 plymouth-switch-root-initramfs-Preload-text-renderin.patch
