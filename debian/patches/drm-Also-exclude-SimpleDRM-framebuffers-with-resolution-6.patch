@@ -1,0 +1,25 @@
+From: Alessandro Astone <alessandro.astone@canonical.com>
+Date: Wed, 6 Aug 2025 15:16:37 +0200
+Subject: drm: Also exclude SimpleDRM framebuffers with resolution 640x480
+
+I'm getting this low resolution in QEMU/KVM
+
+Forwarded: https://gitlab.freedesktop.org/plymouth/plymouth/-/merge_requests/360
+---
+ src/plugins/renderers/drm/plugin.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/plugins/renderers/drm/plugin.c b/src/plugins/renderers/drm/plugin.c
+index 54db911..52c9c16 100644
+--- a/src/plugins/renderers/drm/plugin.c
++++ b/src/plugins/renderers/drm/plugin.c
+@@ -1410,7 +1410,8 @@ check_simpledrm_resolution (ply_renderer_backend_t *backend,
+         if (!output->connected)
+                 return true;
+ 
+-        if ((output->mode.hdisplay == 800 && output->mode.vdisplay == 600) ||
++        if ((output->mode.hdisplay == 640 && output->mode.vdisplay == 480) ||
++            (output->mode.hdisplay == 800 && output->mode.vdisplay == 600) ||
+             (output->mode.hdisplay == 1024 && output->mode.vdisplay == 768)) {
+                 ply_trace ("Skipping simpledrm device with mode %dx%d",
+                            output->mode.hdisplay, output->mode.vdisplay);

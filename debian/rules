@@ -31,9 +31,7 @@ override_dh_auto_configure:
 		-Drelease-file=/etc/os-release
 
 override_dh_install:
-	# remove non alternative-based theme policy files and tools
-	rm -f debian/tmp/etc/plymouth/plymouthd.conf
-	rm -f debian/tmp/usr/share/plymouth/plymouthd.defaults
+	# remove non alternative-based theme tools
 	rm -f debian/tmp/usr/sbin/plymouth-set-default-theme
 	rm -f debian/tmp/usr/share/man/man1/plymouth-set-default-theme.1
 

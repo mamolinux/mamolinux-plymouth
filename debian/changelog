@@ -1,3 +1,13 @@
+plymouth (24.004.60+git20250714.287ae4de-0ubuntu2) questing; urgency=medium
+
+  * d/p: Add proposed patch to skip SimpleDRM with 640x480 resolution too
+  * d/rules, d/install: Restore plymouth config files
+  * d/p/ubuntu-default-devicetimeout.patch: Drop unnecessary patch
+  * d/p/enable-usesimpledrm.patch: Show splash screen as soon as possible
+    (LP: #1869655)
+
+ -- Alessandro Astone <alessandro.astone@canonical.com>  Mon, 18 Aug 2025 22:28:07 +0200
+
 plymouth (24.004.60+git20250714.287ae4de-0ubuntu1) questing; urgency=medium
 
   * New git snapshot
