@@ -1,3 +1,17 @@
+plymouth (24.004.60+git20250714.287ae4de-0ubuntu3) questing; urgency=medium
+
+  [ Vincent Renzo Quilon ]
+  * debian/local/spinner: Updated spinner animation frames to align with
+    YaruCircularProgressIndicator (LP: #2115846)
+    - modified animation-0001.png through animation-0036 with updated style.
+    - modified throbber-0001.png through throbber-0030.png with updated style.
+    - extended 30 frames throbber files to 60 frames.
+
+  [ Nick Rosbrook ]
+  * d/source/include-binaries: include new theme image files
+
+ -- Nick Rosbrook <enr0n@ubuntu.com>  Tue, 19 Aug 2025 08:19:56 -0400
+
 plymouth (24.004.60+git20250714.287ae4de-0ubuntu2) questing; urgency=medium
 
   * d/p: Add proposed patch to skip SimpleDRM with 640x480 resolution too
