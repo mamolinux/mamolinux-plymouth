@@ -14,6 +14,4 @@ ubuntu-text.patch
 spinfinity-no-meson-symlink.patch
 remove-plymouth-set-default-theme-populate-initrd.patch
 include-necessary-files.patch
-ply-utils-Create-parent-directory-before-binding-concrete.patch
-drm-Also-exclude-SimpleDRM-framebuffers-with-resolution-6.patch
 enable-usesimpledrm.patch
