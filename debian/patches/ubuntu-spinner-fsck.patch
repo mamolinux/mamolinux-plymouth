@@ -14,10 +14,10 @@ Bug-Ubuntu: https://bugs.launchpad.net/bugs/1867130
  4 files changed, 373 insertions(+), 17 deletions(-)
 
 diff --git a/src/libply/ply-utils.c b/src/libply/ply-utils.c
-index d8d28c0..a80a146 100644
+index f227589..7524b3c 100644
 --- a/src/libply/ply-utils.c
 +++ b/src/libply/ply-utils.c
-@@ -326,7 +326,7 @@ ply_write_uint32 (int      fd,
+@@ -333,7 +333,7 @@ ply_write_uint32 (int      fd,
          return ply_write (fd, buffer, 4 * sizeof(uint8_t));
  }
  
@@ -26,7 +26,7 @@ index d8d28c0..a80a146 100644
  ply_read_some_bytes (int    fd,
                       void  *buffer,
                       size_t max_bytes)
-@@ -335,6 +335,7 @@ ply_read_some_bytes (int    fd,
+@@ -342,6 +342,7 @@ ply_read_some_bytes (int    fd,
          size_t total_bytes_read = 0;
  
          assert (fd >= 0);

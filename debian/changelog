@@ -1,3 +1,12 @@
+plymouth (24.004.60+git20250831.4a3c171d-0ubuntu1) questing; urgency=medium
+
+  * New git snapshot which only contains one new merge request:
+    - Add keywords needed for BGRT to po/meson.build to fix translations
+      (LP: #2088413)
+  * Drop patches merged upstream and refresh remaining patches
+
+ -- Benjamin Drung <bdrung@ubuntu.com>  Fri, 19 Sep 2025 12:21:24 +0200
+
 plymouth (24.004.60+git20250714.287ae4de-0ubuntu3) questing; urgency=medium
 
   [ Vincent Renzo Quilon ]
