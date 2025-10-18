@@ -1,3 +1,13 @@
+plymouth (24.004.60+git20250831.4a3c171d-0ubuntu1.mamolinux1) questing; urgency=medium
+
+  * Add mamolinux plymouth themes
+    - Add mamolinux text theme
+    - Add build instructions in README
+    - Replace ubuntu logo with mamolinux
+      logo in spinner
+
+ -- Himadri Sekhar Basu <hsb10@iitbbs.ac.in>  Sun, 19 Oct 2025 01:13:54 +0530
+
 plymouth (24.004.60+git20250831.4a3c171d-0ubuntu1) questing; urgency=medium
 
   * New git snapshot which only contains one new merge request:
