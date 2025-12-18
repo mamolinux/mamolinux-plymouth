@@ -58,7 +58,7 @@ override_dh_auto_install:
 	# Workaround a but in meson, it cannot create a symlink if the target doesn't exist
 	# https://github.com/mesonbuild/meson/issues/12253
 	install -D -m 0644 debian/local/ubuntu-logo.png debian/plymouth/usr/share/plymouth/ubuntu-logo.png
-	install -D -m 0644 debian/local/ubuntu-logo.png debian/plymouth/usr/share/plymouth/themes/spinner/watermark.png
+	install -D -m 0644 debian/local/ubuntu-logo.png debian/plymouth-theme-spinner/usr/share/plymouth/themes/spinner/watermark.png
 	install -D -m 0644 debian/local/ubuntu-logo.png debian/plymouth-themes/usr/share/plymouth/themes/spinfinity/header-image.png
 	dh_auto_install
 
