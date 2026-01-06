@@ -53,11 +53,11 @@ fi
 # copy plugin and images for current theme
 copy_exec "${MODULE}"
 mkdir -p "${DESTDIR}/${THEMES}"
-cp -r "${THEMES}/${THEME_NAME}" "${DESTDIR}/${THEMES}"
+cp -r --dereference "${THEMES}/${THEME_NAME}" "${DESTDIR}/${THEMES}"
 
 if [ -n "${IMAGE_DIR}" ] && [ "${THEMES}/${THEME_NAME}" != "${IMAGE_DIR}" ]
 then
-	cp -r "${IMAGE_DIR}" "${DESTDIR}/${THEMES}"
+	cp -r --dereference "${IMAGE_DIR}" "${DESTDIR}/${THEMES}"
 fi
 
 # copy binaries and base plugins
@@ -140,9 +140,9 @@ case "${THEME_NAME}" in
 		# for two-step
 		case "$(sed -n 's/^ModuleName=\(.*\)/\1/p' ${THEME})" in
 			two-step)
-				# add watermark.png
+				# add watermark.png if theme didn't ship it
 				logo=/usr/share/desktop-base/debian-logos/logo-text-version-64.png
-				if [ -e $logo ]
+				if [ -e $logo ] && [ ! -e "${DESTDIR}/${IMAGE_DIR}/watermark.png" ]
 				then
 					cp $logo "${DESTDIR}/${IMAGE_DIR}/watermark.png"
 				fi
