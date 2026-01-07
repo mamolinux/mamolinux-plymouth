@@ -23,6 +23,7 @@ ProgressBarBackgroundColor=0x606060
 ProgressBarForegroundColor=0xffffff
 DialogClearsFirmwareBackground=false
 MessageBelowAnimation=true
+AllowPasswordClearTextToggle=true
 
 [boot-up]
 UseEndAnimation=false

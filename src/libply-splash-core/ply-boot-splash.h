@@ -79,6 +79,10 @@ void ply_boot_splash_display_normal (ply_boot_splash_t *splash);
 void ply_boot_splash_display_password (ply_boot_splash_t *splash,
                                        const char        *prompt,
                                        int                bullets);
+bool ply_boot_splash_can_display_password_clear_text (ply_boot_splash_t *splash);
+void ply_boot_splash_display_password_clear_text (ply_boot_splash_t *splash,
+                                                  const char        *prompt,
+                                                  const char        *entry_text);
 void ply_boot_splash_display_question (ply_boot_splash_t *splash,
                                        const char        *prompt,
                                        const char        *entry_text);

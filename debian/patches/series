@@ -15,3 +15,4 @@ spinfinity-no-meson-symlink.patch
 remove-plymouth-set-default-theme-populate-initrd.patch
 include-necessary-files.patch
 enable-usesimpledrm.patch
+toggle-password.patch
