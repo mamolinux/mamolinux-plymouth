@@ -1,3 +1,9 @@
+plymouth (24.004.60+git20250831.4a3c171d-0ubuntu3) resolute; urgency=medium
+
+  * d/p/toggle-password.patch: Remove toggle password enabled by default 
+
+ -- Simon Johnsson <simon.johnsson@canonical.com>  Fri, 09 Jan 2026 14:41:11 +0100
+
 plymouth (24.004.60+git20250831.4a3c171d-0ubuntu2) resolute; urgency=medium
 
   * d/p/toggle-password.patch: Add two-step cleartext password toggle
