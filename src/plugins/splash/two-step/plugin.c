@@ -203,6 +203,7 @@ struct _ply_boot_splash_plugin
         uint32_t                            message_below_animation : 1;
         uint32_t                            transient_progress_bar : 1;
         uint32_t                            in_fsck : 1;
+        uint32_t                            allow_password_clear_text_toggle : 1;
 
         char                               *monospace_font;
         uint32_t                            plugin_console_messages_updating : 1;
@@ -710,6 +711,8 @@ view_load (view_t *view)
         ply_trace ("loading entry");
         if (!ply_entry_load (view->entry))
                 return false;
+        else
+                ply_entry_set_text_color (view->entry, 1.0, 1.0, 1.0, 1.0);
 
         ply_keymap_icon_load (view->keymap_icon);
         ply_capslock_icon_load (view->capslock_icon);
@@ -1382,6 +1385,9 @@ create_plugin (ply_key_file_t *key_file)
 
         plugin->message_below_animation =
                 ply_key_file_get_bool (key_file, "two-step", "MessageBelowAnimation");
+
+        plugin->allow_password_clear_text_toggle =
+                ply_key_file_get_bool (key_file, "two-step", "AllowPasswordClearTextToggle");
 
         progress_function = ply_key_file_get_value (key_file, "two-step", "ProgressFunction");
 
@@ -2354,16 +2360,17 @@ display_normal (ply_boot_splash_plugin_t *plugin)
 }
 
 static void
-display_password (ply_boot_splash_plugin_t *plugin,
-                  const char               *prompt,
-                  int                       bullets)
+display_password_internal (ply_boot_splash_plugin_t *plugin,
+                           const char               *prompt,
+                           const char               *entry_text,
+                           int                       bullets)
 {
         pause_views (plugin);
         if (plugin->state == PLY_BOOT_SPLASH_DISPLAY_NORMAL)
                 stop_animation (plugin);
 
         plugin->state = PLY_BOOT_SPLASH_DISPLAY_PASSWORD_ENTRY;
-        show_prompt (plugin, prompt, NULL, bullets);
+        show_prompt (plugin, prompt, entry_text, bullets);
         redraw_views (plugin);
 
         if (plugin->should_show_console_messages)
@@ -2371,6 +2378,31 @@ display_password (ply_boot_splash_plugin_t *plugin,
 
         process_needed_redraws (plugin);
         unpause_views (plugin);
+}
+
+static void
+display_password (ply_boot_splash_plugin_t *plugin,
+                  const char               *prompt,
+                  int                       bullets)
+{
+        display_password_internal (plugin, prompt, NULL, bullets);
+}
+
+static void
+display_password_clear_text (ply_boot_splash_plugin_t *plugin,
+                             const char               *prompt,
+                             const char               *entry_text)
+{
+        if (!plugin->allow_password_clear_text_toggle) {
+                // if function is disabled, fall back to masked bullet mode,
+                // as dynamically setting function to NULL is not possible
+                int bullets = ply_utf8_string_get_length (entry_text,
+                                                          strlen (entry_text));
+                bullets = MAX (0, bullets);
+                display_password_internal (plugin, prompt, NULL, bullets);
+                return;
+        }
+        display_password_internal (plugin, prompt, entry_text, -1);
 }
 
 static void
@@ -2520,23 +2552,24 @@ ply_boot_splash_plugin_get_interface (void)
 {
         static ply_boot_splash_plugin_interface_t plugin_interface =
         {
-                .create_plugin        = create_plugin,
-                .destroy_plugin       = destroy_plugin,
-                .add_pixel_display    = add_pixel_display,
-                .remove_pixel_display = remove_pixel_display,
-                .show_splash_screen   = show_splash_screen,
-                .update_status        = update_status,
-                .on_boot_progress     = on_boot_progress,
-                .hide_splash_screen   = hide_splash_screen,
-                .on_root_mounted      = on_root_mounted,
-                .become_idle          = become_idle,
-                .display_normal       = display_normal,
-                .display_password     = display_password,
-                .display_question     = display_question,
-                .display_message      = display_message,
-                .system_update        = system_update,
-                .on_boot_output       = on_boot_output,
-                .validate_input       = validate_input,
+                .create_plugin               = create_plugin,
+                .destroy_plugin              = destroy_plugin,
+                .add_pixel_display           = add_pixel_display,
+                .remove_pixel_display        = remove_pixel_display,
+                .show_splash_screen          = show_splash_screen,
+                .update_status               = update_status,
+                .on_boot_progress            = on_boot_progress,
+                .hide_splash_screen          = hide_splash_screen,
+                .on_root_mounted             = on_root_mounted,
+                .become_idle                 = become_idle,
+                .display_normal              = display_normal,
+                .display_password            = display_password,
+                .display_password_clear_text = display_password_clear_text,
+                .display_question            = display_question,
+                .display_message             = display_message,
+                .system_update               = system_update,
+                .on_boot_output              = on_boot_output,
+                .validate_input              = validate_input,
         };
 
         return &plugin_interface;

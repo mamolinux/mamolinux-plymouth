@@ -44,6 +44,7 @@
 #define KEY_CTRL_W ('\100' ^ 'W')
 #define KEY_CTRL_V ('\100' ^ 'V')
 #define KEY_ESCAPE ('\100' ^ '[')
+#define KEY_TAB '\t'
 #define KEY_RETURN '\n'
 #define KEY_BACKSPACE '\177'
 
@@ -97,6 +98,7 @@ struct _ply_keyboard
         ply_list_t                  *keyboard_input_handler_list;
         ply_list_t                  *backspace_handler_list;
         ply_list_t                  *escape_handler_list;
+        ply_list_t                  *tab_handler_list;
         ply_list_t                  *enter_handler_list;
 
         uint32_t                     is_active : 1;
@@ -114,6 +116,7 @@ ply_keyboard_new_for_terminal (ply_terminal_t *terminal)
         keyboard->keyboard_input_handler_list = ply_list_new ();
         keyboard->backspace_handler_list = ply_list_new ();
         keyboard->escape_handler_list = ply_list_new ();
+        keyboard->tab_handler_list = ply_list_new ();
         keyboard->enter_handler_list = ply_list_new ();
         keyboard->provider_type = PLY_KEYBOARD_PROVIDER_TYPE_TERMINAL;
         keyboard->provider.if_terminal = calloc (1, sizeof(ply_keyboard_terminal_provider_t));
@@ -136,6 +139,7 @@ ply_keyboard_new_for_renderer (ply_renderer_t *renderer)
         keyboard->keyboard_input_handler_list = ply_list_new ();
         keyboard->backspace_handler_list = ply_list_new ();
         keyboard->escape_handler_list = ply_list_new ();
+        keyboard->tab_handler_list = ply_list_new ();
         keyboard->enter_handler_list = ply_list_new ();
         keyboard->provider_type = PLY_KEYBOARD_PROVIDER_TYPE_RENDERER;
         keyboard->provider.if_renderer = calloc (1, sizeof(ply_keyboard_renderer_provider_t));
@@ -217,6 +221,17 @@ process_keyboard_input (ply_keyboard_t *keyboard,
                         }
 
                         ply_trace ("end escape key handler");
+                        return;
+
+                case KEY_TAB:
+                        ply_trace ("tab key!");
+                        for (node = ply_list_get_first_node (keyboard->tab_handler_list);
+                             node; node = ply_list_get_next_node (keyboard->tab_handler_list, node)) {
+                                ply_keyboard_closure_t *closure = ply_list_node_get_data (node);
+                                ply_keyboard_tab_handler_t tab_handler = (ply_keyboard_tab_handler_t) closure->function;
+                                tab_handler (closure->user_data);
+                        }
+                        ply_trace ("end tab key handler");
                         return;
 
                 case KEY_BACKSPACE:
@@ -633,6 +648,40 @@ ply_keyboard_remove_escape_handler (ply_keyboard_t               *keyboard,
                 if ((ply_keyboard_escape_handler_t) closure->function == escape_handler) {
                         ply_keyboard_closure_free (closure);
                         ply_list_remove_node (keyboard->escape_handler_list, node);
+                        return;
+                }
+        }
+}
+
+void
+ply_keyboard_add_tab_handler (ply_keyboard_t            *keyboard,
+                              ply_keyboard_tab_handler_t tab_handler,
+                              void                      *user_data)
+{
+        ply_keyboard_closure_t *closure;
+
+        assert (keyboard != NULL);
+
+        closure = ply_keyboard_closure_new ((ply_keyboard_handler_t) tab_handler,
+                                            user_data);
+        ply_list_append_data (keyboard->tab_handler_list, closure);
+}
+
+
+void
+ply_keyboard_remove_tab_handler (ply_keyboard_t            *keyboard,
+                                 ply_keyboard_tab_handler_t tab_handler)
+{
+        ply_list_node_t *node;
+
+        assert (keyboard != NULL);
+
+        for (node = ply_list_get_first_node (keyboard->tab_handler_list);
+             node; node = ply_list_get_next_node (keyboard->tab_handler_list, node)) {
+                ply_keyboard_closure_t *closure = ply_list_node_get_data (node);
+                if ((ply_keyboard_tab_handler_t) closure->function == tab_handler) {
+                        ply_keyboard_closure_free (closure);
+                        ply_list_remove_node (keyboard->tab_handler_list, node);
                         return;
                 }
         }
