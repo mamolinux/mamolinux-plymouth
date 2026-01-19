@@ -1082,15 +1082,24 @@ view_show_prompt (view_t     *view,
         if (prompt != NULL && prompt[0]) {
                 char buf[128];
 
+                size_t copy_len = strlen(prompt);
+                if (copy_len >= sizeof(buf)) copy_len = sizeof(buf) - 1;
+                memcpy(buf, prompt, copy_len);
+                buf[copy_len] = 0;
+
                 /* Strip ':' at end of prompt since we show it below the text-entry */
-                prompt_len = strlen (prompt);
-                if (prompt[prompt_len - 1] == ':' && prompt_len < sizeof(buf)) {
-                        strcpy (buf, prompt);
-                        buf[prompt_len - 1] = 0;
-                        prompt = buf;
+                size_t buf_len = strlen(buf);
+                if (buf_len > 0 && buf[buf_len - 1] == ':')
+                        buf[--buf_len] = 0;
+
+                if (plugin->allow_password_clear_text_toggle) {
+                        const char toggle_hint[] = " | (TAB to show)";
+                        size_t buf_space = sizeof(buf) - buf_len - 1;
+                        if (buf_space >= strlen(toggle_hint))
+                            strncat(buf, toggle_hint, buf_space);
                 }
 
-                ply_label_set_text (view->label, prompt);
+                ply_label_set_text (view->label, buf);
 
                 /* We center the prompt in the middle and use 80% of the horizontal space */
                 int label_width = screen_width * 100 / 80;

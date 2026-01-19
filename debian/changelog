@@ -1,3 +1,10 @@
+plymouth (24.004.60+git20250831.4a3c171d-0ubuntu4) resolute; urgency=medium
+
+  * d/p/toggle-password.patch: Add TAB toggle hint for password
+    (LP: #2138715)
+
+ -- Simon Johnsson <simon.johnsson@canonical.com>  Mon, 19 Jan 2026 15:42:10 +0100
+
 plymouth (24.004.60+git20250831.4a3c171d-0ubuntu3) resolute; urgency=medium
 
   * d/p/toggle-password.patch: Remove toggle password enabled by default 
