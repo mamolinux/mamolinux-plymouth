@@ -121,9 +121,9 @@ case "${THEME_NAME}" in
 		;;
 
 	*)
-		if [ -d ${DESTDIR}/usr/share/plymouth/themes/spinner ]; then
-			cp /usr/share/plymouth/themes/spinner/watermark.png "${DESTDIR}/usr/share/plymouth/themes/spinner/watermark.png"
-		fi
+		# logo from base-files
+		mkdir -p "${DESTDIR}/usr/share/pixmaps"
+		cp -a /usr/share/pixmaps/ubuntu-logo-text-dark.png "${DESTDIR}/usr/share/pixmaps"
 
 		# fontconfig
 		mkdir -p "${DESTDIR}/etc/fonts/conf.d"
