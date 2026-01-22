@@ -103,6 +103,9 @@ typedef struct
         bool (*validate_input) (ply_boot_splash_plugin_t *plugin,
                                 const char               *entry_text,
                                 const char               *add_text);
+        void (*display_password_clear_text)(ply_boot_splash_plugin_t *plugin,
+                                            const char               *prompt,
+                                            const char               *entry_text);
 } ply_boot_splash_plugin_interface_t;
 
 #endif /* PLY_BOOT_SPLASH_PLUGIN_H */
