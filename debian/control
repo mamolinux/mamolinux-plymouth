@@ -203,9 +203,9 @@ Depends:
  plymouth-label (= ${binary:Version}),
  lsb-release,
 Breaks: plymouth-themes (<< 0.9.4git20190712-0ubuntu1~),
-        plymouth (<< 24.004.60+git20250831.4a3c171d-0ubuntu4),
+        plymouth (<< 24.004.60+git20250831.4a3c171d-0ubuntu5),
 Replaces: plymouth-themes (<< 0.9.4git20190712-0ubuntu1~),
-          plymouth (<< 24.004.60+git20250831.4a3c171d-0ubuntu4),
+          plymouth (<< 24.004.60+git20250831.4a3c171d-0ubuntu5),
 Provides: plymouth-theme,
 Description: boot animation, logger and I/O multiplexer - spinner theme
  Plymouth provides a boot-time I/O multiplexing framework - the most obvious
