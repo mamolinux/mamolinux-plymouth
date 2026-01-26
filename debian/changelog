@@ -1,3 +1,10 @@
+plymouth (24.004.60+git20250831.4a3c171d-0ubuntu6) resolute; urgency=medium
+
+  * d/control: Fixup versioned Breaks/Replaces for themes/spinner/watermark.png
+    (LP: #2138984)
+
+ -- Alessandro Astone <alessandro.astone@canonical.com>  Mon, 26 Jan 2026 11:16:29 +0100
+
 plymouth (24.004.60+git20250831.4a3c171d-0ubuntu5) resolute; urgency=medium
 
   * Move themes/spinner/watermark.png to the spinner package
