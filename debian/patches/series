@@ -16,3 +16,4 @@ include-necessary-files.patch
 enable-usesimpledrm.patch
 toggle-password.patch
 fix-date-order.patch
+force-scale-guessing.patch
