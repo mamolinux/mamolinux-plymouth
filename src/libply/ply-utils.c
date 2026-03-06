@@ -1069,7 +1069,7 @@ get_device_scale (uint32_t width,
         if (overridden_device_scale != 0)
                 return overridden_device_scale;
 
-        if (guess)
+        if (true)
                 return get_device_scale_guess (width, height);
 
         /* Somebody encoded the aspect ratio (16/9 or 16/10)
