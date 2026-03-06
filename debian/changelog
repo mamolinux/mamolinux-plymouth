@@ -1,3 +1,10 @@
+plymouth (24.004.60+git20250831.4a3c171d-0ubuntu7) resolute; urgency=medium
+
+  * debian/patches/force-scale-guessing.patch:
+    - Always "guess" the device scale (LP: #2116296)
+
+ -- Daniel van Vugt <daniel.van.vugt@canonical.com>  Fri, 06 Mar 2026 11:35:01 +0100
+
 plymouth (24.004.60+git20250831.4a3c171d-0ubuntu6) resolute; urgency=medium
 
   * d/control: Fixup versioned Breaks/Replaces for themes/spinner/watermark.png

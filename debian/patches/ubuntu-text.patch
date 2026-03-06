@@ -5,14 +5,14 @@ Subject: Add ubuntu-text splash plugin and theme
 Forwarded: not-needed
 Last-Update: 2011-01-21
 ---
- src/plugins/splash/meson.build             |   1 +
- src/plugins/splash/ubuntu-text/meson.build |  11 +
- src/plugins/splash/ubuntu-text/plugin.c    | 805 +++++++++++++++++++++++++++++
- themes/meson.build                         |   1 +
- themes/ubuntu-text/meson.build             |   4 +
- themes/ubuntu-text/ubuntu-text.plymouth.in |  11 +
- 6 files changed, 833 insertions(+)
- create mode 100644 src/plugins/splash/ubuntu-text/meson.build
+ src/plugins/splash/meson.build                     |   1 +
+ .../splash/{details => ubuntu-text}/meson.build    |   2 +-
+ src/plugins/splash/ubuntu-text/plugin.c            | 805 +++++++++++++++++++++
+ themes/meson.build                                 |   1 +
+ themes/ubuntu-text/meson.build                     |   4 +
+ themes/ubuntu-text/ubuntu-text.plymouth.in         |  11 +
+ 6 files changed, 823 insertions(+), 1 deletion(-)
+ copy src/plugins/splash/{details => ubuntu-text}/meson.build (82%)
  create mode 100644 src/plugins/splash/ubuntu-text/plugin.c
  create mode 100644 themes/ubuntu-text/meson.build
  create mode 100644 themes/ubuntu-text/ubuntu-text.plymouth.in
@@ -26,23 +26,19 @@ index 65c7e21..6894a72 100644
  subdir('script')
  subdir('tribar')
 +subdir('ubuntu-text')
-diff --git a/src/plugins/splash/ubuntu-text/meson.build b/src/plugins/splash/ubuntu-text/meson.build
-new file mode 100644
-index 0000000..474a290
---- /dev/null
+diff --git a/src/plugins/splash/details/meson.build b/src/plugins/splash/ubuntu-text/meson.build
+similarity index 82%
+copy from src/plugins/splash/details/meson.build
+copy to src/plugins/splash/ubuntu-text/meson.build
+index ad7c39f..474a290 100644
+--- a/src/plugins/splash/details/meson.build
 +++ b/src/plugins/splash/ubuntu-text/meson.build
-@@ -0,0 +1,11 @@
+@@ -1,4 +1,4 @@
+-details_plugin = shared_module('details',
 +text_plugin = shared_module('ubuntu-text',
-+  'plugin.c',
-+  dependencies: [
-+    libply_splash_core_dep,
-+    libply_splash_graphics_dep,
-+  ],
-+  include_directories: config_h_inc,
-+  name_prefix: '',
-+  install: true,
-+  install_dir: plymouth_plugin_path,
-+)
+   'plugin.c',
+   dependencies: [
+     libply_splash_core_dep,
 diff --git a/src/plugins/splash/ubuntu-text/plugin.c b/src/plugins/splash/ubuntu-text/plugin.c
 new file mode 100644
 index 0000000..6f01e5f
