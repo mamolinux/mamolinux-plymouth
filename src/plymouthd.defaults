@@ -3,3 +3,4 @@
 [Daemon]
 ShowDelay=0
 DeviceTimeout=8
+UseSimpledrm=1
