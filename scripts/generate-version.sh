@@ -21,4 +21,4 @@ fi
 # If it is from a git checkout, derive the version from the date of the last commit, and the number
 # of commits since the last release.
 COMMITS_SINCE_LAST_RELEASE=$(git rev-list $(git describe --abbrev=0)..HEAD --count)
-date +%y.%j.${COMMITS_SINCE_LAST_RELEASE} -d "@$(git log -1 --pretty=format:%ct)"
+date -d "@$(git log -1 --pretty=format:%ct)" +%y.%j.${COMMITS_SINCE_LAST_RELEASE}
