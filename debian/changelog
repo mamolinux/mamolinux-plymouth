@@ -1,3 +1,11 @@
+plymouth (24.004.60+git20250831.4a3c171d-0ubuntu8) resolute; urgency=medium
+
+  * d/local/spinner:
+    - Update spinner to use Resolute loader
+    - Increase number of animation stills to 60
+
+ -- Simon Johnsson <simon.johnsson@canonical.com>  Thu, 12 Mar 2026 15:27:04 +0100
+
 plymouth (24.004.60+git20250831.4a3c171d-0ubuntu7) resolute; urgency=medium
 
   * debian/patches/force-scale-guessing.patch:
