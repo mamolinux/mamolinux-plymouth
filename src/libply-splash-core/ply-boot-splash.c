@@ -173,6 +173,7 @@ ply_boot_splash_add_text_display (ply_boot_splash_t  *splash,
                                   ply_text_display_t *display)
 {
         int number_of_columns, number_of_rows;
+        ply_terminal_t *terminal;
 
         if (splash->plugin_interface->add_text_display == NULL)
                 return;
@@ -183,6 +184,11 @@ ply_boot_splash_add_text_display (ply_boot_splash_t  *splash,
         ply_trace ("adding %dx%d text display", number_of_columns, number_of_rows);
 
         splash->plugin_interface->add_text_display (splash->plugin, display);
+
+        terminal = ply_text_display_get_terminal (display);
+        if (terminal)
+                ply_terminal_set_unbuffered_input (terminal);
+
         ply_list_append_data (splash->text_displays, display);
 }
 
