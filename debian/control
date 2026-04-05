@@ -82,7 +82,12 @@ Package: libplymouth-dev
 Architecture: any
 Multi-Arch: same
 Section: libdevel
-Depends: libplymouth5 (= ${binary:Version}), ${misc:Depends}, ${shlibs:Depends}
+Depends: libevdev-dev,
+         libplymouth5 (= ${binary:Version}),
+         libudev-dev,
+         libxkbcommon-dev,
+         ${misc:Depends},
+         ${shlibs:Depends}
 Breaks: plymouth-dev (<< 0.9.2-1~)
 Replaces: plymouth-dev (<< 0.9.2-1~)
 Description: graphical boot animation and logger - development files
