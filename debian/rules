@@ -27,7 +27,7 @@ override_dh_auto_configure:
 		-Dbackground-color=0x2c001e \
 		-Dbackground-start-color-stop=0x2c001e \
 		-Dbackground-end-color-stop=0x2c001e \
-		-Dlogo=/usr/share/pixmaps/ubuntu-logo-text-dark.png \
+		-Dlogo=/usr/share/pixmaps/mamolinux-logo.png \
 		-Drelease-file=/etc/os-release
 
 override_dh_install:
@@ -45,13 +45,14 @@ override_dh_install:
 	mkdir -p debian/plymouth/usr/share/apport/package-hooks
 	install -m 644 debian/source_plymouth.apport debian/plymouth/usr/share/apport/package-hooks/source_plymouth.py
 
-	# Install the ubuntu spinner assets
+	# Install the mamolinux spinner assets
+	install -D -m 0644 debian/local/mamolinux-logo.png debian/plymouth/usr/share/pixmaps/mamolinux-logo.png
 	cp debian/local/spinner/* debian/plymouth-theme-spinner/usr/share/plymouth/themes/spinner
 	cp debian/local/entry.png debian/plymouth-theme-spinner/usr/share/plymouth/themes/spinner
 	cp debian/local/lock.png debian/plymouth-theme-spinner/usr/share/plymouth/themes/spinner
 	cp debian/local/keyboard.png debian/plymouth-theme-spinner/usr/share/plymouth/themes/spinner
 	cp debian/local/bgrt-fallback.png debian/plymouth-theme-spinner/usr/share/plymouth/themes/spinner
-	ln -s ../../../pixmaps/ubuntu-logo-text-dark.png debian/plymouth-theme-spinner/usr/share/plymouth/themes/spinner/watermark.png
+	ln -sf ../../../pixmaps/mamolinux-logo.png debian/plymouth-theme-spinner/usr/share/plymouth/themes/spinner/watermark.png
 
 # Disable dh_installinitramfs as we are managing this ourself
 override_dh_installinitramfs:
