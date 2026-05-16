@@ -1,3 +1,15 @@
+plymouth (24.004.60+git20250831.4a3c171d-0ubuntu8.mamolinux1) resolute; urgency=medium
+
+  * Add mamolinux plymouth themes
+    - Rebase with ubuntu resolute
+    - Refresh ubuntu-text patch
+    - Add mamolinux text theme
+    - Add build instructions in README
+    - Replace ubuntu logo with mamolinux
+      logo in spinner
+
+ -- Himadri Sekhar Basu <hsb10@iitbbs.ac.in>  Sun, 17 May 2026 02:31:43 +0530
+
 plymouth (24.004.60+git20250831.4a3c171d-0ubuntu8) resolute; urgency=medium
 
   * d/local/spinner:
